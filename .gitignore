@@ -1,9 +1,15 @@
-CHSMS/.vs/CHSMS/FileContentIndex/dbbd5196-8109-4aca-b946-053a1dd82410.vsidx
-CHSMS/.vs/CHSMS/DesignTimeBuild/.dtbcache.v2
-CHSMS/.vs/CHSMS/FileContentIndex/5febb71d-77a7-44b7-9fe8-8300549e0121.vsidx
-CHSMS/.vs/CHSMS/v17/.futdcache.v2
-CHSMS/.vs/CHSMS/v17/.suo
-CHSMS/.vs/ProjectEvaluation/chsms.metadata.v7.bin
-CHSMS/.vs/ProjectEvaluation/chsms.projects.v7.bin
-CHSMS/.vs/CHSMS/v17/.suo
-CHSMS/.vs/CHSMS/FileContentIndex/f7f2ceaa-f6b0-45ac-9062-115a6b8d6df9.vsidx
+# Bỏ qua thư mục Visual Studio cache
+.vs/
+*.suo
+*.v2
+*.vsidx
+*.bin
+
+# Bỏ qua thư mục build
+bin/
+obj/
+
+# Bỏ qua file log & tạm thời
+*.log
+*.tmp
+*.cache
