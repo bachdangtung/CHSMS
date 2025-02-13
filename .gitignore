@@ -5,6 +5,13 @@
 *.vsidx
 *.bin
 
+# Bỏ qua file .suo của Visual Studio
+*.suo
+.vs/
+
+# Bỏ qua file user config của Visual Studio
+*.csproj.user
+
 # Bỏ qua thư mục build
 bin/
 obj/
