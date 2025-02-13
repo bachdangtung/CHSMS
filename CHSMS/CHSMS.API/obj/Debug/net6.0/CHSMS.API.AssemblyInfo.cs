@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CHSMS.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d4674ebf293ead491b32d35a2a05536cfc6e8f8c")]
 [assembly: System.Reflection.AssemblyProductAttribute("CHSMS.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CHSMS.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
