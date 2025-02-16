@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using NETCore.MailKit.Extensions;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,19 @@ builder.Services.AddDbContext<SEP_TestContext>(options =>
 {
     options.UseSqlServer(connectionString);
 });
+
+builder.Services.AddMailKit(config => config.UseMailKit(
+    new NETCore.MailKit.Infrastructure.Internal.MailKitOptions()
+    {
+        Server = builder.Configuration["Smtp:Server"],
+        Port = int.Parse(builder.Configuration["Smtp:Port"]),
+        SenderEmail = builder.Configuration["Smtp:SenderEmail"],
+        SenderName = builder.Configuration["Smtp:SenderName"],
+        Account = builder.Configuration["Smtp:Username"],
+        Password = builder.Configuration["Smtp:Password"],
+        Security = true
+    }
+));
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IUserRepository, UserRepository>();

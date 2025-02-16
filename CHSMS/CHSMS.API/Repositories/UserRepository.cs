@@ -17,5 +17,15 @@ namespace CHSMS.API.Repositories
         {
             return await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(u => u.Email == email);
         }
+
+        public async Task<User?> GetByIdAsync(int id)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.UserId == id);
+        }
+
+        public void Update(User UpdatedUser)
+        {
+            _context.Users.Update(UpdatedUser);
+        }
     }
 }

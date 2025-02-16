@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CHSMS.API.DTOs
+namespace CHSMS.API.DTOs.User
 {
     public class LoginDto
     {

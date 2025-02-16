@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using CHSMS.API.DTOs;
+using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
 
 namespace CHSMS.API.Configuration;
