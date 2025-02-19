@@ -1,4 +1,6 @@
 using CHSMS.API.Models;
+using CHSMS.API.Repositories;
+using CHSMS.API.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +14,10 @@ builder.Services.AddDbContext<SEP_TestContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<MedicalSupplyReposotory>();
+builder.Services.AddScoped<MedicalSupplyService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
