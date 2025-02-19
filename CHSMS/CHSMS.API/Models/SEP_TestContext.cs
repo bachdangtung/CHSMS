@@ -41,13 +41,8 @@ namespace CHSMS.API.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                Console.WriteLine(Directory.GetCurrentDirectory());
-                IConfiguration config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, true)
-                .Build();
-                var strConn = config["ConnectionStrings:SEP_DB"];
-                optionsBuilder.UseSqlServer(strConn);
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseSqlServer("server=.;database=SEP_Test;uid=sa;pwd=sa;TrustServerCertificate=True;");
             }
         }
 
@@ -162,7 +157,7 @@ namespace CHSMS.API.Models
             modelBuilder.Entity<MedicalUsage>(entity =>
             {
                 entity.HasKey(e => e.UsageId)
-                    .HasName("PK__MedicalU__29B197C0E3E8CD92");
+                    .HasName("PK__MedicalU__29B197C02F4D629D");
 
                 entity.ToTable("MedicalUsage");
 
@@ -185,17 +180,17 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.Medicine)
                     .WithMany(p => p.MedicalUsages)
                     .HasForeignKey(d => d.MedicineId)
-                    .HasConstraintName("FK__MedicalUs__Medic__4E88ABD4");
+                    .HasConstraintName("FK__MedicalUs__Medic__4D94879B");
 
                 entity.HasOne(d => d.Patient)
                     .WithMany(p => p.MedicalUsages)
                     .HasForeignKey(d => d.PatientId)
-                    .HasConstraintName("FK__MedicalUs__Patie__4F7CD00D");
+                    .HasConstraintName("FK__MedicalUs__Patie__4E88ABD4");
 
                 entity.HasOne(d => d.Prescription)
                     .WithMany(p => p.MedicalUsages)
                     .HasForeignKey(d => d.PrescriptionId)
-                    .HasConstraintName("FK__MedicalUs__Presc__5070F446");
+                    .HasConstraintName("FK__MedicalUs__Presc__4F7CD00D");
             });
 
             modelBuilder.Entity<Medicine>(entity =>
@@ -273,12 +268,12 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.Patient)
                     .WithMany(p => p.Prescriptions)
                     .HasForeignKey(d => d.PatientId)
-                    .HasConstraintName("FK__Prescript__Patie__5165187F");
+                    .HasConstraintName("FK__Prescript__Patie__5070F446");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Prescriptions)
                     .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK__Prescript__UserI__52593CB8");
+                    .HasConstraintName("FK__Prescript__UserI__5165187F");
             });
 
             modelBuilder.Entity<Role>(entity =>
@@ -324,7 +319,7 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.SupplySettlementReport)
                     .WithMany(p => p.SupplyConsumptionDetails)
                     .HasForeignKey(d => d.SupplySettlementReportId)
-                    .HasConstraintName("FK__SupplyCon__Suppl__534D60F1");
+                    .HasConstraintName("FK__SupplyCon__Suppl__52593CB8");
             });
 
             modelBuilder.Entity<SupplyConsumptionReport>(entity =>

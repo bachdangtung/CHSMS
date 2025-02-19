@@ -1,4 +1,7 @@
-﻿namespace CHSMS.API.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace CHSMS.API.Models
 {
     public partial class SupplyInventory
     {

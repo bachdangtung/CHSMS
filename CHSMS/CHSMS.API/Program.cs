@@ -6,7 +6,6 @@ using CHSMS.API.Services;
 using CHSMS.API.Services.Interfaces;
 using CHSMS.API.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using CHSMS.API.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;

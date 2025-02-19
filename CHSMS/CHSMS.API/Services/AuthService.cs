@@ -109,7 +109,7 @@ namespace CHSMS.API.Services
             await _unitOfWork.CommitAsync();
 
             // Send the reset link via email
-            string resetLink = $"{_configuration["FrontendUrl"]}/reset-password?token={resetToken}";
+            string resetLink = $"token={resetToken}";
             await _emailService.SendAsync(email, "Password Reset Request",
                 $"Click the link to reset your password: {resetLink}", true);
 

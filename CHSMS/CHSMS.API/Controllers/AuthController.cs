@@ -36,5 +36,27 @@ namespace CHSMS.API.Controllers
 
             return Ok("Password changed successfully.");
         }
+
+        // Request Password Reset
+        [HttpPost("request-reset-password")]
+        public async Task<IActionResult> RequestResetPassword([FromBody] ResetPasswordRequestDto model)
+        {
+            bool result = await _authService.RequestResetPasswordAsync(model.Email);
+            if (!result)
+                return BadRequest("User not found.");
+
+            return Ok("Password reset link has been sent to your email.");
+        }
+
+        // Reset Password
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)
+        {
+            bool result = await _authService.ResetPasswordAsync(model.Token, model.NewPassword);
+            if (!result)
+                return BadRequest("Invalid or expired token.");
+
+            return Ok("Password reset successfully.");
+        }
     }
 }
