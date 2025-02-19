@@ -6,6 +6,7 @@ using CHSMS.API.Services;
 using CHSMS.API.Services.Interfaces;
 using CHSMS.API.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using CHSMS.API.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -37,8 +38,9 @@ builder.Services.AddMailKit(config => config.UseMailKit(
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<MedicalSupplyReposotory>();
+builder.Services.AddScoped<MedicalSupplyService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
