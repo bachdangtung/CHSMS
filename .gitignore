@@ -22,3 +22,6 @@ obj/
 *.cache
 /CHSMS/CHSMS.API/obj
 CHSMS/CHSMS.API/obj/Debug/net6.0/CHSMS.API.GeneratedMSBuildEditorConfig.editorconfig
+CHSMS/CHSMS.API/obj/Debug/net6.0/CHSMS.API.GeneratedMSBuildEditorConfig.editorconfig
+CHSMS/CHSMS.API/obj/Debug/net6.0/CHSMS.API.GeneratedMSBuildEditorConfig.editorconfig
+/CHSMS/CHSMS.API/obj
