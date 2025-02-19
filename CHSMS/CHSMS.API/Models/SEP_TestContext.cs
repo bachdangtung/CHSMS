@@ -432,6 +432,10 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
 
+                entity.Property(e => e.ResetToken).HasMaxLength(255);
+
+                entity.Property(e => e.ResetTokenExpiry).HasColumnType("datetime");
+
                 entity.Property(e => e.RoleId).HasColumnName("RoleID");
 
                 entity.HasOne(d => d.Department)

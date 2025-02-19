@@ -82,39 +82,6 @@ namespace CHSMS.API.Services
             return BCrypt.Net.BCrypt.Verify(enteredPassword, storedHash);
         }
 
-        /*        // Request Reset Password (Generate Token & Send Email)
-                public async Task<bool> RequestResetPasswordAsync(string email)
-                {
-                    var user = await _unitOfWork.Users.GetByEmailAsync(email);
-                    if (user == null) return false;
-
-                    string resetToken = Guid.NewGuid().ToString();
-                    user.ResetToken = resetToken;
-                    user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
-
-                    _unitOfWork.UserRepository.Update(user);
-                    await _unitOfWork.SaveAsync();
-
-                    await _emailService.SendResetPasswordEmail(email, resetToken);
-                    return true;
-                }
-
-                // Reset Password (Verify Token & Set New Password)
-                public async Task<bool> ResetPasswordAsync(string token, string newPassword)
-                {
-                    var user = await _unitOfWork.UserRepository.GetByResetTokenAsync(token);
-                    if (user == null || user.ResetTokenExpiry < DateTime.UtcNow)
-                        return false;
-
-                    user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
-                    user.ResetToken = null;
-                    user.ResetTokenExpiry = null;
-
-                    _unitOfWork.UserRepository.Update(user);
-                    await _unitOfWork.SaveAsync();
-                    return true;
-                }*/
-
         // Change Password (Verify Old Password & Update)
         public async Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword)
         {
@@ -128,5 +95,42 @@ namespace CHSMS.API.Services
             await _unitOfWork.CommitAsync();
             return true;
         }
+
+        // Request Password Reset
+        public async Task<bool> RequestResetPasswordAsync(string email)
+        {
+            var user = await _unitOfWork.Users.GetByEmailAsync(email);
+            if (user == null) return false;
+
+            string resetToken = Guid.NewGuid().ToString(); // Generate a unique token
+            user.ResetToken = resetToken;
+            user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1); // Token expires in 1 hour
+            _unitOfWork.Users.Update(user);
+            await _unitOfWork.CommitAsync();
+
+            // Send the reset link via email
+            string resetLink = $"{_configuration["FrontendUrl"]}/reset-password?token={resetToken}";
+            await _emailService.SendAsync(email, "Password Reset Request",
+                $"Click the link to reset your password: {resetLink}", true);
+
+            return true;
+        }
+
+        // Reset Password
+        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        {
+            var user = await _unitOfWork.Users.GetByResetTokenAsync(token);
+            if (user == null || user.ResetTokenExpiry < DateTime.UtcNow)
+                return false; // Invalid or expired token
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            user.ResetToken = null;
+            user.ResetTokenExpiry = null;
+
+            _unitOfWork.Users.Update(user);
+            await _unitOfWork.CommitAsync();
+            return true;
+        }
+
     }
 }

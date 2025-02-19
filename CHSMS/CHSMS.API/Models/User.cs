@@ -22,6 +22,8 @@ namespace CHSMS.API.Models
         public int? DepartmentId { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
+        public string? ResetToken { get; set; }
+        public DateTime? ResetTokenExpiry { get; set; }
 
         public virtual Department? Department { get; set; }
         public virtual Role? Role { get; set; }

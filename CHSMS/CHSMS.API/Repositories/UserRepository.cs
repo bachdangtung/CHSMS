@@ -27,5 +27,11 @@ namespace CHSMS.API.Repositories
         {
             _context.Users.Update(UpdatedUser);
         }
+
+        public async Task<User?> GetByResetTokenAsync(string token)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.ResetToken == token);
+        }
+
     }
 }

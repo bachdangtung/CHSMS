@@ -7,5 +7,6 @@ namespace CHSMS.API.Repositories.Interfaces
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetByIdAsync(int id);
         void Update(User UpdatedUser);
+        Task<User?> GetByResetTokenAsync(string token);
     }
 }
