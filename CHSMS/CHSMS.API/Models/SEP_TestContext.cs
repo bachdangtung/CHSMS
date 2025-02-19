@@ -41,8 +41,13 @@ namespace CHSMS.API.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("server=.;database=SEP_Test;uid=sa;pwd=sa;TrustServerCertificate=True;");
+                Console.WriteLine(Directory.GetCurrentDirectory());
+                IConfiguration config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", true, true)
+                .Build();
+                var strConn = config["ConnectionStrings:SEP_DB"];
+                optionsBuilder.UseSqlServer(strConn);
             }
         }
 
@@ -138,8 +143,6 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.BatchNumber).HasMaxLength(255);
 
-                entity.Property(e => e.ExpiryDate).HasColumnType("date");
-
                 entity.Property(e => e.Name).HasMaxLength(255);
 
                 entity.Property(e => e.Status).HasMaxLength(255);
@@ -150,23 +153,16 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.UnitOfMeasure).HasMaxLength(255);
 
-                entity.Property(e => e.UserId).HasColumnName("UserID");
-
                 entity.HasOne(d => d.Supplier)
                     .WithMany(p => p.MedicalSupplies)
                     .HasForeignKey(d => d.SupplierId)
                     .HasConstraintName("FK__MedicalSu__Suppl__4CA06362");
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.MedicalSupplies)
-                    .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK__MedicalSu__UserI__4D94879B");
             });
 
             modelBuilder.Entity<MedicalUsage>(entity =>
             {
                 entity.HasKey(e => e.UsageId)
-                    .HasName("PK__MedicalU__29B197C00C6B3AE0");
+                    .HasName("PK__MedicalU__29B197C0E3E8CD92");
 
                 entity.ToTable("MedicalUsage");
 
@@ -355,11 +351,11 @@ namespace CHSMS.API.Models
             {
                 entity.ToTable("SupplyInventory");
 
-                entity.Property(e => e.SupplyInventoryId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("SupplyInventoryID");
+                entity.Property(e => e.SupplyInventoryId).HasColumnName("SupplyInventoryID");
 
                 entity.Property(e => e.CertificateNumber).HasMaxLength(255);
+
+                entity.Property(e => e.ExpirationDate).HasColumnType("date");
 
                 entity.Property(e => e.MedicalSupplyId).HasColumnName("MedicalSupplyID");
 
@@ -367,12 +363,15 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.TransactionDate).HasColumnType("date");
 
-                entity.Property(e => e.UnitOfMeasure).HasMaxLength(255);
-
                 entity.HasOne(d => d.MedicalSupply)
                     .WithMany(p => p.SupplyInventories)
                     .HasForeignKey(d => d.MedicalSupplyId)
-                    .HasConstraintName("FK__SupplyInv__Medic__5535A963");
+                    .HasConstraintName("FK_SupplyInventory_MedicalSupplies");
+
+                entity.HasOne(d => d.Receiver)
+                    .WithMany(p => p.SupplyInventories)
+                    .HasForeignKey(d => d.ReceiverId)
+                    .HasConstraintName("FK_SupplyInventory_Users");
             });
 
             modelBuilder.Entity<SupplySettlementReport>(entity =>

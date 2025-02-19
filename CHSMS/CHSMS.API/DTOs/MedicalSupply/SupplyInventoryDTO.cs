@@ -1,6 +1,6 @@
-﻿namespace CHSMS.API.Models
+﻿namespace CHSMS.API.DTOs.MedicalSupply
 {
-    public partial class SupplyInventory
+    public class SupplyInventoryDTO
     {
         public int SupplyInventoryId { get; set; }
         public int? MedicalSupplyId { get; set; }
@@ -11,8 +11,5 @@
         public DateTime? ExpirationDate { get; set; }
         public int? ReceiverId { get; set; }
         public string? Note { get; set; }
-
-        public virtual MedicalSupply? MedicalSupply { get; set; }
-        public virtual User? Receiver { get; set; }
     }
 }

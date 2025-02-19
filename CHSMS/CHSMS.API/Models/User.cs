@@ -8,8 +8,8 @@ namespace CHSMS.API.Models
         public User()
         {
             Appointments = new HashSet<Appointment>();
-            MedicalSupplies = new HashSet<MedicalSupply>();
             Prescriptions = new HashSet<Prescription>();
+            SupplyInventories = new HashSet<SupplyInventory>();
         }
 
         public int UserId { get; set; }
@@ -26,7 +26,7 @@ namespace CHSMS.API.Models
         public virtual Department? Department { get; set; }
         public virtual Role? Role { get; set; }
         public virtual ICollection<Appointment> Appointments { get; set; }
-        public virtual ICollection<MedicalSupply> MedicalSupplies { get; set; }
         public virtual ICollection<Prescription> Prescriptions { get; set; }
+        public virtual ICollection<SupplyInventory> SupplyInventories { get; set; }
     }
 }
