@@ -18,9 +18,13 @@ namespace CHSMS.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var token = await _authService.AuthenticateAsync(model.Email, model.Password);
             if (token == null)
-                return Unauthorized("Invalid credentials.");
+                return Unauthorized("Sai tài khoản hoặc mật khẩu.");
 
             return Ok(new { Token = token });
         }
@@ -29,34 +33,65 @@ namespace CHSMS.API.Controllers
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var userId = int.Parse(User.FindFirst("Id")?.Value);
             var result = await _authService.ChangePasswordAsync(userId, model.OldPassword, model.NewPassword);
             if (!result)
-                return BadRequest("Incorrect old password.");
+                return BadRequest("Sai mật khẩu cũ.");
 
-            return Ok("Password changed successfully.");
+            return Ok("Đã thay đổi mật khẩu.");
         }
 
         // Request Password Reset
         [HttpPost("request-reset-password")]
         public async Task<IActionResult> RequestResetPassword([FromBody] ResetPasswordRequestDto model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             bool result = await _authService.RequestResetPasswordAsync(model.Email);
             if (!result)
-                return BadRequest("User not found.");
+                return BadRequest("Không tìm thấy Email.");
 
-            return Ok("Password reset link has been sent to your email.");
+            return Ok("Đã gửi Email thành công.");
         }
 
         // Reset Password
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
         {
-            bool result = await _authService.ResetPasswordAsync(model.Token, model.NewPassword);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            bool result = await _authService.ResetPasswordAsync(resetPasswordDto);
             if (!result)
-                return BadRequest("Invalid or expired token.");
+                return BadRequest("Đường đẫn không hợp lệ hoặc hết hạn");
 
-            return Ok("Password reset successfully.");
+            return Ok("Đặt lại mật khẩu thành công.");
+        }
+
+        //Add user
+        [HttpPost("add-user")]
+        public async Task<IActionResult> AddUser([FromBody] CreateUserDto createUserDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var user = await _authService.CreateUserAsync(createUserDto);
+                return Ok(new { message = "Tạo tài khoản thành công", user });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
 using CHSMS.API.Services.Interfaces;
 using CHSMS.API.UnitOfWork;
@@ -14,15 +15,15 @@ namespace CHSMS.API.Services
     {
         private readonly IConfiguration _configuration;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
+        private readonly IMapper _mapper;
 
-        public AuthService(IUnitOfWork unitOfWork, IMapper mapper, IConfiguration configuration, IEmailService emailService)
+        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IEmailService emailService, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
             _configuration = configuration;
             _emailService = emailService;
+            _mapper = mapper;
         }
 
         public async Task<string?> AuthenticateAsync(string email, string password)
@@ -117,13 +118,14 @@ namespace CHSMS.API.Services
         }
 
         // Reset Password
-        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        public async Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
         {
-            var user = await _unitOfWork.Users.GetByResetTokenAsync(token);
+
+            var user = await _unitOfWork.Users.GetByResetTokenAsync(resetPasswordDto);
             if (user == null || user.ResetTokenExpiry < DateTime.UtcNow)
                 return false; // Invalid or expired token
 
-            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            user.Password = BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.NewPassword);
             user.ResetToken = null;
             user.ResetTokenExpiry = null;
 
@@ -132,5 +134,19 @@ namespace CHSMS.API.Services
             return true;
         }
 
+        // Add user
+        public async Task<User> CreateUserAsync(CreateUserDto createUserDto)
+        {
+            var existedUser = await _unitOfWork.Users.GetByEmailAsync(createUserDto.Email);
+            if (existedUser != null)
+            {
+                throw new Exception("Tài khoản đã tồn tại");
+            }
+            var user = _mapper.Map<User>(createUserDto);
+
+            _unitOfWork.Users.Add(user);
+            await _unitOfWork.CommitAsync();
+            return user;
+        }
     }
 }

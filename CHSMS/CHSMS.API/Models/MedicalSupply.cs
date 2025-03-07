@@ -16,6 +16,7 @@ namespace CHSMS.API.Models
         public string? SupplyType { get; set; }
         public string? UnitOfMeasure { get; set; }
         public int? SupplierId { get; set; }
+        public int? QuantityInStock { get; set; }
         public string? Status { get; set; }
         public double? ImportPrice { get; set; }
         public double? SellingPrice { get; set; }

@@ -50,9 +50,7 @@ namespace CHSMS.API.Models
         {
             modelBuilder.Entity<Appointment>(entity =>
             {
-                entity.Property(e => e.AppointmentId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("AppointmentID");
+                entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
 
                 entity.Property(e => e.Date).HasColumnType("date");
 
@@ -75,9 +73,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<Department>(entity =>
             {
-                entity.Property(e => e.DepartmentId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("DepartmentID");
+                entity.Property(e => e.DepartmentId).HasColumnName("DepartmentID");
 
                 entity.Property(e => e.DepartmentName).HasMaxLength(255);
             });
@@ -86,9 +82,7 @@ namespace CHSMS.API.Models
             {
                 entity.ToTable("MedicalInventory");
 
-                entity.Property(e => e.MedicalInventoryId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("MedicalInventoryID");
+                entity.Property(e => e.MedicalInventoryId).HasColumnName("MedicalInventoryID");
 
                 entity.Property(e => e.DecisionLetter).HasMaxLength(255);
 
@@ -101,16 +95,14 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.Medicine)
                     .WithMany(p => p.MedicalInventories)
                     .HasForeignKey(d => d.MedicineId)
-                    .HasConstraintName("FK__MedicalIn__Medic__4AB81AF0");
+                    .HasConstraintName("FK__MedicalIn__Medic__5DCAEF64");
             });
 
             modelBuilder.Entity<MedicalRecord>(entity =>
             {
                 entity.ToTable("MedicalRecord");
 
-                entity.Property(e => e.MedicalRecordId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("MedicalRecordID");
+                entity.Property(e => e.MedicalRecordId).HasColumnName("MedicalRecordID");
 
                 entity.Property(e => e.Condition).HasMaxLength(255);
 
@@ -132,9 +124,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<MedicalSupply>(entity =>
             {
-                entity.Property(e => e.MedicalSupplyId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("MedicalSupplyID");
+                entity.Property(e => e.MedicalSupplyId).HasColumnName("MedicalSupplyID");
 
                 entity.Property(e => e.BatchNumber).HasMaxLength(255);
 
@@ -157,13 +147,11 @@ namespace CHSMS.API.Models
             modelBuilder.Entity<MedicalUsage>(entity =>
             {
                 entity.HasKey(e => e.UsageId)
-                    .HasName("PK__MedicalU__29B197C02F4D629D");
+                    .HasName("PK__MedicalU__29B197C065967111");
 
                 entity.ToTable("MedicalUsage");
 
-                entity.Property(e => e.UsageId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("UsageID");
+                entity.Property(e => e.UsageId).HasColumnName("UsageID");
 
                 entity.Property(e => e.MedicineId).HasColumnName("MedicineID");
 
@@ -180,7 +168,7 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.Medicine)
                     .WithMany(p => p.MedicalUsages)
                     .HasForeignKey(d => d.MedicineId)
-                    .HasConstraintName("FK__MedicalUs__Medic__4D94879B");
+                    .HasConstraintName("FK__MedicalUs__Medic__60A75C0F");
 
                 entity.HasOne(d => d.Patient)
                     .WithMany(p => p.MedicalUsages)
@@ -197,9 +185,7 @@ namespace CHSMS.API.Models
             {
                 entity.ToTable("Medicine");
 
-                entity.Property(e => e.MedicineId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("MedicineID");
+                entity.Property(e => e.MedicineId).HasColumnName("MedicineID");
 
                 entity.Property(e => e.ActiveIngredient).HasMaxLength(255);
 
@@ -213,16 +199,18 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.ExpiryDate).HasColumnType("date");
 
-                entity.Property(e => e.Name).HasMaxLength(255);
+                entity.Property(e => e.MedicineCode)
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.MedicineName).HasMaxLength(255);
 
                 entity.Property(e => e.TreatmentType).HasMaxLength(255);
             });
 
             modelBuilder.Entity<Patient>(entity =>
             {
-                entity.Property(e => e.PatientId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("PatientID");
+                entity.Property(e => e.PatientId).HasColumnName("PatientID");
 
                 entity.Property(e => e.Address).HasMaxLength(255);
 
@@ -230,7 +218,7 @@ namespace CHSMS.API.Models
                     .HasColumnType("date")
                     .HasColumnName("DOB");
 
-                entity.Property(e => e.EducationalLevel).HasMaxLength(255);
+                entity.Property(e => e.EducationLevel).HasMaxLength(255);
 
                 entity.Property(e => e.Email).HasMaxLength(255);
 
@@ -240,16 +228,16 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.HealthInsurance).HasMaxLength(255);
 
-                entity.Property(e => e.Name).HasMaxLength(255);
+                entity.Property(e => e.Job).HasMaxLength(50);
+
+                entity.Property(e => e.PatientName).HasMaxLength(255);
 
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
             });
 
             modelBuilder.Entity<Prescription>(entity =>
             {
-                entity.Property(e => e.PrescriptionId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("PrescriptionID");
+                entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
 
                 entity.Property(e => e.Diagnosis).HasMaxLength(255);
 
@@ -278,18 +266,14 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<Role>(entity =>
             {
-                entity.Property(e => e.RoleId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("RoleID");
+                entity.Property(e => e.RoleId).HasColumnName("RoleID");
 
                 entity.Property(e => e.RoleName).HasMaxLength(255);
             });
 
             modelBuilder.Entity<Supplier>(entity =>
             {
-                entity.Property(e => e.SupplierId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("SupplierID");
+                entity.Property(e => e.SupplierId).HasColumnName("SupplierID");
 
                 entity.Property(e => e.Address).HasMaxLength(255);
 
@@ -304,9 +288,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<SupplyConsumptionDetail>(entity =>
             {
-                entity.Property(e => e.SupplyConsumptionDetailId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("SupplyConsumptionDetailID");
+                entity.Property(e => e.SupplyConsumptionDetailId).HasColumnName("SupplyConsumptionDetailID");
 
                 entity.Property(e => e.Note).HasMaxLength(255);
 
@@ -326,9 +308,7 @@ namespace CHSMS.API.Models
             {
                 entity.ToTable("SupplyConsumptionReport");
 
-                entity.Property(e => e.SupplyConsumptionReportId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("SupplyConsumptionReportID");
+                entity.Property(e => e.SupplyConsumptionReportId).HasColumnName("SupplyConsumptionReportID");
 
                 entity.Property(e => e.MedicalSupplyId).HasColumnName("MedicalSupplyID");
 
@@ -339,7 +319,7 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.MedicalSupply)
                     .WithMany(p => p.SupplyConsumptionReports)
                     .HasForeignKey(d => d.MedicalSupplyId)
-                    .HasConstraintName("FK__SupplyCon__Medic__5441852A");
+                    .HasConstraintName("FK__SupplyCon__Medic__534D60F1");
             });
 
             modelBuilder.Entity<SupplyInventory>(entity =>
@@ -350,7 +330,7 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.CertificateNumber).HasMaxLength(255);
 
-                entity.Property(e => e.ExpirationDate).HasColumnType("date");
+                entity.Property(e => e.ExpiryDate).HasColumnType("date");
 
                 entity.Property(e => e.MedicalSupplyId).HasColumnName("MedicalSupplyID");
 
@@ -358,24 +338,19 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.TransactionDate).HasColumnType("date");
 
+                entity.Property(e => e.UnitOfMeasure).HasMaxLength(255);
+
                 entity.HasOne(d => d.MedicalSupply)
                     .WithMany(p => p.SupplyInventories)
                     .HasForeignKey(d => d.MedicalSupplyId)
-                    .HasConstraintName("FK_SupplyInventory_MedicalSupplies");
-
-                entity.HasOne(d => d.Receiver)
-                    .WithMany(p => p.SupplyInventories)
-                    .HasForeignKey(d => d.ReceiverId)
-                    .HasConstraintName("FK_SupplyInventory_Users");
+                    .HasConstraintName("FK__SupplyInv__Medic__5441852A");
             });
 
             modelBuilder.Entity<SupplySettlementReport>(entity =>
             {
                 entity.ToTable("SupplySettlementReport");
 
-                entity.Property(e => e.SupplySettlementReportId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("SupplySettlementReportID");
+                entity.Property(e => e.SupplySettlementReportId).HasColumnName("SupplySettlementReportID");
 
                 entity.Property(e => e.ServiceName).HasMaxLength(255);
 
@@ -386,9 +361,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<TransferedPatient>(entity =>
             {
-                entity.Property(e => e.TransferedPatientId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("TransferedPatientID");
+                entity.Property(e => e.TransferedPatientId).HasColumnName("TransferedPatientID");
 
                 entity.Property(e => e.Note).HasMaxLength(255);
 
@@ -399,14 +372,12 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.Patient)
                     .WithMany(p => p.TransferedPatients)
                     .HasForeignKey(d => d.PatientId)
-                    .HasConstraintName("FK__Transfere__Patie__5629CD9C");
+                    .HasConstraintName("FK__Transfere__Patie__5535A963");
             });
 
             modelBuilder.Entity<User>(entity =>
             {
-                entity.Property(e => e.UserId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("UserID");
+                entity.Property(e => e.UserId).HasColumnName("UserID");
 
                 entity.Property(e => e.Address).HasMaxLength(255);
 
@@ -420,8 +391,6 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.Gender).HasMaxLength(10);
 
-                entity.Property(e => e.Name).HasMaxLength(255);
-
                 entity.Property(e => e.Password).HasMaxLength(255);
 
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
@@ -432,24 +401,24 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.RoleId).HasColumnName("RoleID");
 
+                entity.Property(e => e.UserName).HasMaxLength(255);
+
                 entity.HasOne(d => d.Department)
                     .WithMany(p => p.Users)
                     .HasForeignKey(d => d.DepartmentId)
-                    .HasConstraintName("FK__Users__Departmen__571DF1D5");
+                    .HasConstraintName("FK__Users__Departmen__5629CD9C");
 
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.Users)
                     .HasForeignKey(d => d.RoleId)
-                    .HasConstraintName("FK__Users__RoleID__5812160E");
+                    .HasConstraintName("FK__Users__RoleID__571DF1D5");
             });
 
             modelBuilder.Entity<VaccinationRecord>(entity =>
             {
                 entity.ToTable("VaccinationRecord");
 
-                entity.Property(e => e.VaccinationRecordId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("VaccinationRecordID");
+                entity.Property(e => e.VaccinationRecordId).HasColumnName("VaccinationRecordID");
 
                 entity.Property(e => e.Note).HasMaxLength(255);
 
@@ -464,19 +433,17 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.Patient)
                     .WithMany(p => p.VaccinationRecords)
                     .HasForeignKey(d => d.PatientId)
-                    .HasConstraintName("FK__Vaccinati__Patie__59063A47");
+                    .HasConstraintName("FK__Vaccinati__Patie__5812160E");
 
                 entity.HasOne(d => d.Vaccine)
                     .WithMany(p => p.VaccinationRecords)
                     .HasForeignKey(d => d.VaccineId)
-                    .HasConstraintName("FK__Vaccinati__Vacci__59FA5E80");
+                    .HasConstraintName("FK__Vaccinati__Vacci__59063A47");
             });
 
             modelBuilder.Entity<Vaccine>(entity =>
             {
-                entity.Property(e => e.VaccineId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("VaccineID");
+                entity.Property(e => e.VaccineId).HasColumnName("VaccineID");
 
                 entity.Property(e => e.BatchNumber).HasMaxLength(255);
 
@@ -486,7 +453,7 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.ExpiryDate).HasColumnType("date");
 
-                entity.Property(e => e.Name)
+                entity.Property(e => e.VaccineName)
                     .HasMaxLength(255)
                     .IsUnicode(false);
             });
@@ -495,9 +462,7 @@ namespace CHSMS.API.Models
             {
                 entity.ToTable("VaccineInventory");
 
-                entity.Property(e => e.VaccineInventoryId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("VaccineInventoryID");
+                entity.Property(e => e.VaccineInventoryId).HasColumnName("VaccineInventoryID");
 
                 entity.Property(e => e.Note).HasMaxLength(255);
 
@@ -508,7 +473,7 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.Vaccine)
                     .WithMany(p => p.VaccineInventories)
                     .HasForeignKey(d => d.VaccineId)
-                    .HasConstraintName("FK__VaccineIn__Vacci__5AEE82B9");
+                    .HasConstraintName("FK__VaccineIn__Vacci__59FA5E80");
             });
 
             OnModelCreatingPartial(modelBuilder);
