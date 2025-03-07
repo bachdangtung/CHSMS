@@ -14,17 +14,17 @@ namespace CHSMS.API.Repositories
         }
         public double? GetSupplyQuantity(int medicalSupplyId)
         {
-            return _context.SupplyInventories.Where(x => x.MedicalSupplyId == medicalSupplyId && x.ExpirationDate > DateTime.Now).Sum(x => x.Quantity);
+            return _context.MedicalSupplyInventories.Where(x => x.MedicalSupplyId == medicalSupplyId && x.ExpiryDate > DateTime.Now).Sum(x => x.Quantity);
         }
-        public List<SupplyInventory> MedicalSupplyDetail(int medicalSupplyId)
+        public List<MedicalSupplyInventory> MedicalSupplyDetail(int medicalSupplyId)
         {
-            return _context.SupplyInventories.Where(x => x.MedicalSupplyId == medicalSupplyId && x.Quantity > 0 && x.ExpirationDate > DateTime.Now).ToList();
+            return _context.MedicalSupplyInventories.Where(x => x.MedicalSupplyId == medicalSupplyId && x.Quantity > 0 && x.ExpiryDate > DateTime.Now).ToList();
         }
-        public bool AddSupplyInventory(SupplyInventory supplyInventory)
+        public bool AddSupplyInventory(MedicalSupplyInventory supplyInventory)
         {
             try
             {
-                _context.SupplyInventories.Add(supplyInventory);
+                _context.MedicalSupplyInventories.Add(supplyInventory);
                 _context.SaveChanges();
                 return true;
             }
@@ -33,7 +33,7 @@ namespace CHSMS.API.Repositories
                 return false;
             }
         }
-        public bool AddRangeSupplyInventory(List<SupplyInventory> supplyInventories)
+        public bool AddRangeSupplyInventory(List<MedicalSupplyInventory> supplyInventories)
         {
             foreach (var item in supplyInventories)
             {

@@ -13,7 +13,7 @@ namespace CHSMS.API.Models
         public string? Note { get; set; }
         public string? Status { get; set; }
 
-        public virtual Patient? Patient { get; set; }
+        public virtual MedicalRecord? Patient { get; set; }
         public virtual Vaccine? Vaccine { get; set; }
     }
 }

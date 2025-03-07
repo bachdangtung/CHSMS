@@ -18,11 +18,11 @@ namespace CHSMS.API.Services
                 var medicalSupplyDTO = new MedicalSupplyDTO
                 {
                     MedicalSupplyId = medicalSupply.MedicalSupplyId,
-                    Name = medicalSupply.Name,
+                    Name = medicalSupply.MedicalSupplyName,
                     SupplyType = medicalSupply.SupplyType,
                     UnitOfMeasure = medicalSupply.UnitOfMeasure,
                     SupplierId = medicalSupply.SupplierId,
-                    Status = medicalSupply.Status,
+                    //Status = medicalSupply.Status,
                     ImportPrice = medicalSupply.ImportPrice,
                     SellingPrice = medicalSupply.SellingPrice,
                     BatchNumber = medicalSupply.BatchNumber,
@@ -38,7 +38,7 @@ namespace CHSMS.API.Services
         public List<SupplyInventoryDTO> MedicalSupplyDetail(int medicalSupplyId)
         {
             List<SupplyInventoryDTO> supplyInventoryDTOs = new List<SupplyInventoryDTO>();
-            List<SupplyInventory> supplyInventories = _medicalSupplyReposotory.MedicalSupplyDetail(medicalSupplyId);
+            List<MedicalSupplyInventory> supplyInventories = _medicalSupplyReposotory.MedicalSupplyDetail(medicalSupplyId);
             foreach (var supplyInventory in supplyInventories)
             {
                 var supplyInventoryDTO = new SupplyInventoryDTO
@@ -48,7 +48,7 @@ namespace CHSMS.API.Services
                     Quantity = supplyInventory.Quantity,
                     CertificateNumber = supplyInventory.CertificateNumber,
                     TransactionDate=supplyInventory.TransactionDate,
-                    ExpirationDate = supplyInventory.ExpirationDate,
+                    ExpirationDate = supplyInventory.ExpiryDate,
                     Note = supplyInventory.Note,
                     ReceiverId = supplyInventory.ReceiverId,    
                     TransactionType = supplyInventory.TransactionType,

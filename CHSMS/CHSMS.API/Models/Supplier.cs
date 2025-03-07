@@ -8,6 +8,7 @@ namespace CHSMS.API.Models
         public Supplier()
         {
             MedicalSupplies = new HashSet<MedicalSupply>();
+            Medicines = new HashSet<Medicine>();
         }
 
         public int SupplierId { get; set; }
@@ -16,8 +17,9 @@ namespace CHSMS.API.Models
         public string? Address { get; set; }
         public string? PhoneNumber { get; set; }
         public string? ContactInfo { get; set; }
-        public int? Status { get; set; }
+        public bool? Status { get; set; }
 
         public virtual ICollection<MedicalSupply> MedicalSupplies { get; set; }
+        public virtual ICollection<Medicine> Medicines { get; set; }
     }
 }
