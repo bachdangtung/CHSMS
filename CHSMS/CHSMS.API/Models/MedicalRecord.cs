@@ -5,15 +5,27 @@ namespace CHSMS.API.Models
 {
     public partial class MedicalRecord
     {
+        public MedicalRecord()
+        {
+            MedicalRecordHistories = new HashSet<MedicalRecordHistory>();
+            VaccinationRecords = new HashSet<VaccinationRecord>();
+        }
+
         public int MedicalRecordId { get; set; }
-        public int? PatientId { get; set; }
-        public string? Condition { get; set; }
-        public DateTime? VisitDate { get; set; }
-        public string? Symptoms { get; set; }
-        public string? Diagnosis { get; set; }
-        public string? TreatmentMethod { get; set; }
+        public string? PatientName { get; set; }
+        public string? Gender { get; set; }
+        public DateTime? Dob { get; set; }
+        public string? EthnicGroup { get; set; }
+        public string? EducationLevel { get; set; }
+        public string? HealthInsurance { get; set; }
+        public string? Address { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? Email { get; set; }
+        public string? Job { get; set; }
+        public bool? Status { get; set; }
         public string? Note { get; set; }
 
-        public virtual Patient? Patient { get; set; }
+        public virtual ICollection<MedicalRecordHistory> MedicalRecordHistories { get; set; }
+        public virtual ICollection<VaccinationRecord> VaccinationRecords { get; set; }
     }
 }

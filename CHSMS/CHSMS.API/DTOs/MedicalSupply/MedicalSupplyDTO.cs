@@ -4,11 +4,12 @@ namespace CHSMS.API.DTOs.MedicalSupply
 {
     public class MedicalSupplyDTO
     {
-        //public MedicalSupplyDTO()
-        //{
-        //    SupplyConsumptionReports = new HashSet<SupplyConsumptionReport>();
-        //    SupplyInventories = new HashSet<SupplyInventory>();
-        //}
+
+        public MedicalSupplyDTO()
+        {
+            SupplyConsumptionReports = new HashSet<SupplyConsumptionReport>();
+            SupplyInventories = new HashSet<SupplyInventory>();
+        }
 
         public int MedicalSupplyId { get; set; }
         public string? Name { get; set; }
@@ -20,12 +21,11 @@ namespace CHSMS.API.DTOs.MedicalSupply
         public double? SellingPrice { get; set; }
         public string? BatchNumber { get; set; }
         public int? BidNumber { get; set; }
-        public virtual Supplier? Supplier { get; set; }
-        //public virtual ICollection<SupplyConsumptionReport> SupplyConsumptionReports { get; set; }
-        public virtual ICollection<SupplyInventoryDTO> SupplyInventories { get; set; }
 
-        //new data
-        public double? Quantity { get; set; }
+        public virtual Supplier? Supplier { get; set; }
+        public virtual ICollection<SupplyConsumptionReport> SupplyConsumptionReports { get; set; }
+        public virtual ICollection<SupplyInventory> SupplyInventories { get; set; }
+
 
     }
 }

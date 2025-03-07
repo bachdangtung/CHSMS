@@ -42,7 +42,7 @@ namespace CHSMS.API.Controllers
                 // Trả về thông tin người dùng và token
                 return Ok(new
                 {
-                    Name = user.Name,
+                    Name = user.UserName,
                     Email = user.Email,
                     Role = user.Role.RoleName,
                 });

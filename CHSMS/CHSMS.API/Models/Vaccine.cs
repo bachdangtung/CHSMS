@@ -12,7 +12,7 @@ namespace CHSMS.API.Models
         }
 
         public int VaccineId { get; set; }
-        public string? Name { get; set; }
+        public string? VaccineName { get; set; }
         public string? DosageForm { get; set; }
         public int? Quantity { get; set; }
         public string? BatchNumber { get; set; }
