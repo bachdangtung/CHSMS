@@ -7,8 +7,7 @@ namespace CHSMS.API.Models
     {
         public Medicine()
         {
-            MedicalInventories = new HashSet<MedicalInventory>();
-            MedicalUsages = new HashSet<MedicalUsage>();
+            MedicineInventories = new HashSet<MedicineInventory>();
         }
 
         public int MedicineId { get; set; }
@@ -18,14 +17,13 @@ namespace CHSMS.API.Models
         public string? ActiveIngredient { get; set; }
         public string? Dosage { get; set; }
         public string? DosageForm { get; set; }
-        public DateTime? ExpiryDate { get; set; }
-        public int? Quantity { get; set; }
-        public double? UnitPrice { get; set; }
-        public double? TotalAmount { get; set; }
+        public double? ImportPrice { get; set; }
+        public double? SellingPrice { get; set; }
         public string? BatchNumber { get; set; }
         public string? BidNumber { get; set; }
+        public int? Supplier { get; set; }
 
-        public virtual ICollection<MedicalInventory> MedicalInventories { get; set; }
-        public virtual ICollection<MedicalUsage> MedicalUsages { get; set; }
+        public virtual Supplier? SupplierNavigation { get; set; }
+        public virtual ICollection<MedicineInventory> MedicineInventories { get; set; }
     }
 }
