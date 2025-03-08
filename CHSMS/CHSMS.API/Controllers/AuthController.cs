@@ -22,7 +22,7 @@ namespace CHSMS.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            var token = await _authService.AuthenticateAsync(model.Email, model.Password);
+            var token = await _authService.AuthenticateAsync(model.UserName, model.Password);
             if (token == null)
                 return Unauthorized("Sai tài khoản hoặc mật khẩu.");
 
@@ -76,6 +76,7 @@ namespace CHSMS.API.Controllers
         }
 
         //Add user
+        [Authorize(Roles = "Trưởng trạm")]
         [HttpPost("add-user")]
         public async Task<IActionResult> AddUser([FromBody] CreateUserDto createUserDto)
         {

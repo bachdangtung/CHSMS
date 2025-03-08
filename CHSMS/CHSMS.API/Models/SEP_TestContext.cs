@@ -40,7 +40,7 @@ namespace CHSMS.API.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=.;Database=SEP_Test;TrustServerCertificate=True;Integrated Security=true;");
+                optionsBuilder.UseSqlServer("server=.;database=SEP_Test;uid=sa;pwd=sa;TrustServerCertificate=True;");
             }
         }
 
@@ -370,6 +370,8 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.Email).HasMaxLength(255);
 
+                entity.Property(e => e.FullName).HasMaxLength(255);
+
                 entity.Property(e => e.Gender).HasMaxLength(10);
 
                 entity.Property(e => e.Password).HasMaxLength(255);
@@ -389,12 +391,12 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.Department)
                     .WithMany(p => p.Users)
                     .HasForeignKey(d => d.DepartmentId)
-                    .HasConstraintName("FK__Users__Departmen__5629CD9C");
+                    .HasConstraintName("FK__Users__Departmen__571DF1D5");
 
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.Users)
                     .HasForeignKey(d => d.RoleId)
-                    .HasConstraintName("FK__Users__RoleID__571DF1D5");
+                    .HasConstraintName("FK__Users__RoleID__5812160E");
             });
 
             modelBuilder.Entity<VaccinationRecord>(entity =>
@@ -416,7 +418,7 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.Patient)
                     .WithMany(p => p.VaccinationRecords)
                     .HasForeignKey(d => d.PatientId)
-                    .HasConstraintName("FK__Vaccinati__Patie__5812160E");
+                    .HasConstraintName("FK__Vaccinati__Patie__59063A47");
 
                 entity.HasOne(d => d.Vaccine)
                     .WithMany(p => p.VaccinationRecords)

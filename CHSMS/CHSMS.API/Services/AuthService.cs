@@ -26,9 +26,9 @@ namespace CHSMS.API.Services
             _mapper = mapper;
         }
 
-        public async Task<string?> AuthenticateAsync(string email, string password)
+        public async Task<string?> AuthenticateAsync(string userName, string password)
         {
-            var user = await _unitOfWork.Users.GetByEmailAsync(email);
+            var user = await _unitOfWork.Users.GetByUserNameAsync(userName);
             if (user == null || !VerifyPassword(password, user.Password))
             {
                 return null;
@@ -137,11 +137,22 @@ namespace CHSMS.API.Services
         // Add user
         public async Task<User> CreateUserAsync(CreateUserDto createUserDto)
         {
-            var existedUser = await _unitOfWork.Users.GetByEmailAsync(createUserDto.Email);
+            var existedUser = await _unitOfWork.Users.GetByUserNameAsync(createUserDto.UserName);
             if (existedUser != null)
             {
                 throw new Exception("Tài khoản đã tồn tại");
             }
+            var isValidDepartment = await _unitOfWork.Departments.DepartmentExistsAsync(createUserDto.DepartmentId);
+            if (createUserDto.DepartmentId.HasValue && !isValidDepartment)
+            {
+                throw new Exception("Phòng ban không tồn tại");
+            }
+            var isValidRole = await _unitOfWork.Roles.RoleExistsAsync(createUserDto.RoleId);
+            if (!isValidRole)
+            {
+                throw new Exception("Vai trò không tồn tại");
+            }
+
             var user = _mapper.Map<User>(createUserDto);
 
             _unitOfWork.Users.Add(user);

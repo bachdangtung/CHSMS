@@ -7,11 +7,15 @@ namespace CHSMS.API.UnitOfWork
     {
         private readonly SEP_TestContext _context;
         public IUserRepository Users { get; }
+        public IRoleRepository Roles { get; }
+        public IDepartmentRepository Departments { get; }
 
         public UnitOfWork(SEP_TestContext context)
         {
             _context = context;
             Users = new UserRepository(_context);
+            Departments = new DepartmentRepository(_context);
+            Roles = new RoleRepository(_context);
         }
 
         public async Task<int> CommitAsync()
