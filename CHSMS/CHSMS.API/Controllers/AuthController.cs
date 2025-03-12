@@ -15,7 +15,7 @@ namespace CHSMS.API.Controllers
         }
 
         // Login (Returns JWT Token)
-        [HttpPost("login")]
+        [HttpPost("/api/Authen/Login")]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
             if (!ModelState.IsValid)
@@ -30,7 +30,7 @@ namespace CHSMS.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("change-password")]
+        [HttpPost("/api/Authen/ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto model)
         {
             if (!ModelState.IsValid)
@@ -46,7 +46,7 @@ namespace CHSMS.API.Controllers
         }
 
         // Request Password Reset
-        [HttpPost("request-reset-password")]
+        [HttpPost("/api/Authen/RequestResetPassword")]
         public async Task<IActionResult> RequestResetPassword([FromBody] ResetPasswordRequestDto model)
         {
             if (!ModelState.IsValid)
@@ -61,7 +61,7 @@ namespace CHSMS.API.Controllers
         }
 
         // Reset Password
-        [HttpPost("reset-password")]
+        [HttpPost("/api/Authen/ResetPassword")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
         {
             if (!ModelState.IsValid)
@@ -77,7 +77,7 @@ namespace CHSMS.API.Controllers
 
         //Add user
         [Authorize(Roles = "Trưởng trạm")]
-        [HttpPost("add-user")]
+        [HttpPost("/api/User/AddUser")]
         public async Task<IActionResult> AddUser([FromBody] CreateUserDto createUserDto)
         {
             if (!ModelState.IsValid)
@@ -93,6 +93,87 @@ namespace CHSMS.API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        //Deactive user
+        [Authorize(Roles = "Trưởng trạm")]
+        [HttpPost("/api/User/DeactivateUser")]
+        public async Task<IActionResult> DeactivateUser(int id)
+        {
+            try
+            {
+                var result = _authService.DeactivateUserAsync(id);
+                return Ok("Đã vô hiệu hóa tài khoản");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        //Deactive user
+        [Authorize(Roles = "Trưởng trạm")]
+        [HttpPost("/api/User/ActivateUser")]
+        public async Task<IActionResult> ActivateUser(int id)
+        {
+            try
+            {
+                var result = _authService.ActivateUserAsync(id);
+                return Ok("Đã kích hoạt tài khoản");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Trưởng trạm")]
+        [HttpGet("/api/User/List")]
+        public async Task<IActionResult> GetUserList()
+        {
+            try
+            {
+                var users = await _authService.GetUserListAsync();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("/api/User/Profile")]
+        public async Task<ActionResult<UserListDto>> UserProfile()
+        {
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
+            var user = await _authService.GetUserProfileAsync(userId);
+            if (user != null)
+            {
+                return Ok(user);
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+
+        [Authorize]
+        [HttpPut("/api/User/EditProfile")]
+        public async Task<IActionResult> EditUserProfile([FromBody] EditUserProfileDto editUserProfileDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
+            var result = await _authService.EditUserProfileAsync(userId, editUserProfileDto);
+            if (!result)
+            {
+                return BadRequest("Cập nhật hồ sơ thất bại.");
+            }
+
+            return Ok("Hồ sơ đã được cập nhật thành công.");
         }
     }
 }

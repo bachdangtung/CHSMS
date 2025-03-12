@@ -16,17 +16,17 @@ namespace CHSMS.API.Repositories
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            return await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Users.Include(r => r.Role).Include(d => d.Department).FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<User?> GetByUserNameAsync(string userName)
         {
-            return await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(u => u.UserName == userName);
+            return await _context.Users.Include(r => r.Role).Include(d => d.Department).FirstOrDefaultAsync(u => u.UserName == userName);
         }
 
         public async Task<User?> GetByIdAsync(int id)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.UserId == id);
+            return await _context.Users.Include(r => r.Role).Include(d => d.Department).FirstOrDefaultAsync(u => u.UserId == id);
         }
 
         public void Update(User updatedUser)
@@ -43,6 +43,9 @@ namespace CHSMS.API.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.ResetToken == resetPasswordDto.Token && u.UserId == resetPasswordDto.UserId);
         }
-
+        public async Task<IEnumerable<User>> GetAllAsync()
+        {
+            return await _context.Users.Include(r => r.Role).Include(d => d.Department).ToListAsync();
+        }
     }
 }

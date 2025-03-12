@@ -159,5 +159,67 @@ namespace CHSMS.API.Services
             await _unitOfWork.CommitAsync();
             return user;
         }
+
+        public async Task<bool> DeactivateUserAsync(int userId)
+        {
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("Người dùng không tồn tại");
+            }
+
+            user.Status = false;
+            _unitOfWork.Users.Update(user);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+
+        public async Task<bool> ActivateUserAsync(int userId)
+        {
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("Người dùng không tồn tại");
+            }
+
+            user.Status = true;
+            _unitOfWork.Users.Update(user);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+        public async Task<IEnumerable<UserListDto>> GetUserListAsync()
+        {
+            var userList = await _unitOfWork.Users.GetAllAsync();
+            return _mapper.Map<IEnumerable<UserListDto>>(userList);
+        }
+
+        public async Task<UserListDto> GetUserProfileAsync(int id)
+        {
+            var userList = await _unitOfWork.Users.GetByIdAsync(id);
+            return _mapper.Map<UserListDto>(userList);
+        }
+
+        public async Task<bool> EditUserProfileAsync(int userId, EditUserProfileDto updatedUser)
+        {
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("Người dùng không tồn tại");
+            }
+
+            user.FullName = updatedUser.FullName;
+            user.Email = updatedUser.Email;
+            user.PhoneNumber = updatedUser.PhoneNumber;
+            user.Address = updatedUser.Address;
+            user.Gender = updatedUser.Gender;
+            user.Dob = updatedUser.Dob;
+
+            _unitOfWork.Users.Update(user);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
     }
 }

@@ -10,5 +10,10 @@ namespace CHSMS.API.Services.Interfaces
         Task<bool> RequestResetPasswordAsync(string email);
         Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
         Task<User> CreateUserAsync(CreateUserDto createUserDto);
+        Task<bool> DeactivateUserAsync(int userId);
+        Task<bool> ActivateUserAsync(int userId);
+        Task<IEnumerable<UserListDto>> GetUserListAsync();
+        Task<UserListDto> GetUserProfileAsync(int id);
+        Task<bool> EditUserProfileAsync(int userId, EditUserProfileDto updatedUser);
     }
 }

@@ -21,6 +21,5 @@ namespace CHSMS.API.Repositories
             if (!roleId.HasValue) return false;
             return await _context.Roles.AnyAsync(r => r.RoleId == roleId.Value);
         }
-
     }
 }

@@ -11,5 +11,6 @@ namespace CHSMS.API.Repositories.Interfaces
         void Update(User updatedUser);
         Task<User?> GetByResetTokenAsync(ResetPasswordDto resetPasswordDto);
         void Add(User newUser);
+        Task<IEnumerable<User>> GetAllAsync();
     }
 }
