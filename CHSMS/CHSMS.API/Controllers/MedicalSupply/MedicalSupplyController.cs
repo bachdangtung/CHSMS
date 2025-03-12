@@ -1,4 +1,5 @@
 ﻿using CHSMS.API.DTOs.MedicalSupply;
+using CHSMS.API.Models;
 using CHSMS.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
@@ -19,6 +20,16 @@ namespace CHSMS.API.Controllers.MedicalSupply
         public IActionResult GetAllMedicalSupplies()
         {
             var medicalSupplies = _medicalSupplyService.GetAllMedicalSupplies();
+            if (medicalSupplies == null)
+                return NotFound();
+            return Ok(medicalSupplies);
+        }
+
+        //get all medical supply  Actual inventory by date
+        [HttpGet("GetQuantity")]
+        public IActionResult GetAllMedicalSupplies(DateTime? date)
+        {
+            var medicalSupplies = _medicalSupplyService.GetAllActualMedicalSupplies(date);
             if (medicalSupplies == null)
                 return NotFound();
             return Ok(medicalSupplies);
@@ -75,13 +86,21 @@ namespace CHSMS.API.Controllers.MedicalSupply
         }
 
         //Medical supply inventory consumption report
-        //[HttpGet("ConsumeReport")]
-        //public IActionResult ConsumeReport()
-        //{
-        //    var result = _medicalSupplyService.ConsumeReport();
-        //    if (result == null)
-        //        return NotFound();
-        //    return Ok(result);
-        //}
+        [HttpGet("ConsumeReport")]
+        public IActionResult ConsumeReport(DateTime? from, DateTime? to)
+        {
+            List<object> list = new List<object>();
+            var result = _medicalSupplyService.ConsumeReport(from, to);
+            foreach (var item in result)
+            {
+                list.Add(new
+                {
+                    medicalSupplyId = item.Key.MedicalSupplyId,
+                    medicalSupplyName = item.Key.MedicalSupplyName,
+                    consump = item.Value
+                });
+            }
+            return Ok(list);
+        }
     }
 }

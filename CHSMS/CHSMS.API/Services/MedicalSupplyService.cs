@@ -142,5 +142,55 @@ namespace CHSMS.API.Services
             }
             return _medicalSupplyReposotory.ConsumeMedicalSupply(id, Quantity, BHYT, Note);
         }
+
+        public Dictionary<MedicalSupplyDTO, double> ConsumeReport(DateTime? from, DateTime? to)
+        {
+            MedicalSupplyDTO medicalSupplyDTO;
+            Dictionary<MedicalSupplyDTO, double> result = new Dictionary<MedicalSupplyDTO, double>();
+            var dict = _medicalSupplyReposotory.MedicalSupplyConsumeReport(from, to);
+            foreach (var item in dict)
+            {
+                medicalSupplyDTO = new MedicalSupplyDTO();
+                medicalSupplyDTO = ConvertToMedicalsupplyDTO(item.Key);
+                medicalSupplyDTO.Quantity = _medicalSupplyReposotory.GetSupplyQuantity(medicalSupplyDTO.MedicalSupplyId);
+                result.Add(medicalSupplyDTO, item.Value);
+            }
+            return result;
+        }
+
+        //convert to DTO
+        public MedicalSupplyDTO ConvertToMedicalsupplyDTO(MedicalSupply medicalSupply)
+        {
+            return new MedicalSupplyDTO
+            {
+                MedicalSupplyId = medicalSupply.MedicalSupplyId,
+                MedicalSupplyName = medicalSupply.MedicalSupplyName,
+                SupplyType = medicalSupply.SupplyType,
+                UnitOfMeasure = medicalSupply.UnitOfMeasure,
+                SupplierId = medicalSupply.SupplierId,
+                Status = medicalSupply.Status,
+                ImportPrice = medicalSupply.ImportPrice,
+                SellingPrice = medicalSupply.SellingPrice,
+                BatchNumber = medicalSupply.BatchNumber,
+                BidNumber = medicalSupply.BidNumber,
+            };
+        }
+
+        public List<MedicalSupplyDTO> GetAllActualMedicalSupplies(DateTime? date)
+        {
+            if(date == null)
+            {
+                return GetAllMedicalSupplies();
+            }
+            List<MedicalSupplyDTO> medicalSupplyDTOs = new List<MedicalSupplyDTO>();
+            var medicalSupplies = _medicalSupplyReposotory.GetAllMedicalSupplies();
+            foreach (var item in medicalSupplies)
+            {
+                var medicalSupplyDTO = ConvertToMedicalsupplyDTO(item);
+                medicalSupplyDTO.Quantity = _medicalSupplyReposotory.GetActualSupplyQuantity(item.MedicalSupplyId, date.Value);
+                medicalSupplyDTOs.Add(medicalSupplyDTO);
+            }
+            return medicalSupplyDTOs;
+        }
     }
 }
