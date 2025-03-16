@@ -38,7 +38,9 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<MedicalSupplyReposotory>();
+builder.Services.AddScoped<MedicalRecordHistoryRepository>();
 builder.Services.AddScoped<MedicalSupplyService>();
+builder.Services.AddScoped<MedicalRecordHistoryService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddControllers();

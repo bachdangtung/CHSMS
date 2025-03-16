@@ -39,12 +39,8 @@ namespace CHSMS.API.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                IConfiguration config = new ConfigurationBuilder()
-                                        .SetBasePath(Directory.GetCurrentDirectory())
-                                        .AddJsonFile("appsettings.json", true, true)
-                                        .Build();
-                var strConn = config["ConnectionStrings:MyDatabase"];
-                optionsBuilder.UseSqlServer(strConn);
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseSqlServer("Server=.;Database=SEP_Test;TrustServerCertificate=True;Integrated Security=true;");
             }
         }
 
@@ -92,9 +88,7 @@ namespace CHSMS.API.Models
             {
                 entity.ToTable("MedicalRecordHistory");
 
-                entity.Property(e => e.MedicalRecordHistoryId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("MedicalRecordHistoryID");
+                entity.Property(e => e.MedicalRecordHistoryId).HasColumnName("MedicalRecordHistoryID");
 
                 entity.Property(e => e.Address).HasMaxLength(100);
 
@@ -106,11 +100,18 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.MedicalRecordId).HasColumnName("MedicalRecordID");
 
+                entity.Property(e => e.UserId).HasColumnName("UserID");
+
                 entity.HasOne(d => d.MedicalRecord)
                     .WithMany(p => p.MedicalRecordHistories)
                     .HasForeignKey(d => d.MedicalRecordId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_MedicalRecordHistory_MedicalRecord");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.MedicalRecordHistories)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("FK_MedicalRecordHistory_Users");
             });
 
             modelBuilder.Entity<MedicalSupply>(entity =>

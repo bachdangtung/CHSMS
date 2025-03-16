@@ -22,8 +22,11 @@ namespace CHSMS.API.Models
         public double? Temperature { get; set; }
         public double? Height { get; set; }
         public double? Weight { get; set; }
+        public int? UserId { get; set; }
+        public string? Note { get; set; }
 
         public virtual MedicalRecord MedicalRecord { get; set; } = null!;
+        public virtual User? User { get; set; }
         public virtual ICollection<Prescription> Prescriptions { get; set; }
     }
 }
