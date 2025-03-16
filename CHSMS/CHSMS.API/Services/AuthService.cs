@@ -29,6 +29,10 @@ namespace CHSMS.API.Services
         public async Task<string?> AuthenticateAsync(string userName, string password)
         {
             var user = await _unitOfWork.Users.GetByUserNameAsync(userName);
+            if (user.Status == false)
+            {
+                return "inactive";
+            }
             if (user == null || !VerifyPassword(password, user.Password))
             {
                 return null;
@@ -160,7 +164,7 @@ namespace CHSMS.API.Services
             return user;
         }
 
-        public async Task<bool> DeactivateUserAsync(int userId)
+        public async Task<bool> ChangeStatusAsync(int userId)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null)
@@ -168,22 +172,7 @@ namespace CHSMS.API.Services
                 throw new Exception("Người dùng không tồn tại");
             }
 
-            user.Status = false;
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.CommitAsync();
-
-            return true;
-        }
-
-        public async Task<bool> ActivateUserAsync(int userId)
-        {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
-            if (user == null)
-            {
-                throw new Exception("Người dùng không tồn tại");
-            }
-
-            user.Status = true;
+            user.Status = !user.Status;
             _unitOfWork.Users.Update(user);
             await _unitOfWork.CommitAsync();
 

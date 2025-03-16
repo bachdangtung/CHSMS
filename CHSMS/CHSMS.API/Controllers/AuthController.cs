@@ -23,6 +23,10 @@ namespace CHSMS.API.Controllers
                 return BadRequest(ModelState);
             }
             var token = await _authService.AuthenticateAsync(model.UserName, model.Password);
+            if (token == "inactive")
+            {
+                return Unauthorized("Tài khoản không tồn tại hoặc đã bị vô hiệu hóa.");
+            }
             if (token == null)
                 return Unauthorized("Sai tài khoản hoặc mật khẩu.");
 
@@ -97,29 +101,17 @@ namespace CHSMS.API.Controllers
 
         //Deactive user
         [Authorize(Roles = "Trưởng trạm")]
-        [HttpPost("/api/User/DeactivateUser")]
-        public async Task<IActionResult> DeactivateUser(int id)
+        [HttpPost("/api/User/ChangeStatus")]
+        public async Task<IActionResult> ChangeStatus(int id)
         {
             try
             {
-                var result = _authService.DeactivateUserAsync(id);
-                return Ok("Đã vô hiệu hóa tài khoản");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        //Deactive user
-        [Authorize(Roles = "Trưởng trạm")]
-        [HttpPost("/api/User/ActivateUser")]
-        public async Task<IActionResult> ActivateUser(int id)
-        {
-            try
-            {
-                var result = _authService.ActivateUserAsync(id);
-                return Ok("Đã kích hoạt tài khoản");
+                var result = _authService.ChangeStatusAsync(id);
+                if (result.Result)
+                {
+                    return Ok("Đã đổi trạng thái");
+                }
+                return BadRequest();
             }
             catch (Exception ex)
             {
