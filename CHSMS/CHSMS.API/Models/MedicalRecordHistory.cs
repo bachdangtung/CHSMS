@@ -15,7 +15,8 @@ namespace CHSMS.API.Models
         public DateTime? Date { get; set; }
         public string? Address { get; set; }
         public string? Diagnose { get; set; }
-        public string? DiseaseProgression { get; set; }
+        public string? TreatmentMethod { get; set; }
+        public string? Symptom { get; set; }
         public double? Pulse { get; set; }
         public string? BloodPressure { get; set; }
         public double? RespiratoryRate { get; set; }
