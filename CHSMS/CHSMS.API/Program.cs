@@ -1,4 +1,5 @@
 using CHSMS.API.Configuration;
+using CHSMS.API.Middleware;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories;
 using CHSMS.API.Repositories.Interfaces;
@@ -34,6 +35,8 @@ builder.Services.AddMailKit(config => config.UseMailKit(
     }
 ));
 
+builder.Services.AddMemoryCache();
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -100,6 +103,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseMiddleware<TokenBlacklistMiddleware>();
 
 app.UseHttpsRedirection();
 

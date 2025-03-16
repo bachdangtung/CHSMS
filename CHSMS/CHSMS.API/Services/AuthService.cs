@@ -158,6 +158,7 @@ namespace CHSMS.API.Services
             }
 
             var user = _mapper.Map<User>(createUserDto);
+            user.Password = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
 
             _unitOfWork.Users.Add(user);
             await _unitOfWork.CommitAsync();

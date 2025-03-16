@@ -2,16 +2,21 @@
 using CHSMS.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace CHSMS.API.Controllers
 {
     public class AuthController : Controller
     {
         private readonly IAuthService _authService;
-
-        public AuthController(IAuthService authService)
+        private readonly IDistributedCache _cache;
+        private readonly IConfiguration _configuration;
+        public AuthController(IAuthService authService, IDistributedCache cache, IConfiguration configuration)
         {
             _authService = authService;
+            _cache = cache;
+            _configuration = configuration;
         }
 
         // Login (Returns JWT Token)
@@ -167,5 +172,44 @@ namespace CHSMS.API.Controllers
 
             return Ok("Hồ sơ đã được cập nhật thành công.");
         }
+
+        [Authorize]
+        [HttpPost("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var userId = User.FindFirst("Id")?.Value;
+            var jti = User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(jti))
+            {
+                return BadRequest("Invalid token claims.");
+            }
+
+            // Read expiry time from appsettings.json (200 minutes)
+            var expiryInMinutes = Convert.ToInt32(_configuration["Jwt:ExpiryInMinutes"]);
+
+            var cacheKey = $"blacklist:{jti}";
+            var options = new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(expiryInMinutes)
+            };
+
+            await _cache.SetStringAsync(cacheKey, userId, options);
+
+            return Ok("Logged out successfully.");
+        }
+
+        [HttpGet("Blacklist/{jti}")]
+        public async Task<IActionResult> IsTokenBlacklisted(string jti)
+        {
+            var cacheKey = $"blacklist:{jti}";
+            var value = await _cache.GetStringAsync(cacheKey);
+
+            if (string.IsNullOrEmpty(value))
+                return NotFound($"Token is not blacklisted.\n{value}");
+
+            return Ok("Token is blacklisted.");
+        }
+
     }
 }
