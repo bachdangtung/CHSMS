@@ -210,6 +210,5 @@ namespace CHSMS.API.Controllers
 
             return Ok("Token is blacklisted.");
         }
-
     }
 }
