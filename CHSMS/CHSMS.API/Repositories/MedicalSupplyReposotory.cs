@@ -1,4 +1,5 @@
-﻿using CHSMS.API.Models;
+﻿using CHSMS.API.DTOs.MedicalSupply;
+using CHSMS.API.Models;
 namespace CHSMS.API.Repositories
 {
     public class MedicalSupplyReposotory
@@ -35,7 +36,13 @@ namespace CHSMS.API.Repositories
             }
             return sum;
         }
-
+        public double? GetActualSupplyQuantity(int medicalSupplyId, DateTime date)
+        {
+            double sum = GetSupplyQuantity(medicalSupplyId).Value;
+            sum += MedicalSupplyConsumeReport(medicalSupplyId, date, DateTime.Now);
+            sum -= GetInputAmount(medicalSupplyId, date, DateTime.Now).Value;
+            return sum;
+        }
 
         //Get supply detail
         public List<MedicalSupplyInventory> MedicalSupplyDetail(int medicalSupplyId)
@@ -109,11 +116,69 @@ namespace CHSMS.API.Repositories
                 .ToList();
         }
 
+        //Get all available medical supply inventory by MSID
+        public List<MedicalSupplyInventory> GetAllMedicalSupplyInventory(int msid)
+        {
+            return _context.MedicalSupplyInventories
+                .Where(x => x.MedicalSupplyId == msid)
+                .OrderBy(x => x.ExpiryDate)
+                .ToList();
+        }
+
         //Add medical supply consumption
         public bool AddMedicalSupplyConsumption(MedicalSupplyConsumption medicalSupplyConsumption)
         {
             _context.MedicalSupplyConsumptions.Add(medicalSupplyConsumption);
             return _context.SaveChanges() > 0;
+        }
+
+        //Get all medical supply consumption report
+        public Dictionary<MedicalSupply, double> MedicalSupplyConsumeReport(DateTime? from, DateTime? to)
+        {
+            var result = new Dictionary<MedicalSupply, double>();
+            var list = GetAllMedicalSupplies();
+            foreach (var item in list)
+            {
+                result.Add(item, MedicalSupplyConsumeReport(item.MedicalSupplyId, from, to));
+            }
+            return result;
+        }
+
+        //Get medical supply consumption report by MSID
+        public double MedicalSupplyConsumeReport(int msid, DateTime? from, DateTime? to)
+        {
+            double sum = 0;
+            var listconsumption = GetMedicalSupplyConsumption(from, to);
+            var listinventory = GetAllMedicalSupplyInventory(msid);
+            foreach (var item in listinventory)
+            {
+                listconsumption.Where(x => x.Msid == item.SupplyInventoryId)
+                    .Sum(x => sum += x.Amount.Value);
+            }
+            return sum;
+        }
+
+        //Get medical supply consumption by time
+        public List<MedicalSupplyConsumption> GetMedicalSupplyConsumption(DateTime? from, DateTime? to)
+        {
+            return _context.MedicalSupplyConsumptions.Where(x => x.ConsumptionDate >= from && x.ConsumptionDate <= to).ToList();
+        }
+
+        //Get input medical supply inventory by time
+        public List<MedicalSupplyInventory> GetInputMedicalSupplyInventory(DateTime? from, DateTime? to)
+        {
+            return _context.MedicalSupplyInventories.Where(x => x.TransactionDate >= from && x.TransactionDate <= to).ToList();
+        }
+        //Get input amount by time
+        public double? GetInputAmount(int MSID, DateTime? from, DateTime? to)
+        {
+            double sum = 0;
+            var list = GetInputMedicalSupplyInventory(from, to).Where(x => x.MedicalSupplyId == MSID);
+            foreach (var item in list)
+            {
+                sum += item.Quantity.Value;
+            }
+            return sum;
         }
     }
 }
