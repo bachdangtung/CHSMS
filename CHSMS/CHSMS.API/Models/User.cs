@@ -13,6 +13,7 @@ namespace CHSMS.API.Models
         }
 
         public int UserId { get; set; }
+        public string? FullName { get; set; }
         public string? UserName { get; set; }
         public string? Gender { get; set; }
         public DateTime? Dob { get; set; }
@@ -26,7 +27,6 @@ namespace CHSMS.API.Models
         public DateTime? ResetTokenExpiry { get; set; }
         public string? Specialization { get; set; }
         public bool? Status { get; set; }
-        public string? FullName { get; set; }
 
         public virtual Department? Department { get; set; }
         public virtual Role? Role { get; set; }
