@@ -1,0 +1,19 @@
+﻿namespace CHSMS.API.DTOs.Medicine
+{
+    public class MedicineInventoryDTO
+    {
+        public int MedicineInventoryId { get; set; }
+        public int? MedicineId { get; set; }
+        public string? CertificateNumber { get; set; }
+        public bool? TransactionType { get; set; }
+        public double? Quantity { get; set; }
+        public DateTime? ManufacturingDate { get; set; }
+        public DateTime? ExpiryDate { get; set; }
+        public int? ReceiverId { get; set; }
+        public DateTime? TransactionDate { get; set; }
+        public string? Note { get; set; }
+        public string? BatchNumber { get; set; }
+        public int? SupplierId { get; set; }
+        public string? BidNumber { get; set; }
+    }
+}
