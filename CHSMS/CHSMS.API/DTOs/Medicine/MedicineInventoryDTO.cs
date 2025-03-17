@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace CHSMS.API.Models
+﻿namespace CHSMS.API.DTOs.Medicine
 {
-    public partial class MedicineInventory
+    public class MedicineInventoryDTO
     {
         public int MedicineInventoryId { get; set; }
         public int? MedicineId { get; set; }
@@ -18,9 +15,5 @@ namespace CHSMS.API.Models
         public string? BatchNumber { get; set; }
         public int? SupplierId { get; set; }
         public string? BidNumber { get; set; }
-
-        public virtual Medicine? Medicine { get; set; }
-        public virtual User? Receiver { get; set; }
-        public virtual Supplier? Supplier { get; set; }
     }
 }

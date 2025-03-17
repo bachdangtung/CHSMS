@@ -7,6 +7,7 @@ namespace CHSMS.API.Models
     {
         public int MedicineConsumtionId { get; set; }
         public int PrescriptionId { get; set; }
+        public double? TotalPrice { get; set; }
 
         public virtual MedicineConsumption MedicineConsumtion { get; set; } = null!;
         public virtual Prescription Prescription { get; set; } = null!;
