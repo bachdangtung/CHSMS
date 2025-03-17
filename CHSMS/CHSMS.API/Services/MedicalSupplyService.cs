@@ -19,49 +19,21 @@ namespace CHSMS.API.Services
             List<MedicalSupplyDTO> medicalSupplyDTOs = new List<MedicalSupplyDTO>();
             foreach (var medicalSupply in _medicalSupplyReposotory.GetAllMedicalSupplies())
             {
-                var medicalSupplyDTO = new MedicalSupplyDTO
-                {
-                    MedicalSupplyId = medicalSupply.MedicalSupplyId,
-                    MedicalSupplyName = medicalSupply.MedicalSupplyName,
-                    SupplyType = medicalSupply.SupplyType,
-                    UnitOfMeasure = medicalSupply.UnitOfMeasure,
-                    SupplierId = medicalSupply.SupplierId,
-                    Status = medicalSupply.Status,
-                    ImportPrice = medicalSupply.ImportPrice,
-                    SellingPrice = medicalSupply.SellingPrice,
-                    BatchNumber = medicalSupply.BatchNumber,
-                    BidNumber = medicalSupply.BidNumber,
-                    Quantity = _medicalSupplyReposotory.GetSupplyQuantity(medicalSupply.MedicalSupplyId),
-                    Supplier = medicalSupply.Supplier,
-                    MedicalSupplyInventories = MedicalSupplyDetail(medicalSupply.MedicalSupplyId)
-                };
+                var medicalSupplyDTO = ConvertToMedicalsupplyDTO(medicalSupply);
+                medicalSupplyDTO.Quantity = _medicalSupplyReposotory.GetSupplyQuantity(medicalSupply.MedicalSupplyId);
                 medicalSupplyDTOs.Add(medicalSupplyDTO);
             }
             return medicalSupplyDTOs;
         }
 
-        //Get one medical supply
+        //Get one medical supply by ID
         public MedicalSupplyDTO? GetMedicalSupply(int medicalSupplyId)
         {
             var medicalSupply = _medicalSupplyReposotory.GetMedicalSupply(medicalSupplyId);
             if (medicalSupply == null)
                 return null;
-            var medicalSupplyDTO = new MedicalSupplyDTO
-            {
-                MedicalSupplyId = medicalSupply.MedicalSupplyId,
-                MedicalSupplyName = medicalSupply.MedicalSupplyName,
-                SupplyType = medicalSupply.SupplyType,
-                UnitOfMeasure = medicalSupply.UnitOfMeasure,
-                SupplierId = medicalSupply.SupplierId,
-                Status = medicalSupply.Status,
-                ImportPrice = medicalSupply.ImportPrice,
-                SellingPrice = medicalSupply.SellingPrice,
-                BatchNumber = medicalSupply.BatchNumber,
-                BidNumber = medicalSupply.BidNumber,
-                Quantity = _medicalSupplyReposotory.GetSupplyQuantity(medicalSupply.MedicalSupplyId),
-                Supplier = medicalSupply.Supplier,
-                MedicalSupplyInventories = MedicalSupplyDetail(medicalSupply.MedicalSupplyId)
-            };
+            var medicalSupplyDTO = ConvertToMedicalsupplyDTO(medicalSupply);
+            medicalSupplyDTO.Quantity = _medicalSupplyReposotory.GetSupplyQuantity(medicalSupply.MedicalSupplyId);
             return medicalSupplyDTO;
         }
 
@@ -72,19 +44,7 @@ namespace CHSMS.API.Services
             List<MedicalSupplyInventory> supplyInventories = _medicalSupplyReposotory.MedicalSupplyDetail(medicalSupplyId);
             foreach (var supplyInventory in supplyInventories)
             {
-                var supplyInventoryDTO = new MedicalSupplyInventoryDTO
-                {
-                    SupplyInventoryId = supplyInventory.SupplyInventoryId,
-                    MedicalSupplyId = supplyInventory.MedicalSupplyId,
-                    Quantity = supplyInventory.Quantity,
-                    CertificateNumber = supplyInventory.CertificateNumber,
-                    ManufactureDate = supplyInventory.ManufactureDate,
-                    TransactionDate = supplyInventory.TransactionDate,
-                    ExpiryDate = supplyInventory.ExpiryDate,
-                    Note = supplyInventory.Note,
-                    ReceiverId = supplyInventory.ReceiverId,
-                    TransactionType = supplyInventory.TransactionType,
-                };
+                var supplyInventoryDTO = ConvertToMedicalSupplyInventoryDTO(supplyInventory);
                 supplyInventoryDTOs.Add(supplyInventoryDTO);
             }
             return supplyInventoryDTOs;
@@ -158,7 +118,7 @@ namespace CHSMS.API.Services
             return result;
         }
 
-        //convert to DTO
+        //convert to MedicalSupplyDTO
         public MedicalSupplyDTO ConvertToMedicalsupplyDTO(MedicalSupply medicalSupply)
         {
             return new MedicalSupplyDTO
@@ -171,14 +131,32 @@ namespace CHSMS.API.Services
                 Status = medicalSupply.Status,
                 ImportPrice = medicalSupply.ImportPrice,
                 SellingPrice = medicalSupply.SellingPrice,
-                BatchNumber = medicalSupply.BatchNumber,
                 BidNumber = medicalSupply.BidNumber,
+            };
+        }
+
+        //Convert to MedicalSupplyInventoryDTO
+        public MedicalSupplyInventoryDTO ConvertToMedicalSupplyInventoryDTO(MedicalSupplyInventory medicalSupplyInventory)
+        {
+            return new MedicalSupplyInventoryDTO
+            {
+                SupplyInventoryId = medicalSupplyInventory.SupplyInventoryId,
+                MedicalSupplyId = medicalSupplyInventory.MedicalSupplyId,
+                Quantity = medicalSupplyInventory.Quantity,
+                CertificateNumber = medicalSupplyInventory.CertificateNumber,
+                ManufactureDate = medicalSupplyInventory.ManufactureDate,
+                TransactionDate = medicalSupplyInventory.TransactionDate,
+                ExpiryDate = medicalSupplyInventory.ExpiryDate,
+                Note = medicalSupplyInventory.Note,
+                ReceiverId = medicalSupplyInventory.ReceiverId,
+                TransactionType = medicalSupplyInventory.TransactionType,
+                BatchNumber = medicalSupplyInventory.BatchNumber,
             };
         }
 
         public List<MedicalSupplyDTO> GetAllActualMedicalSupplies(DateTime? date)
         {
-            if(date == null)
+            if (date == null)
             {
                 return GetAllMedicalSupplies();
             }
