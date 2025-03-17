@@ -14,6 +14,5 @@
         public string? Note { get; set; }
         public string? BatchNumber { get; set; }
         public int? SupplierId { get; set; }
-        public string? BidNumber { get; set; }
     }
 }

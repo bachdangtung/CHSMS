@@ -12,7 +12,7 @@ namespace CHSMS.API.Repositories.Interfaces
         double GetMedicineQuantity(int medicineId);
         bool AddMedicineInventory(MedicineInventory medicineInventory);
         bool UpdateMedicineInventory(MedicineInventory medicineInventory);
-        DateTime? CalculateExpiryDate(MedicineInventory inventory);
+        DateTime? CalculateExpiryDate(DateTime? manufacturingDate, int? shelfLife);
         Task<dynamic> SearchMedicinesData(string query);
     }
 }

@@ -103,6 +103,13 @@ namespace CHSMS.API.Services
 
         public bool AddMedicineInventory(MedicineInventoryAddDTO medicineInventoryDTO)
         {
+            var medicineData = _medicineRepository.GetMedicine(medicineInventoryDTO.MedicineId.Value);
+            int? shelfLife = medicineData?.ShelfLife;
+
+            var expiryDate = _medicineRepository.CalculateExpiryDate(
+                medicineInventoryDTO.ManufacturingDate,
+                shelfLife
+            );
             var medicine = new MedicineInventory
             {
                 MedicineId = medicineInventoryDTO.MedicineId.Value,
@@ -110,34 +117,43 @@ namespace CHSMS.API.Services
                 CertificateNumber = medicineInventoryDTO.CertificateNumber,
                 ManufacturingDate = medicineInventoryDTO.ManufacturingDate,
                 TransactionDate = medicineInventoryDTO.TransactionDate,
-                //ExpiryDate = _medicineRepository.CalculateExpiryDate(medicineInventoryDTO.ExpiryDate),
+                ExpiryDate = expiryDate,
                 Note = medicineInventoryDTO.Note,
                 ReceiverId = medicineInventoryDTO.ReceiverId,
                 TransactionType = medicineInventoryDTO.TransactionType,
                 BatchNumber = medicineInventoryDTO.BatchNumber,
                 SupplierId = medicineInventoryDTO.SupplierId
             };
-            if (!_medicineRepository.AddMedicineInventory(medicine)) return false;
-            return true;
+            return _medicineRepository.AddMedicineInventory(medicine);
         }
 
         public bool UpdateMedicineInventory(MedicineInventoryDTO medicineInventoryDTO)
         {
+            var medicineData = _medicineRepository.GetMedicine(medicineInventoryDTO.MedicineId.Value);
+            int? shelfLife = medicineData?.ShelfLife;
+
+            var expiryDate = _medicineRepository.CalculateExpiryDate(
+                medicineInventoryDTO.ManufacturingDate,
+                shelfLife
+            );
             var medicineInventory = new MedicineInventory
             {
+                MedicineInventoryId = medicineInventoryDTO.MedicineInventoryId,
                 MedicineId = medicineInventoryDTO.MedicineId.Value,
                 Quantity = medicineInventoryDTO.Quantity,
                 CertificateNumber = medicineInventoryDTO.CertificateNumber,
                 ManufacturingDate = medicineInventoryDTO.ManufacturingDate,
                 TransactionDate = medicineInventoryDTO.TransactionDate,
-                ExpiryDate = medicineInventoryDTO.ExpiryDate,
+                ExpiryDate = expiryDate,
                 Note = medicineInventoryDTO.Note,
                 ReceiverId = medicineInventoryDTO.ReceiverId,
                 TransactionType = medicineInventoryDTO.TransactionType,
                 BatchNumber = medicineInventoryDTO.BatchNumber,
+                SupplierId = medicineInventoryDTO.SupplierId,
             };
             if (!_medicineRepository.UpdateMedicineInventory(medicineInventory)) return false;
             return true;
+            //return _medicineRepository.UpdateMedicineInventory(medicineInventory);
         }
 
         public async Task<List<MedicineSuggestionDTO>> GetMedicineSuggestions(string query)

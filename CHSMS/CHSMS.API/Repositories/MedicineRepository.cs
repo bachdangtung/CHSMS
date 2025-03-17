@@ -56,13 +56,21 @@ namespace CHSMS.API.Repositories
                 .OrderBy(x => x.ExpiryDate)
                 .ToList();
         }
-
-        // Get total quantity of a medicine
         public double GetMedicineQuantity(int medicineId)
         {
             return _context.MedicineInventories
                 .Where(x => x.MedicineId == medicineId && x.Quantity > 0 && x.ExpiryDate > DateTime.Now)
                 .Sum(x => x.Quantity) ?? 0;
+        }
+
+        // Get total quantity of a medicine
+        public DateTime? CalculateExpiryDate(DateTime? manufacturingDate, int? shelfLife)
+        {
+            if (manufacturingDate.HasValue && shelfLife.HasValue)
+            {
+                return manufacturingDate.Value.AddMonths(shelfLife.Value);
+            }
+            return null;
         }
 
         // Add medicine inventory
@@ -81,6 +89,12 @@ namespace CHSMS.API.Repositories
         // Update medicine inventory
         public bool UpdateMedicineInventory(MedicineInventory medicineInventory)
         {
+            // Tách đối tượng ra khỏi ngữ cảnh
+            var existingEntity = _context.MedicineInventories.Find(medicineInventory.MedicineInventoryId);
+            if (existingEntity != null)
+            {
+                _context.Entry(existingEntity).State = EntityState.Detached;
+            }
             _context.MedicineInventories.Update(medicineInventory);
             return _context.SaveChanges() > 0;
         }
