@@ -94,7 +94,7 @@ namespace CHSMS.API.Services
                     ReceiverId = medicineInventory.ReceiverId,
                     TransactionType = medicineInventory.TransactionType,
                     BatchNumber = medicineInventory.BatchNumber,
-                    BidNumber = medicineInventory.Medicine.BidNumber,
+                    //BidNumber = medicineInventory.Medicine.BidNumber,
                 };
                 medicineInventoryDTOs.Add(medicineInventoryDTO);
             }
