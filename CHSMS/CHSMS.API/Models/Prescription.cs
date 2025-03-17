@@ -8,7 +8,6 @@ namespace CHSMS.API.Models
         public int PrescriptionId { get; set; }
         public int? MedicalRecordHistoryId { get; set; }
         public int? UserId { get; set; }
-        public double? TotalPrice { get; set; }
         public DateTime? IssueDate { get; set; }
         public bool? Status { get; set; }
         public string? Note { get; set; }
