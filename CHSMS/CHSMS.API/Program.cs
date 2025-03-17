@@ -11,6 +11,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NETCore.MailKit.Extensions;
 using System.Text;
+using Microsoft.AspNetCore.Cors;
+using CHSMS.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,13 +35,15 @@ builder.Services.AddMailKit(config => config.UseMailKit(
         Security = true
     }
 ));
-
+builder.Services.AddHttpClient();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<MedicalSupplyReposotory>();
 builder.Services.AddScoped<MedicalSupplyService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
+builder.Services.AddScoped<IMedicineService, MedicineService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -91,6 +95,15 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost", policy =>
+    {
+        policy.WithOrigins("http://127.0.0.1:5500")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -101,7 +114,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowLocalhost");
+
 app.UseHttpsRedirection();
+
+app.UseMiddleware<CorsMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -7,6 +7,7 @@ namespace CHSMS.API.Models
     {
         public User()
         {
+            MedicalRecordHistories = new HashSet<MedicalRecordHistory>();
             MedicalSupplyInventories = new HashSet<MedicalSupplyInventory>();
             MedicineInventories = new HashSet<MedicineInventory>();
             Prescriptions = new HashSet<Prescription>();
@@ -29,6 +30,7 @@ namespace CHSMS.API.Models
 
         public virtual Department? Department { get; set; }
         public virtual Role? Role { get; set; }
+        public virtual ICollection<MedicalRecordHistory> MedicalRecordHistories { get; set; }
         public virtual ICollection<MedicalSupplyInventory> MedicalSupplyInventories { get; set; }
         public virtual ICollection<MedicineInventory> MedicineInventories { get; set; }
         public virtual ICollection<Prescription> Prescriptions { get; set; }
