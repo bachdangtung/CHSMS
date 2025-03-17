@@ -53,6 +53,7 @@ namespace CHSMS.API.Services
             var authClaims = new List<Claim>
     {
         new Claim(ClaimTypes.Email, user.Email),
+        new Claim("name", user.FullName),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new Claim("Id", user.UserId.ToString()),
     };
@@ -114,9 +115,9 @@ namespace CHSMS.API.Services
             await _unitOfWork.CommitAsync();
 
             // Send the reset link via email
-            string resetLink = $"token={resetToken}";
+            string resetLink = $"http://127.0.0.1:5500/pages/authen/reset-password.html?token={resetToken}&id={user.UserId}";
             await _emailService.SendAsync(email, "Password Reset Request",
-                $"Click the link to reset your password: {resetLink}", true);
+                $"Click the link to reset your password: <a href='{resetLink}'>Reset Password</a>", true);
 
             return true;
         }

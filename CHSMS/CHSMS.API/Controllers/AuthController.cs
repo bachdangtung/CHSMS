@@ -140,7 +140,7 @@ namespace CHSMS.API.Controllers
         }
 
         [Authorize]
-        [HttpPut("/api/User/Profile")]
+        [HttpGet("/api/User/Profile")]
         public async Task<ActionResult<UserListDto>> UserProfile()
         {
             var userId = int.Parse(User.FindFirst("Id")?.Value);
@@ -174,7 +174,7 @@ namespace CHSMS.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("Logout")]
+        [HttpPost("/api/Authen/Logout")]
         public async Task<IActionResult> Logout()
         {
             var userId = User.FindFirst("Id")?.Value;
