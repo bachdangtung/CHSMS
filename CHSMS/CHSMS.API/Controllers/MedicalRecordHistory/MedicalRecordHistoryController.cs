@@ -18,14 +18,14 @@ namespace CHSMS.API.Controllers.MedicalRecord
 
 
         [HttpGet("GetAll")]
-        public IActionResult GetAllMedicalRecords()
+        public IActionResult GetAllMedicalRecordHiatories()
         {
             var records = _medicalRecordHistoryService.GetAllMedicalRecordHistories();
             return Ok(records);
         }
 
         [HttpGet("Get/{id}")]
-        public IActionResult GetMedicalRecord(int id)
+        public IActionResult GetMedicalRecordHistory(int id)
         {
             var record = _medicalRecordHistoryService.GetMedicalRecordHistory(id);
             if (record == null)
@@ -34,7 +34,7 @@ namespace CHSMS.API.Controllers.MedicalRecord
         }
 
         [HttpGet("Search")]
-        public IActionResult GetMedicalRecordsByDateRange(DateTime? startDate, DateTime? endDate, string? doctorName, string? patientName)
+        public IActionResult GetMedicalRecordHistoriesByDateRange(DateTime? startDate, DateTime? endDate, string? doctorName, string? patientName)
         {
             var records = _medicalRecordHistoryService.GetMedicalRecordHistoriesByFilter(startDate, endDate, doctorName, patientName);
             return Ok(records);
@@ -42,7 +42,7 @@ namespace CHSMS.API.Controllers.MedicalRecord
 
 
         [HttpPost("Add")]
-        public IActionResult AddMedicalRecord([FromBody] MedicalRecordHistoryDTO medicalRecordDTO)
+        public IActionResult AddMedicalRecordHistory([FromBody] MedicalRecordHistoryDTO medicalRecordDTO)
         {
 
             var result = _medicalRecordHistoryService.AddMedicalRecordHistory(medicalRecordDTO);
@@ -52,7 +52,7 @@ namespace CHSMS.API.Controllers.MedicalRecord
         }
 
         [HttpPut("Update")]
-        public IActionResult UpdateMedicalRecord([FromBody] MedicalRecordHistoryDTO medicalRecordDTO)
+        public IActionResult UpdateMedicalRecordHistory([FromBody] MedicalRecordHistoryDTO medicalRecordDTO)
         {
             var result = _medicalRecordHistoryService.UpdateMedicalRecordHistory(medicalRecordDTO);
             if (!result)
@@ -61,7 +61,7 @@ namespace CHSMS.API.Controllers.MedicalRecord
         }
 
         [HttpDelete("Delete/{id}")]
-        public IActionResult DeleteMedicalRecord(int id)
+        public IActionResult DeleteMedicalRecordHistory(int id)
         {
             var result = _medicalRecordHistoryService.DeleteMedicalRecordHistory(id);
             if (!result)
