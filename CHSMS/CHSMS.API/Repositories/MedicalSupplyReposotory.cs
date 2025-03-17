@@ -36,6 +36,7 @@ namespace CHSMS.API.Repositories
             }
             return sum;
         }
+        //Get actual supply quantity by Date
         public double? GetActualSupplyQuantity(int medicalSupplyId, DateTime date)
         {
             double sum = GetSupplyQuantity(medicalSupplyId).Value;
@@ -44,7 +45,7 @@ namespace CHSMS.API.Repositories
             return sum;
         }
 
-        //Get supply detail
+        //Get MedicalSupplyInventory of one MedicalSupply
         public List<MedicalSupplyInventory> MedicalSupplyDetail(int medicalSupplyId)
         {
             return _context.MedicalSupplyInventories.Where(x => x.MedicalSupplyId == medicalSupplyId && x.Quantity > 0 && x.ExpiryDate > DateTime.Now).ToList();
@@ -88,6 +89,7 @@ namespace CHSMS.API.Repositories
                 {
                     medicalSupplyConsumption.Add(new MedicalSupplyConsumption
                     {
+                        MsconsumptionId = 0,
                         Msid = item.SupplyInventoryId,
                         Amount = Quantity,
                         ConsumptionDate = DateTime.Now,
