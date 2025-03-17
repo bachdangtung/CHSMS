@@ -53,7 +53,7 @@ namespace CHSMS.API.Services
             var authClaims = new List<Claim>
     {
         new Claim(ClaimTypes.Email, user.Email),
-        new Claim("name", user.FullName),
+        new Claim("name", user.Fullname),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new Claim("Id", user.UserId.ToString()),
     };
@@ -200,7 +200,7 @@ namespace CHSMS.API.Services
                 throw new Exception("Người dùng không tồn tại");
             }
 
-            user.FullName = updatedUser.FullName;
+            user.Fullname = updatedUser.Fullname;
             user.Email = updatedUser.Email;
             user.PhoneNumber = updatedUser.PhoneNumber;
             user.Address = updatedUser.Address;

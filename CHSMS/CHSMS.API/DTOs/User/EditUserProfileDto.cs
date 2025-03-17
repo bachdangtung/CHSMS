@@ -6,7 +6,7 @@ namespace CHSMS.API.DTOs.User
     {
         [Required(ErrorMessage = "Hãy nhập họ và tên")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Họ và tên phải từ 3 đến 50 kí tự")]
-        public string? FullName { get; set; }
+        public string? Fullname { get; set; }
         public string? Gender { get; set; }
         public DateTime? Dob { get; set; }
         [Required(ErrorMessage = "Hãy nhập Email!")]
