@@ -39,7 +39,7 @@ namespace CHSMS.API.Services
                     Quantity = _medicineRepository.GetMedicineQuantity(medicine.MedicineId),
                     ShelfLife = medicine.ShelfLife,
                     BatchNumber = medicine.MedicineInventories.FirstOrDefault()?.BatchNumber,
-                    BidNumber = medicine.MedicineInventories.FirstOrDefault()?.BidNumber,
+                    BidNumber = medicine.BidNumber,
                     SupplierName = medicine.MedicineInventories.FirstOrDefault()?.Supplier?.Name,
                     ManufacturingDate = medicine.MedicineInventories.FirstOrDefault()?.ManufacturingDate,
                     ExpiryDate = medicine.MedicineInventories.FirstOrDefault()?.ExpiryDate
@@ -66,7 +66,7 @@ namespace CHSMS.API.Services
                 Quantity = _medicineRepository.GetMedicineQuantity(medicine.MedicineId),
                 ShelfLife = medicine.ShelfLife,
                 BatchNumber = medicine.MedicineInventories.FirstOrDefault()?.BatchNumber,
-                BidNumber = medicine.MedicineInventories.FirstOrDefault()?.BidNumber,
+                BidNumber = medicine.BidNumber,
                 SupplierName = medicine.MedicineInventories.FirstOrDefault()?.Supplier?.Name,
                 ManufacturingDate = medicine.MedicineInventories.FirstOrDefault()?.ManufacturingDate,
                 ExpiryDate = medicine.MedicineInventories.FirstOrDefault()?.ExpiryDate
@@ -74,7 +74,7 @@ namespace CHSMS.API.Services
             return medicineDTO;
         }
 
-        //Get medical supply detail
+        //Get medicine supply detail
         public List<MedicineInventoryDTO> MedicineDetail(int medicineId)
         {
             List<MedicineInventoryDTO> medicineInventoryDTOs = new List<MedicineInventoryDTO>();
@@ -94,7 +94,7 @@ namespace CHSMS.API.Services
                     ReceiverId = medicineInventory.ReceiverId,
                     TransactionType = medicineInventory.TransactionType,
                     BatchNumber = medicineInventory.BatchNumber,
-                    BidNumber = medicineInventory.BidNumber,
+                    BidNumber = medicineInventory.Medicine.BidNumber,
                 };
                 medicineInventoryDTOs.Add(medicineInventoryDTO);
             }
@@ -105,7 +105,7 @@ namespace CHSMS.API.Services
         {
             var medicine = new MedicineInventory
             {
-                MedicineId = medicineInventoryDTO.MedicineId,
+                MedicineId = medicineInventoryDTO.MedicineId.Value,
                 Quantity = medicineInventoryDTO.Quantity,
                 CertificateNumber = medicineInventoryDTO.CertificateNumber,
                 ManufacturingDate = medicineInventoryDTO.ManufacturingDate,
@@ -115,7 +115,6 @@ namespace CHSMS.API.Services
                 ReceiverId = medicineInventoryDTO.ReceiverId,
                 TransactionType = medicineInventoryDTO.TransactionType,
                 BatchNumber = medicineInventoryDTO.BatchNumber,
-                BidNumber = medicineInventoryDTO.BidNumber,
                 SupplierId = medicineInventoryDTO.SupplierId
             };
             if (!_medicineRepository.AddMedicineInventory(medicine)) return false;
@@ -126,7 +125,7 @@ namespace CHSMS.API.Services
         {
             var medicineInventory = new MedicineInventory
             {
-                MedicineId = medicineInventoryDTO.MedicineId,
+                MedicineId = medicineInventoryDTO.MedicineId.Value,
                 Quantity = medicineInventoryDTO.Quantity,
                 CertificateNumber = medicineInventoryDTO.CertificateNumber,
                 ManufacturingDate = medicineInventoryDTO.ManufacturingDate,
@@ -136,7 +135,6 @@ namespace CHSMS.API.Services
                 ReceiverId = medicineInventoryDTO.ReceiverId,
                 TransactionType = medicineInventoryDTO.TransactionType,
                 BatchNumber = medicineInventoryDTO.BatchNumber,
-                BidNumber = medicineInventoryDTO.BidNumber,
             };
             if (!_medicineRepository.UpdateMedicineInventory(medicineInventory)) return false;
             return true;
