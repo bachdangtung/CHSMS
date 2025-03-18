@@ -1,4 +1,5 @@
-﻿using CHSMS.API.Models;
+﻿using CHSMS.API.DTOs.User;
+using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,22 +16,36 @@ namespace CHSMS.API.Repositories
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            return await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(u => u.Email == email);
+            return await _context.Users.Include(r => r.Role).Include(d => d.Department).FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<User?> GetByUserNameAsync(string userName)
+        {
+            return await _context.Users.Include(r => r.Role).Include(d => d.Department).FirstOrDefaultAsync(u => u.UserName == userName);
         }
 
         public async Task<User?> GetByIdAsync(int id)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.UserId == id);
+            return await _context.Users.Include(r => r.Role).Include(d => d.Department).FirstOrDefaultAsync(u => u.UserId == id);
         }
 
-        public void Update(User UpdatedUser)
+        public void Update(User updatedUser)
         {
-            _context.Users.Update(UpdatedUser);
+            _context.Users.Update(updatedUser);
         }
 
-        public async Task<User?> GetByResetTokenAsync(string token)
+        public void Add(User newUser)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.ResetToken == token);
+            _context.Users.Add(newUser);
+        }
+
+        public async Task<User?> GetByResetTokenAsync(ResetPasswordDto resetPasswordDto)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.ResetToken == resetPasswordDto.Token && u.UserId == resetPasswordDto.UserId);
+        }
+        public async Task<IEnumerable<User>> GetAllAsync()
+        {
+            return await _context.Users.Include(r => r.Role).Include(d => d.Department).ToListAsync();
         }
 
     }
