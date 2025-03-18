@@ -8,17 +8,17 @@ namespace CHSMS.API.Controllers.MedicalRecord
     [ApiController]
     public class MedicalRecordController : ControllerBase
     {
-        private readonly MedicalRecordHistoryService _medicalRecordHistoryService;
+        private readonly MedicalRecordService _medicalRecordService;
 
-        public MedicalRecordController(MedicalRecordHistoryService medicalRecordHistoryService)
+        public MedicalRecordController(MedicalRecordService medicalRecordService)
         {
-            _medicalRecordHistoryService = medicalRecordHistoryService;
+            _medicalRecordService = medicalRecordService;
         }
 
         [HttpGet("GetAll")]
         public IActionResult GetAllMedicalRecords()
         {
-            var records = _medicalRecordHistoryService.GetAllMedicalRecordHistories();
+            var records = _medicalRecordService.GetAllMedicalRecords();
             return Ok(records);
         }
     }

@@ -45,10 +45,14 @@ builder.Services.AddCors(options =>
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
 builder.Services.AddScoped<MedicalSupplyReposotory>();
 builder.Services.AddScoped<MedicalRecordHistoryRepository>();
+builder.Services.AddScoped<MedicalRecordRepository>();
+
 builder.Services.AddScoped<MedicalSupplyService>();
 builder.Services.AddScoped<MedicalRecordHistoryService>();
+builder.Services.AddScoped<MedicalRecordService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddControllers();
@@ -110,6 +114,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAllOrigins");
 
 app.UseHttpsRedirection();
 
