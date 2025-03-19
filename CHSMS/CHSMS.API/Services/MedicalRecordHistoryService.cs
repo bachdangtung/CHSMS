@@ -1,16 +1,19 @@
 ﻿using CHSMS.API.DTOs.MedicalRecord;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories;
+using CHSMS.API.Repositories.Interfaces;
 
 namespace CHSMS.API.Services
 {
     public class MedicalRecordHistoryService
     {
         private readonly MedicalRecordHistoryRepository _medicalRecordHistoryRepository;
+        private readonly IUserRepository _userRepository;
 
-        public MedicalRecordHistoryService(MedicalRecordHistoryRepository medicalRecordHistoryRepository)
+        public MedicalRecordHistoryService(MedicalRecordHistoryRepository medicalRecordHistoryRepository, IUserRepository userRepository)
         {
             _medicalRecordHistoryRepository = medicalRecordHistoryRepository;
+            _userRepository = userRepository;
         }
 
 
@@ -153,5 +156,23 @@ namespace CHSMS.API.Services
         {
             return _medicalRecordHistoryRepository.DeleteMedicalRecordHistory(medicalRecordId);
         }
+
+        public List<UserDTO> GetAllUsers()
+        {
+            List<UserDTO> medicalRecordDTOs = new List<UserDTO>();
+            foreach (var record in _medicalRecordHistoryRepository.GetAllUsers())
+            {
+                var recordDTO = new UserDTO
+                {
+                    UserId = record.UserId,
+                    UserName = record.UserName,
+                    Gender = record.Gender
+                };
+                medicalRecordDTOs.Add(recordDTO);
+            }
+            return medicalRecordDTOs;
+        }
+
+
     }
 }

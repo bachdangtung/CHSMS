@@ -1,12 +1,16 @@
-﻿using CHSMS.API.Models;
+﻿using CHSMS.API.DTOs.User;
+using CHSMS.API.Models;
 
 namespace CHSMS.API.Repositories.Interfaces
 {
     public interface IUserRepository
     {
         Task<User?> GetByEmailAsync(string email);
+        Task<User?> GetByUserNameAsync(string userName);
         Task<User?> GetByIdAsync(int id);
-        void Update(User UpdatedUser);
-        Task<User?> GetByResetTokenAsync(string token);
+        void Update(User updatedUser);
+        Task<User?> GetByResetTokenAsync(ResetPasswordDto resetPasswordDto);
+        void Add(User newUser);
+        Task<IEnumerable<User>> GetAllAsync();
     }
 }

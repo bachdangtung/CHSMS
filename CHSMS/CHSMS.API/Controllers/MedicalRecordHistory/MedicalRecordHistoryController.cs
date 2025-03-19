@@ -68,5 +68,12 @@ namespace CHSMS.API.Controllers.MedicalRecord
                 return NotFound();
             return Ok();
         }
+
+        [HttpGet("GetAllUser")]
+        public IActionResult GetAllUsers()
+        {
+            var records = _medicalRecordHistoryService.GetAllUsers();
+            return Ok(records);
+        }
     }
 }

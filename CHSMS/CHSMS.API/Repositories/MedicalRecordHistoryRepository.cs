@@ -84,5 +84,11 @@ namespace CHSMS.API.Repositories
             _context.MedicalRecordHistories.Remove(record);
             return _context.SaveChanges() > 0;
         }
+
+        public List<User> GetAllUsers()
+        {
+            return _context.Users
+                .ToList();
+        }
     }
 }
