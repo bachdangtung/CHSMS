@@ -12,6 +12,12 @@ namespace CHSMS.API.Repositories
         {
             _context = context;
         }
+
+        public async Task<IEnumerable<Role?>> GetAllAsync()
+        {
+            return await _context.Roles.ToListAsync();
+        }
+
         public async Task<Role?> GetByIdAsync(int id)
         {
             return await _context.Roles.FirstOrDefaultAsync(r => r.RoleId == id);

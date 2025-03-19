@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace CHSMS.API.Controllers
+namespace CHSMS.API.Controllers.Auth
 {
     public class AuthController : Controller
     {
@@ -106,15 +106,15 @@ namespace CHSMS.API.Controllers
 
         //Deactive user
         [Authorize(Roles = "Trưởng trạm")]
-        [HttpPost("/api/User/ChangeStatus")]
+        [HttpPost("/api/User/ChangeStatus/{id}")]
         public async Task<IActionResult> ChangeStatus(int id)
         {
             try
             {
-                var result = _authService.ChangeStatusAsync(id);
-                if (result.Result)
+                var result = await _authService.ChangeStatusAsync(id);
+                if (result)
                 {
-                    return Ok("Đã đổi trạng thái");
+                    return Ok(new { message = "Đã đổi trạng thái" });
                 }
                 return BadRequest();
             }

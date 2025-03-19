@@ -6,5 +6,6 @@ namespace CHSMS.API.Repositories.Interfaces
     {
         Task<Department?> GetByIdAsync(int id);
         Task<bool> DepartmentExistsAsync(int? departmentId);
+        Task<IEnumerable<Department?>> GetAllAsync();
     }
 }

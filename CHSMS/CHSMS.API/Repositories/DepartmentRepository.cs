@@ -21,5 +21,10 @@ namespace CHSMS.API.Repositories
             if (!departmentId.HasValue) return false;
             return await _context.Departments.AnyAsync(d => d.DepartmentId == departmentId.Value);
         }
+
+        public async Task<IEnumerable<Department?>> GetAllAsync()
+        {
+            return await _context.Departments.ToListAsync();
+        }
     }
 }
