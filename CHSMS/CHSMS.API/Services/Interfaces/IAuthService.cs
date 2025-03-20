@@ -14,5 +14,7 @@ namespace CHSMS.API.Services.Interfaces
         Task<IEnumerable<UserListDto>> GetUserListAsync();
         Task<UserListDto> GetUserProfileAsync(int id);
         Task<bool> EditUserProfileAsync(int userId, EditUserProfileDto updatedUser);
+        Task<IEnumerable<UserListDto>> GetUserListAsync(
+           string? search, string? gender, bool? status, int? roleId);
     }
 }

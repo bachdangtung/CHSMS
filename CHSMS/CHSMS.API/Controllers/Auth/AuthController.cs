@@ -210,5 +210,24 @@ namespace CHSMS.API.Controllers.Auth
 
             return Ok("Token is blacklisted.");
         }
+
+        [Authorize(Roles = "Trưởng trạm")]
+        [HttpGet("/api/User/GetAll")]
+        public async Task<IActionResult> GetUserList(
+            [FromQuery] string? search,
+            [FromQuery] string? gender,
+            [FromQuery] bool? status,
+            [FromQuery] int? roleId)
+        {
+            try
+            {
+                var users = await _authService.GetUserListAsync(search, gender, status, roleId);
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

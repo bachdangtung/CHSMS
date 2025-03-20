@@ -1,5 +1,6 @@
 ﻿using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
+using System.Linq.Expressions;
 
 namespace CHSMS.API.Repositories.Interfaces
 {
@@ -12,5 +13,6 @@ namespace CHSMS.API.Repositories.Interfaces
         Task<User?> GetByResetTokenAsync(ResetPasswordDto resetPasswordDto);
         void Add(User newUser);
         Task<IEnumerable<User>> GetAllAsync();
+        Task<IEnumerable<User>> GetAllAsync(Expression<Func<User, bool>>? filter = null);
     }
 }

@@ -2,6 +2,7 @@
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace CHSMS.API.Repositories
 {
@@ -47,5 +48,18 @@ namespace CHSMS.API.Repositories
         {
             return await _context.Users.Include(r => r.Role).Include(d => d.Department).ToListAsync();
         }
+
+        public async Task<IEnumerable<User>> GetAllAsync(Expression<Func<User, bool>>? filter = null)
+        {
+            IQueryable<User> query = _context.Users.Include(r => r.Role).Include(d => d.Department);
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            return await query.ToListAsync();
+        }
+
     }
 }

@@ -147,6 +147,11 @@ namespace CHSMS.API.Services
             {
                 throw new Exception("Tài khoản đã tồn tại");
             }
+            var emailExist = await _unitOfWork.Users.GetByEmailAsync(createUserDto.Email);
+            if (emailExist != null)
+            {
+                throw new Exception("Email đã tồn tại");
+            }
             var isValidDepartment = await _unitOfWork.Departments.DepartmentExistsAsync(createUserDto.DepartmentId);
             if (createUserDto.DepartmentId.HasValue && !isValidDepartment)
             {
@@ -211,6 +216,22 @@ namespace CHSMS.API.Services
             await _unitOfWork.CommitAsync();
 
             return true;
+        }
+
+        public async Task<IEnumerable<UserListDto>> GetUserListAsync(
+            string? search, string? gender, bool? status, int? roleId)
+        {
+            var userList = await _unitOfWork.Users.GetAllAsync(
+                u => (string.IsNullOrEmpty(search) ||
+                     u.UserName.Contains(search) ||
+                     u.Fullname.Contains(search) ||
+                     u.Email.Contains(search)) &&
+                     (string.IsNullOrEmpty(gender) || u.Gender == gender) &&
+                     (!status.HasValue || u.Status == status.Value) &&
+                     (!roleId.HasValue || u.RoleId == roleId)
+            );
+
+            return _mapper.Map<IEnumerable<UserListDto>>(userList);
         }
     }
 }
