@@ -14,7 +14,7 @@ namespace CHSMS.API.Models
         public int MedicalRecordId { get; set; }
         public DateTime? Date { get; set; }
         public string? Address { get; set; }
-        public string? Diagnose { get; set; }
+        public string? DiagnoseConclusion { get; set; }
         public string? TreatmentMethod { get; set; }
         public double? Pulse { get; set; }
         public string? BloodPressure { get; set; }
@@ -24,6 +24,14 @@ namespace CHSMS.API.Models
         public double? Weight { get; set; }
         public int? UserId { get; set; }
         public string? Symptom { get; set; }
+        public string? MedicalRecordHistoryCode { get; set; }
+        public double? InsuranceExemption { get; set; }
+        public string? PatientCategory { get; set; }
+        public string? DiseaseProgress { get; set; }
+        public string? DiseaseStage { get; set; }
+        public string? Icd { get; set; }
+        public string? MedicalOrder { get; set; }
+        public string? TreatmentBed { get; set; }
 
         public virtual MedicalRecord MedicalRecord { get; set; } = null!;
         public virtual User? User { get; set; }
