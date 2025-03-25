@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace CHSMS.API.Repositories
 {
-    public class MedicineRepository : IMedicineRepository
+    public class MedicineRepository
     {
         private readonly SEP_TestContext _context;
         private readonly HttpClient _httpClient;
@@ -25,29 +25,62 @@ namespace CHSMS.API.Repositories
         {
             var medicines = _context.Medicines
                 .Include(m => m.MedicineInventories)
-                .ThenInclude(mi => mi.Supplier) // Nếu muốn lấy luôn nhà cung cấp
+                .ThenInclude(mi => mi.Supplier)
                 .ToList();
             return medicines;
         }
 
+        //Get medicineInventory by medicineId
+        public List<MedicineInventoryDTO> GetMedicineInventoryByMedicineId(int medicineId)
+        {
+            var medicineInventories = _context.MedicineInventories
+                .Include(m => m.Medicine)
+                .Include(m => m.Supplier)
+                .Include(m => m.Receiver)
+                .Where(m => m.MedicineId == medicineId)
+                .Select(m => new MedicineInventoryDTO
+                {
+                    MedicineInventoryId = m.MedicineInventoryId,
+                    MedicineId = m.MedicineId,
+                    MedicineName = m.Medicine.MedicineName,
+                    CertificateNumber = m.CertificateNumber,
+                    TransactionType = m.TransactionType,
+                    Quantity = m.Quantity,
+                    ManufacturingDate = m.ManufacturingDate,
+                    ExpiryDate = m.ExpiryDate,
+                    ReceiverId = m.ReceiverId,
+                    ReceiverName = m.Receiver != null ? m.Receiver.UserName : null, // Lấy tên từ bảng User
+                    TransactionDate = m.TransactionDate,
+                    Note = m.Note,
+                    BatchNumber = m.BatchNumber,
+                    SupplierId = m.SupplierId,
+                    SupplierName = m.Supplier != null ? m.Supplier.Name : null // Lấy tên từ bảng Supplier
+                })
+                .ToList();
+
+            return medicineInventories;
+        }
+
+        // Get all medicines with pagination
         public Medicine? GetMedicine(int medicineId)
         {
             var result = _context.Medicines
-                                 .Include(m => m.MedicineInventories) // Eager load MedicineInventories
-                                 .ThenInclude(mi => mi.Supplier)     // Eager load Supplier for each MedicineInventory
+                                 .Include(m => m.MedicineInventories)
+                                 .ThenInclude(mi => mi.Supplier)
                                  .FirstOrDefault(m => m.MedicineId == medicineId);
 
             return result;
         }
 
-
-        // Get one medicine by ID
-        public List<MedicineInventory> GetMedicineDetail(int medicineId)
+        // Get list medicine by medicineId còn hạn sử dụng
+        public List<MedicineInventory> GetMedicineInventory(int medicineId, bool orderByExpiry = false)
         {
-            return _context.MedicineInventories
-                .Where(x => x.MedicineId == medicineId && x.Quantity > 0 && x.ExpiryDate > DateTime.Now)
-                .ToList();
+            var query = _context.MedicineInventories
+                .Where(x => x.MedicineId == medicineId && x.Quantity > 0 && x.ExpiryDate > DateTime.Now);
+
+            return orderByExpiry ? query.OrderBy(x => x.ExpiryDate).ToList() : query.ToList();
         }
+
         // Get list medicine by ID
         public List<MedicineInventory> GetAvailableMedicineInventory(int medicineId)
         {
@@ -56,6 +89,8 @@ namespace CHSMS.API.Repositories
                 .OrderBy(x => x.ExpiryDate)
                 .ToList();
         }
+
+        // Get total quantity of a medicine
         public double GetMedicineQuantity(int medicineId)
         {
             return _context.MedicineInventories
@@ -71,6 +106,16 @@ namespace CHSMS.API.Repositories
                 return manufacturingDate.Value.AddMonths(shelfLife.Value);
             }
             return null;
+        }
+
+        //search medicine by name
+        public List<Medicine> SearchMedicineByName(string name)
+        {
+            return _context.Medicines
+                .Include(m => m.MedicineInventories)
+                .ThenInclude(mi => mi.Supplier)
+                .Where(m => m.MedicineName.Contains(name))
+                .ToList();
         }
 
         // Add medicine inventory
@@ -89,23 +134,96 @@ namespace CHSMS.API.Repositories
         // Update medicine inventory
         public bool UpdateMedicineInventory(MedicineInventory medicineInventory)
         {
-            // Tách đối tượng ra khỏi ngữ cảnh
-            var existingEntity = _context.MedicineInventories.Find(medicineInventory.MedicineInventoryId);
-            if (existingEntity != null)
+            var existingInventory = _context.MedicineInventories
+                .FirstOrDefault(mi => mi.MedicineInventoryId == medicineInventory.MedicineInventoryId);
+
+            if (existingInventory == null)
             {
-                _context.Entry(existingEntity).State = EntityState.Detached;
+                throw new Exception("Kho thuốc không tồn tại.");
             }
-            _context.MedicineInventories.Update(medicineInventory);
+
+            // Chỉ cập nhật những trường thay đổi
+            existingInventory.CertificateNumber = medicineInventory.CertificateNumber;
+            existingInventory.Quantity = medicineInventory.Quantity;
+            existingInventory.TransactionType = medicineInventory.TransactionType;
+            existingInventory.ReceiverId = medicineInventory.ReceiverId;
+            existingInventory.TransactionDate = medicineInventory.TransactionDate;
+            existingInventory.Note = medicineInventory.Note;
+            existingInventory.BatchNumber = medicineInventory.BatchNumber;
+            existingInventory.Quantity = medicineInventory.Quantity;
+            existingInventory.ExpiryDate = medicineInventory.ExpiryDate;
+            //existingInventory.ManufacturingDate = medicineInventory.ManufacturingDate;
+            existingInventory.SupplierId = medicineInventory.SupplierId;
+            // Cập nhật thêm các trường cần thiết
+
             return _context.SaveChanges() > 0;
         }
 
-        // Calculate expiry date of a medicine inventory
-        public DateTime? CalculateExpiryDate(MedicineInventory inventory)
+
+        // Lấy danh sách thuốc sắp hết hạn (ví dụ: trong vòng 6 tháng tới)
+        public List<MedicineInventory> GetNearExpiryMedicines(int monthsThreshold = 6)
         {
-            return inventory.ExpiryDate
-                ?? (inventory.ManufacturingDate.HasValue
-                    ? inventory.ManufacturingDate.Value.AddMonths(inventory.Medicine?.ShelfLife ?? 0)
-                    : null);
+            var thresholdDate = DateTime.Now.AddMonths(monthsThreshold);
+            return _context.MedicineInventories
+                .Include(mi => mi.Medicine)
+                .Include(mi => mi.Supplier)
+                .Where(x => x.Quantity > 0 && x.ExpiryDate <= thresholdDate && x.ExpiryDate > DateTime.Now)
+                .OrderBy(x => x.ExpiryDate)
+                .ToList();
+        }
+
+        // Lấy danh sách thuốc dưới ngưỡng tồn kho tối thiểu
+        public List<Medicine> GetLowStockMedicines(double minimumThreshold)
+        {
+            return _context.Medicines
+                .Where(m => m.MedicineInventories
+                    .Where(mi => mi.ExpiryDate > DateTime.Now)
+                    .Sum(mi => mi.Quantity) < minimumThreshold)
+                .Include(m => m.MedicineInventories)
+                .ToList();
+        }
+
+        // Đánh dấu thuốc đã hết hạn sử dụng
+        public List<MedicineInventory> GetExpiredMedicines()
+        {
+            return _context.MedicineInventories
+                .Include(mi => mi.Medicine)
+                .Include(mi => mi.Supplier)
+                .Where(x => x.Quantity > 0 && x.ExpiryDate <= DateTime.Now)
+                .OrderBy(x => x.ExpiryDate)
+                .ToList();
+        }
+
+        // Lấy danh sách thuốc theo lô
+        public List<MedicineInventory> GetMedicinesByBatchNumber(string batchNumber)
+        {
+            return _context.MedicineInventories
+                .Include(mi => mi.Medicine)
+                .Include(mi => mi.Supplier)
+                .Where(x => x.BatchNumber == batchNumber)
+                .ToList();
+        }
+
+        // Tìm kiếm thuốc theo nhiều tiêu chí
+        public List<Medicine> SearchMedicines(int? supplierId = null, string? medicineName = null,
+                                           string? activeIngredient = null, string? dosage = null,
+                                           double? importPrice = null, int? shelfLife = null)
+        {
+            var query = _context.Medicines
+                .Include(m => m.MedicineInventories)
+                .ThenInclude(mi => mi.Supplier)
+                .AsQueryable();
+
+            query = query.Where(m =>
+                (string.IsNullOrWhiteSpace(medicineName) || EF.Functions.Like(m.MedicineName, $"%{medicineName}%")) &&
+                (!supplierId.HasValue || m.MedicineInventories.Any(mi => mi.SupplierId == supplierId)) &&
+                (string.IsNullOrWhiteSpace(activeIngredient) || EF.Functions.Like(m.ActiveIngredient, $"%{activeIngredient}%")) &&
+                (string.IsNullOrWhiteSpace(dosage) || EF.Functions.Like(m.Dosage, $"%{dosage}%")) &&
+                (!importPrice.HasValue || m.ImportPrice == importPrice) &&
+                (!shelfLife.HasValue || m.ShelfLife == shelfLife)
+            );
+
+            return query.ToList();
         }
 
         // Search for medicines

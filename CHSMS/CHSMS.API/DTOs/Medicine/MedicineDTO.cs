@@ -11,12 +11,8 @@
         public double? ImportPrice { get; set; }
         public double? SellingPrice { get; set; }
         public int? ShelfLife { get; set; }
-        public string? BatchNumber { get; set; }
         public string? BidNumber { get; set; }
-        public string? SupplierName { get; set; }
-        public DateTime? ManufacturingDate { get; set; }
-        public DateTime? ExpiryDate { get; set; }
+        public bool? Status { get; set; }
 
     }
-
 }

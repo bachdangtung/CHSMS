@@ -1,9 +1,5 @@
 ﻿using CHSMS.API.DTOs.Medicine;
-using CHSMS.API.DTOs.Medicine;
-using CHSMS.API.Models;
 using CHSMS.API.Services;
-using CHSMS.API.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CHSMS.API.Controllers
@@ -12,9 +8,9 @@ namespace CHSMS.API.Controllers
     [ApiController]
     public class MedicineController : ControllerBase
     {
-        private readonly IMedicineService _medicineService;
+        private readonly MedicineService _medicineService;
 
-        public MedicineController(IMedicineService medicineService)
+        public MedicineController(MedicineService medicineService)
         {
             _medicineService = medicineService;
         }
@@ -28,6 +24,16 @@ namespace CHSMS.API.Controllers
             return Ok(medicines);
         }
 
+        //get medicine inventory by medicineId
+        [HttpGet("GetInventory/{medicineId}")]
+        public ActionResult<IEnumerable<MedicineInventoryDTO>> GetMedicineInventory(int medicineId)
+        {
+            var medicineInventories = _medicineService.GetMedicineInventoryByMedicineId(medicineId);
+            if (medicineInventories == null || !medicineInventories.Any())
+                return NotFound();
+            return Ok(medicineInventories);
+        }
+
         //Get one medical supply by ID
         [HttpGet("Get/{id}")]
         public ActionResult<MedicineDTO> GetMedicineDetail(int id)
@@ -39,10 +45,19 @@ namespace CHSMS.API.Controllers
             return Ok(medicine);
         }
 
+        //search medicine by name
+        [HttpGet("Search")]
+        public ActionResult<IEnumerable<MedicineDTO>> SearchMedicine([FromQuery] string name)
+        {
+            var medicines = _medicineService.SearchMedicineByName(name);
+            if (medicines == null || !medicines.Any())
+                return NotFound();
+            return Ok(medicines);
+        }
 
         //Add more medical supplyinventory
         [HttpPost("AddInventory")]
-        public IActionResult AddMedicine([FromBody] MedicineInventoryAddDTO medicineInventoryDTO)
+        public IActionResult AddMedicine([FromBody] MedicineInventoryDTO medicineInventoryDTO)
         {
             if (medicineInventoryDTO == null)
                 return BadRequest("Invalid input data.");
@@ -59,10 +74,10 @@ namespace CHSMS.API.Controllers
         [HttpPut("UpdateInventory")]
         public IActionResult UpdateMedicine([FromBody] MedicineInventoryDTO medicineInventoryDTO)
         {
-            if (medicineInventoryDTO == null || !medicineInventoryDTO.MedicineId.HasValue)
+            if (medicineInventoryDTO == null)
                 return BadRequest("Invalid input data. Medicine ID is required.");
 
-            var medicineId = medicineInventoryDTO.MedicineId.Value; // Chuyển đổi int? -> int
+            var medicineId = medicineInventoryDTO.MedicineId; // Chuyển đổi int? -> int
 
             var existingMedicine = _medicineService.GetMedicineById(medicineId);
             if (existingMedicine == null)
@@ -81,7 +96,7 @@ namespace CHSMS.API.Controllers
             // Gọi service để lấy gợi ý thuốc
             var suggestions = await _medicineService.GetMedicineSuggestions(
                 request.Query
-                
+
             );
             return Ok(suggestions);
         }

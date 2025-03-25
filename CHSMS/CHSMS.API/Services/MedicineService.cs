@@ -1,27 +1,22 @@
 ﻿using CHSMS.API.DTOs.Medicine;
-using CHSMS.API.DTOs.Medicine;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories;
-using CHSMS.API.Repositories.Interfaces;
-using CHSMS.API.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace CHSMS.API.Services
 {
-    public class MedicineService : IMedicineService
+    public class MedicineService
     {
         private readonly SEP_TestContext _context; // For transaction support
-        private readonly IMedicineRepository _medicineRepository;
+        private readonly MedicineRepository _medicineRepository;
 
-        public MedicineService(IMedicineRepository medicineRepository, SEP_TestContext context)
+        public MedicineService(MedicineRepository medicineRepository, SEP_TestContext context)
         {
             _medicineRepository = medicineRepository;
             _context = context;
         }
 
+        // Get all medicines
         public List<MedicineDTO> GetAll()
         {
             List<MedicineDTO> medicineDTOs = new List<MedicineDTO>();
@@ -38,16 +33,47 @@ namespace CHSMS.API.Services
                     SellingPrice = medicine.SellingPrice,
                     Quantity = _medicineRepository.GetMedicineQuantity(medicine.MedicineId),
                     ShelfLife = medicine.ShelfLife,
-                    BatchNumber = medicine.MedicineInventories.FirstOrDefault()?.BatchNumber,
+                    //BatchNumber = medicine.MedicineInventories.FirstOrDefault()?.BatchNumber,
                     BidNumber = medicine.BidNumber,
-                    SupplierName = medicine.MedicineInventories.FirstOrDefault()?.Supplier?.Name,
-                    ManufacturingDate = medicine.MedicineInventories.FirstOrDefault()?.ManufacturingDate,
-                    ExpiryDate = medicine.MedicineInventories.FirstOrDefault()?.ExpiryDate
+                    //SupplierName = medicine.MedicineInventories.FirstOrDefault()?.Supplier?.Name,
+                    //ManufacturingDate = medicine.MedicineInventories.FirstOrDefault()?.ManufacturingDate,
+                    //ExpiryDate = medicine.MedicineInventories.FirstOrDefault()?.ExpiryDate,
+                    Status = medicine.Status
                 };
                 medicineDTOs.Add(medicineDTO);
             }
             return medicineDTOs;
         }
+
+        //get all medicine in medicine inventory by medicineId
+        public List<MedicineInventoryDTO> GetMedicineInventoryByMedicineId(int medicineId)
+        {
+            var medicineInventories = _medicineRepository.GetMedicineInventoryByMedicineId(medicineId);
+
+            var medicineInventoryDTOs = medicineInventories.Select(medicineInventory => new MedicineInventoryDTO
+            {
+                MedicineInventoryId = medicineInventory.MedicineInventoryId,
+                MedicineId = medicineInventory.MedicineId,
+                MedicineName = medicineInventory.MedicineName,
+                Quantity = medicineInventory.Quantity,
+                TransactionType = medicineInventory.TransactionType,
+                Note = medicineInventory.Note,
+                CertificateNumber = medicineInventory.CertificateNumber,
+                ExpiryDate = medicineInventory.ExpiryDate,
+                ReceiverId = medicineInventory.ReceiverId,
+                ReceiverName = medicineInventory.ReceiverName,
+                TransactionDate = medicineInventory.TransactionDate,
+                SupplierId = medicineInventory.SupplierId,
+                SupplierName = medicineInventory.SupplierName, // Kiểm tra null trước khi lấy giá trị
+                ManufacturingDate = medicineInventory.ManufacturingDate,
+                BatchNumber = medicineInventory.BatchNumber,
+            }).ToList();
+
+            return medicineInventoryDTOs;
+        }
+
+
+
         //Get one medical supply
         public MedicineDTO? GetMedicineById(int medicineId)
         {
@@ -65,11 +91,12 @@ namespace CHSMS.API.Services
                 SellingPrice = medicine.SellingPrice,
                 Quantity = _medicineRepository.GetMedicineQuantity(medicine.MedicineId),
                 ShelfLife = medicine.ShelfLife,
-                BatchNumber = medicine.MedicineInventories.FirstOrDefault()?.BatchNumber,
+                //BatchNumber = medicine.MedicineInventories.FirstOrDefault()?.BatchNumber,
                 BidNumber = medicine.BidNumber,
-                SupplierName = medicine.MedicineInventories.FirstOrDefault()?.Supplier?.Name,
-                ManufacturingDate = medicine.MedicineInventories.FirstOrDefault()?.ManufacturingDate,
-                ExpiryDate = medicine.MedicineInventories.FirstOrDefault()?.ExpiryDate
+                //SupplierName = medicine.MedicineInventories.FirstOrDefault()?.Supplier?.Name,
+                //ManufacturingDate = medicine.MedicineInventories.FirstOrDefault()?.ManufacturingDate,
+                //ExpiryDate = medicine.MedicineInventories.FirstOrDefault()?.ExpiryDate,
+                Status = medicine.Status
             };
             return medicineDTO;
         }
@@ -78,7 +105,7 @@ namespace CHSMS.API.Services
         public List<MedicineInventoryDTO> MedicineDetail(int medicineId)
         {
             List<MedicineInventoryDTO> medicineInventoryDTOs = new List<MedicineInventoryDTO>();
-            List<MedicineInventory> medicineInventories = _medicineRepository.GetMedicineDetail(medicineId);
+            List<MedicineInventory> medicineInventories = _medicineRepository.GetMedicineInventory(medicineId);
             foreach (var medicineInventory in medicineInventories)
             {
                 var medicineInventoryDTO = new MedicineInventoryDTO
@@ -101,9 +128,37 @@ namespace CHSMS.API.Services
             return medicineInventoryDTOs;
         }
 
-        public bool AddMedicineInventory(MedicineInventoryAddDTO medicineInventoryDTO)
+        //search medicine by name
+        public List<MedicineDTO> SearchMedicineByName(string name)
         {
-            var medicineData = _medicineRepository.GetMedicine(medicineInventoryDTO.MedicineId.Value);
+            List<MedicineDTO> medicineDTOs = new List<MedicineDTO>();
+            var medicines = _medicineRepository.SearchMedicineByName(name);
+            foreach (var medicine in medicines)
+            {
+                var medicineDTO = new MedicineDTO
+                {
+                    MedicineId = medicine.MedicineId,
+                    MedicineName = medicine.MedicineName,
+                    ActiveIngredient = medicine.ActiveIngredient,
+                    Dosage = medicine.Dosage,
+                    DosageForm = medicine.DosageForm,
+                    ImportPrice = medicine.ImportPrice,
+                    SellingPrice = medicine.SellingPrice,
+                    Quantity = _medicineRepository.GetMedicineQuantity(medicine.MedicineId),
+                    ShelfLife = medicine.ShelfLife,
+                    BidNumber = medicine.BidNumber,
+                    Status = medicine.Status
+                };
+                medicineDTOs.Add(medicineDTO);
+            }
+            return medicineDTOs;
+        }
+
+
+
+        public bool AddMedicineInventory(MedicineInventoryDTO medicineInventoryDTO)
+        {
+            var medicineData = _medicineRepository.GetMedicine(medicineInventoryDTO.MedicineId);
             int? shelfLife = medicineData?.ShelfLife;
 
             var expiryDate = _medicineRepository.CalculateExpiryDate(
@@ -112,7 +167,7 @@ namespace CHSMS.API.Services
             );
             var medicine = new MedicineInventory
             {
-                MedicineId = medicineInventoryDTO.MedicineId.Value,
+                MedicineId = medicineInventoryDTO.MedicineId,
                 Quantity = medicineInventoryDTO.Quantity,
                 CertificateNumber = medicineInventoryDTO.CertificateNumber,
                 ManufacturingDate = medicineInventoryDTO.ManufacturingDate,
@@ -122,14 +177,15 @@ namespace CHSMS.API.Services
                 ReceiverId = medicineInventoryDTO.ReceiverId,
                 TransactionType = medicineInventoryDTO.TransactionType,
                 BatchNumber = medicineInventoryDTO.BatchNumber,
-                SupplierId = medicineInventoryDTO.SupplierId
+                SupplierId = medicineInventoryDTO.SupplierId,
+
             };
             return _medicineRepository.AddMedicineInventory(medicine);
         }
 
         public bool UpdateMedicineInventory(MedicineInventoryDTO medicineInventoryDTO)
         {
-            var medicineData = _medicineRepository.GetMedicine(medicineInventoryDTO.MedicineId.Value);
+            var medicineData = _medicineRepository.GetMedicine(medicineInventoryDTO.MedicineId);
             int? shelfLife = medicineData?.ShelfLife;
 
             var expiryDate = _medicineRepository.CalculateExpiryDate(
@@ -139,7 +195,7 @@ namespace CHSMS.API.Services
             var medicineInventory = new MedicineInventory
             {
                 MedicineInventoryId = medicineInventoryDTO.MedicineInventoryId,
-                MedicineId = medicineInventoryDTO.MedicineId.Value,
+                MedicineId = medicineInventoryDTO.MedicineId,
                 Quantity = medicineInventoryDTO.Quantity,
                 CertificateNumber = medicineInventoryDTO.CertificateNumber,
                 ManufacturingDate = medicineInventoryDTO.ManufacturingDate,

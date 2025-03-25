@@ -45,8 +45,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<MedicalSupplyReposotory>();
 builder.Services.AddScoped<MedicalSupplyService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
-builder.Services.AddScoped<IMedicineService, MedicineService>();
+builder.Services.AddScoped<MedicineRepository>();
+builder.Services.AddScoped<MedicineService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
