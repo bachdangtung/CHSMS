@@ -68,10 +68,10 @@ namespace CHSMS.API.Controllers.MedicalSupply
         }
 
         //Medical supply inventory consumption
-        [HttpPost("ConsumeInventory/{id}/{Quantity}")]
-        public IActionResult ConsumeMedicalSupply(int id, double Quantity, bool BHYT, string? Note)
+        [HttpPost("ConsumeInventory")]
+        public IActionResult ConsumeMedicalSupply([FromBody] ConsumpMSDTO consumpMSDTO)
         {
-            var result = _medicalSupplyService.ConsumeMedicalSupply(id, Quantity, BHYT, Note);
+            var result = _medicalSupplyService.ConsumeMedicalSupply(consumpMSDTO.MedicalSupplyId, consumpMSDTO.Quantity, consumpMSDTO.BHYT.Value, consumpMSDTO.Note);
             if (result == -3)
                 return Problem("Not enough quantity");
             else if (result == -2)

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CHSMS.API.DTOs.Role;
 using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
 
@@ -10,6 +11,11 @@ public class MappingProfile : Profile
     {
         // User mappings
         CreateMap<User, LoginDto>()
+            .ReverseMap();
+        CreateMap<User, CreateUserDto>().ReverseMap();
+        CreateMap<User, UserListDto>()
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.RoleName));
+        CreateMap<Role, RoleDto>()
             .ReverseMap();
     }
 }

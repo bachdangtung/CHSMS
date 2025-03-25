@@ -1,8 +1,16 @@
-﻿namespace CHSMS.API.DTOs.User
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CHSMS.API.DTOs.User
 {
     public class ChangePasswordDto
     {
+        [Required(ErrorMessage = "Hãy nhập mật khẩu cũ")]
         public string OldPassword { get; set; }
+
+        [Required(ErrorMessage = "Hãy nhập mật khẩu mới")]
+        [RegularExpression(
+"^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[@$!%*?&])[A-Za-z0-9@$!%*?&]{8,32}$",
+ErrorMessage = "Mật khẩu phải dài từ 8 đến 32 kí tự, chứa ít nhất một số, chữ in hoa và kí tự đặc biệt")]
         public string NewPassword { get; set; }
     }
 }

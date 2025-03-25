@@ -2,6 +2,7 @@
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace CHSMS.API.Repositories
 {
@@ -24,9 +25,14 @@ namespace CHSMS.API.Repositories
             return await _context.Users.Include(r => r.Role).Include(d => d.Department).FirstOrDefaultAsync(u => u.UserName == userName);
         }
 
+        public async Task<User?> GetByUserNameAsync(string userName)
+        {
+            return await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(u => u.UserName == userName);
+        }
+
         public async Task<User?> GetByIdAsync(int id)
         {
-            return await _context.Users.Include(r => r.Role).Include(d => d.Department).FirstOrDefaultAsync(u => u.UserId == id);
+            return await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(u => u.UserId == id);
         }
 
         public void Update(User updatedUser)
@@ -45,7 +51,19 @@ namespace CHSMS.API.Repositories
         }
         public async Task<IEnumerable<User>> GetAllAsync()
         {
-            return await _context.Users.Include(r => r.Role).Include(d => d.Department).ToListAsync();
+            return await _context.Users.Include(r => r.Role).ToListAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetAllAsync(Expression<Func<User, bool>>? filter = null)
+        {
+            IQueryable<User> query = _context.Users.Include(r => r.Role);
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            return await query.ToListAsync();
         }
 
     }

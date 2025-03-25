@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace CHSMS.API.Controllers
+namespace CHSMS.API.Controllers.User
 {
     public class UserController : Controller
     {

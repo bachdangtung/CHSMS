@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace CHSMS.API.Models
+﻿namespace CHSMS.API.DTOs.Medicine
 {
-    public partial class MedicineInventory
+    public class MedicineInventoryAddDTO
     {
-        public MedicineInventory()
-        {
-            MedicineConsumptions = new HashSet<MedicineConsumption>();
-        }
-
         public int MedicineInventoryId { get; set; }
-        public int MedicineId { get; set; }
+        public int? MedicineId { get; set; }
         public string? CertificateNumber { get; set; }
         public bool? TransactionType { get; set; }
         public double? Quantity { get; set; }
@@ -22,10 +14,6 @@ namespace CHSMS.API.Models
         public string? Note { get; set; }
         public string? BatchNumber { get; set; }
         public int? SupplierId { get; set; }
-
-        public virtual Medicine Medicine { get; set; } = null!;
-        public virtual User? Receiver { get; set; }
-        public virtual Supplier? Supplier { get; set; }
-        public virtual ICollection<MedicineConsumption> MedicineConsumptions { get; set; }
+        public string? BidNumber { get; set; }
     }
 }

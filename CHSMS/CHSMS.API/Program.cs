@@ -1,4 +1,5 @@
 using CHSMS.API.Configuration;
+using CHSMS.API.Middleware;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories;
 using CHSMS.API.Repositories.Interfaces;
@@ -33,19 +34,14 @@ builder.Services.AddMailKit(config => config.UseMailKit(
         Security = true
     }
 ));
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAllOrigins",
-        builder => builder.AllowAnyOrigin()
-                          .AllowAnyMethod()
-                          .AllowAnyHeader());
-});
-
+builder.Services.AddHttpClient();
+builder.Services.AddMemoryCache();
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<MedicalSupplyReposotory>();
 builder.Services.AddScoped<MedicalRecordHistoryRepository>();
 builder.Services.AddScoped<MedicalRecordRepository>();
@@ -54,6 +50,8 @@ builder.Services.AddScoped<MedicalSupplyService>();
 builder.Services.AddScoped<MedicalRecordHistoryService>();
 builder.Services.AddScoped<MedicalRecordService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
+builder.Services.AddScoped<IMedicineService, MedicineService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -106,7 +104,19 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+});
+
 var app = builder.Build();
+app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -114,10 +124,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseMiddleware<TokenBlacklistMiddleware>();
+
+app.UseCors("AllowLocalhost");
 
 app.UseCors("AllowAllOrigins");
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAll");
+
+app.UseMiddleware<CorsMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();

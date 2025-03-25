@@ -14,6 +14,7 @@ namespace CHSMS.API.DTOs.MedicalSupply
         public DateTime? ExpiryDate { get; set; }
         public int? ReceiverId { get; set; }
         public string? Note { get; set; }
+        public string? BatchNumber { get; set; }
         //public virtual MedicalSupplyConsumption? MedicalSupplyConsumption { get; set; }
     }
 }
