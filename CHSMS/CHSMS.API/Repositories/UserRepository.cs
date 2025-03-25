@@ -17,12 +17,7 @@ namespace CHSMS.API.Repositories
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            return await _context.Users.Include(r => r.Role).Include(d => d.Department).FirstOrDefaultAsync(u => u.Email == email);
-        }
-
-        public async Task<User?> GetByUserNameAsync(string userName)
-        {
-            return await _context.Users.Include(r => r.Role).Include(d => d.Department).FirstOrDefaultAsync(u => u.UserName == userName);
+            return await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task<User?> GetByUserNameAsync(string userName)

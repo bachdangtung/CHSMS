@@ -52,7 +52,7 @@ namespace CHSMS.API.Services
                     PatientCategory = record.PatientCategory,
                     DiseaseProgress = record.DiseaseProgress,
                     DiseaseStage = record.DiseaseStage,
-                    ICD = record.ICD,
+                    ICD = record.Icd,
                     MedicalOrder = record.MedicalOrder,
                     TreatmentBed = record.TreatmentBed
                 };
@@ -98,7 +98,7 @@ namespace CHSMS.API.Services
                 PatientCategory = record.PatientCategory,
                 DiseaseProgress = record.DiseaseProgress,
                 DiseaseStage = record.DiseaseStage,
-                ICD = record.ICD,
+                ICD = record.Icd,
                 MedicalOrder = record.MedicalOrder,
                 TreatmentBed = record.TreatmentBed
             };
@@ -139,7 +139,7 @@ namespace CHSMS.API.Services
                     PatientCategory = record.PatientCategory,
                     DiseaseProgress = record.DiseaseProgress,
                     DiseaseStage = record.DiseaseStage,
-                    ICD = record.ICD,
+                    ICD = record.Icd,
                     MedicalOrder = record.MedicalOrder,
                     TreatmentBed = record.TreatmentBed
                 };
@@ -184,7 +184,7 @@ namespace CHSMS.API.Services
                     PatientCategory = record.PatientCategory,
                     DiseaseProgress = record.DiseaseProgress,
                     DiseaseStage = record.DiseaseStage,
-                    ICD = record.ICD,
+                    ICD = record.Icd,
                     MedicalOrder = record.MedicalOrder,
                     TreatmentBed = record.TreatmentBed
                 });
@@ -217,7 +217,7 @@ namespace CHSMS.API.Services
                 PatientCategory = medicalRecordDTO.PatientCategory,
                 DiseaseProgress = medicalRecordDTO.DiseaseProgress,
                 DiseaseStage = medicalRecordDTO.DiseaseStage,
-                ICD = medicalRecordDTO.ICD,
+                Icd = medicalRecordDTO.ICD,
                 MedicalOrder = medicalRecordDTO.MedicalOrder,
                 TreatmentBed = medicalRecordDTO.TreatmentBed
             };
@@ -250,7 +250,7 @@ namespace CHSMS.API.Services
                 PatientCategory = medicalRecordDTO.PatientCategory,
                 DiseaseProgress = medicalRecordDTO.DiseaseProgress,
                 DiseaseStage = medicalRecordDTO.DiseaseStage,
-                ICD = medicalRecordDTO.ICD,
+                Icd = medicalRecordDTO.ICD,
                 MedicalOrder = medicalRecordDTO.MedicalOrder,
                 TreatmentBed = medicalRecordDTO.TreatmentBed
             };

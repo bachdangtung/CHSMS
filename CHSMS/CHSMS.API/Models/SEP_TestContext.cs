@@ -81,7 +81,9 @@ namespace CHSMS.API.Models
             {
                 entity.ToTable("MedicalRecordHistory");
 
-                entity.Property(e => e.MedicalRecordHistoryId).HasColumnName("MedicalRecordHistoryID");
+                entity.Property(e => e.MedicalRecordHistoryId)
+                    .ValueGeneratedNever()
+                    .HasColumnName("MedicalRecordHistoryID");
 
                 entity.Property(e => e.Address).HasMaxLength(100);
 
@@ -444,7 +446,7 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.Vaccine)
                     .WithMany(p => p.VaccinationRecords)
                     .HasForeignKey(d => d.VaccineId)
-                    .HasConstraintName("FK__Vaccinati__Vacci__5535A963");
+                    .HasConstraintName("FK__Vaccinati__Vacci__571DF1D5");
             });
 
             modelBuilder.Entity<Vaccine>(entity =>
@@ -479,7 +481,7 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.Vaccine)
                     .WithMany(p => p.VaccineInventories)
                     .HasForeignKey(d => d.VaccineId)
-                    .HasConstraintName("FK__VaccineIn__Vacci__5629CD9C");
+                    .HasConstraintName("FK__VaccineIn__Vacci__5812160E");
             });
 
             OnModelCreatingPartial(modelBuilder);

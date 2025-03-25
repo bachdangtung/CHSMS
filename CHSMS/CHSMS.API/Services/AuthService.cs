@@ -136,7 +136,7 @@ namespace CHSMS.API.Services
 
             _unitOfWork.Users.Update(user);
             await _unitOfWork.CommitAsync();
-            */
+            
             return true;
         }
 
