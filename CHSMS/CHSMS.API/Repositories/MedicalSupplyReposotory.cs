@@ -1,5 +1,4 @@
-﻿using CHSMS.API.DTOs.MedicalSupply;
-using CHSMS.API.Models;
+﻿using CHSMS.API.Models;
 namespace CHSMS.API.Repositories
 {
     public class MedicalSupplyReposotory
@@ -81,7 +80,7 @@ namespace CHSMS.API.Repositories
                         Msid = item.SupplyInventoryId,
                         Amount = item.Quantity.Value,
                         ConsumptionDate = DateTime.Now,
-                        Bhyt = BHYT,
+                        //Bhyt = BHYT,
                         Note = Note
                     });
                 }
@@ -93,7 +92,7 @@ namespace CHSMS.API.Repositories
                         Msid = item.SupplyInventoryId,
                         Amount = Quantity,
                         ConsumptionDate = DateTime.Now,
-                        Bhyt = BHYT,
+                        //Bhyt = BHYT,
                         Note = Note
                     });
                     item.Quantity -= Quantity;

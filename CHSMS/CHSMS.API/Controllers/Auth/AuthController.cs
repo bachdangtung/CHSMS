@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace CHSMS.API.Controllers
+namespace CHSMS.API.Controllers.Auth
 {
     public class AuthController : Controller
     {
@@ -106,15 +106,15 @@ namespace CHSMS.API.Controllers
 
         //Deactive user
         [Authorize(Roles = "Trưởng trạm")]
-        [HttpPost("/api/User/ChangeStatus")]
+        [HttpPost("/api/User/ChangeStatus/{id}")]
         public async Task<IActionResult> ChangeStatus(int id)
         {
             try
             {
-                var result = _authService.ChangeStatusAsync(id);
-                if (result.Result)
+                var result = await _authService.ChangeStatusAsync(id);
+                if (result)
                 {
-                    return Ok("Đã đổi trạng thái");
+                    return Ok(new { message = "Đã đổi trạng thái" });
                 }
                 return BadRequest();
             }
@@ -209,6 +209,25 @@ namespace CHSMS.API.Controllers
                 return NotFound($"Token is not blacklisted.\n{value}");
 
             return Ok("Token is blacklisted.");
+        }
+
+        [Authorize(Roles = "Trưởng trạm")]
+        [HttpGet("/api/User/GetAll")]
+        public async Task<IActionResult> GetUserList(
+            [FromQuery] string? search,
+            [FromQuery] string? gender,
+            [FromQuery] bool? status,
+            [FromQuery] int? roleId)
+        {
+            try
+            {
+                var users = await _authService.GetUserListAsync(search, gender, status, roleId);
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

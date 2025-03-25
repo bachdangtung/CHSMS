@@ -147,10 +147,10 @@ namespace CHSMS.API.Services
             {
                 throw new Exception("Tài khoản đã tồn tại");
             }
-            var isValidDepartment = await _unitOfWork.Departments.DepartmentExistsAsync(createUserDto.DepartmentId);
-            if (createUserDto.DepartmentId.HasValue && !isValidDepartment)
+            var emailExist = await _unitOfWork.Users.GetByEmailAsync(createUserDto.Email);
+            if (emailExist != null)
             {
-                throw new Exception("Phòng ban không tồn tại");
+                throw new Exception("Email đã tồn tại");
             }
             var isValidRole = await _unitOfWork.Roles.RoleExistsAsync(createUserDto.RoleId);
             if (!isValidRole)
@@ -158,11 +158,23 @@ namespace CHSMS.API.Services
                 throw new Exception("Vai trò không tồn tại");
             }
 
+            string randomPassword = GenerateRandomPassword(12);
+
             var user = _mapper.Map<User>(createUserDto);
-            user.Password = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
+            user.Status = true;
+            user.Password = BCrypt.Net.BCrypt.HashPassword(randomPassword);
 
             _unitOfWork.Users.Add(user);
             await _unitOfWork.CommitAsync();
+
+            // 🔹 Send email with username & password
+            string emailBody = $"Tài khoản của bạn đã được tạo:<br><br>" +
+                               $"<strong>Tên đăng nhập:</strong> {user.UserName}<br>" +
+                               $"<strong>Mật khẩu:</strong> {randomPassword}<br><br>" +
+                               $"Vui lòng đăng nhập và thay đổi mật khẩu ngay lập tức.";
+
+            await _emailService.SendAsync(user.Email, "Thông tin tài khoản", emailBody, true);
+
             return user;
         }
 
@@ -211,6 +223,51 @@ namespace CHSMS.API.Services
             await _unitOfWork.CommitAsync();
 
             return true;
+        }
+
+        public async Task<IEnumerable<UserListDto>> GetUserListAsync(
+            string? search, string? gender, bool? status, int? roleId)
+        {
+            var userList = await _unitOfWork.Users.GetAllAsync(
+                u => (string.IsNullOrEmpty(search) ||
+                     u.UserName.Contains(search) ||
+                     u.Fullname.Contains(search) ||
+                     u.Email.Contains(search)) &&
+                     (string.IsNullOrEmpty(gender) || u.Gender == gender) &&
+                     (!status.HasValue || u.Status == status.Value) &&
+                     (!roleId.HasValue || u.RoleId == roleId)
+            );
+
+            return _mapper.Map<IEnumerable<UserListDto>>(userList);
+        }
+
+        private string GenerateRandomPassword(int length = 12)
+        {
+            if (length < 8 || length > 32) throw new ArgumentException("Password length must be between 8 and 32.");
+
+            const string uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string lowercase = "abcdefghijklmnopqrstuvwxyz";
+            const string digits = "0123456789";
+            const string specialChars = "@$!%*?&";
+            const string allChars = uppercase + lowercase + digits + specialChars;
+
+            var password = new char[length];
+            var random = new Random();
+
+            // Ensure at least one of each required character type
+            password[0] = uppercase[random.Next(uppercase.Length)];
+            password[1] = lowercase[random.Next(lowercase.Length)];
+            password[2] = digits[random.Next(digits.Length)];
+            password[3] = specialChars[random.Next(specialChars.Length)];
+
+            // Fill remaining slots with random characters from all types
+            for (int i = 4; i < length; i++)
+            {
+                password[i] = allChars[random.Next(allChars.Length)];
+            }
+
+            // Shuffle password to randomize character positions
+            return new string(password.OrderBy(_ => random.Next()).ToArray());
         }
     }
 }

@@ -11,6 +11,7 @@ namespace CHSMS.API.Models
         public DateTime? IssueDate { get; set; }
         public bool? Status { get; set; }
         public string? Note { get; set; }
+        public bool? IsBhyt { get; set; }
 
         public virtual MedicalRecordHistory? MedicalRecordHistory { get; set; }
         public virtual User? User { get; set; }

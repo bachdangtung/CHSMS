@@ -12,8 +12,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using NETCore.MailKit.Extensions;
 using System.Text;
-using Microsoft.AspNetCore.Cors;
-using CHSMS.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,8 +38,10 @@ builder.Services.AddHttpClient();
 builder.Services.AddMemoryCache();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<MedicalSupplyReposotory>();
 builder.Services.AddScoped<MedicalSupplyService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

@@ -7,7 +7,6 @@ namespace CHSMS.API.Models
     {
         public Medicine()
         {
-            MedicineConsumptions = new HashSet<MedicineConsumption>();
             MedicineInventories = new HashSet<MedicineInventory>();
         }
 
@@ -21,8 +20,8 @@ namespace CHSMS.API.Models
         public int? ShelfLife { get; set; }
         public string? BidNumber { get; set; }
         public bool? Status { get; set; }
+        public bool? IsBhyt { get; set; }
 
-        public virtual ICollection<MedicineConsumption> MedicineConsumptions { get; set; }
         public virtual ICollection<MedicineInventory> MedicineInventories { get; set; }
     }
 }

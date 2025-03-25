@@ -2,7 +2,8 @@
 {
     public class UserListDto
     {
-        public string? UserName { get; set; }
+        public int UserId { get; set; }
+        public string? Username { get; set; }
         public string? Fullname { get; set; }
         public string? Gender { get; set; }
         public DateTime? Dob { get; set; }

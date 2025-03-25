@@ -6,5 +6,7 @@ namespace CHSMS.API.Repositories.Interfaces
     {
         Task<Role?> GetByIdAsync(int id);
         Task<bool> RoleExistsAsync(int? roleId);
+        Task<IEnumerable<Role?>> GetAllAsync();
+
     }
 }
