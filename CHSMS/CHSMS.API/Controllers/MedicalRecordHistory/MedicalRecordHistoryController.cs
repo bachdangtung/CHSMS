@@ -33,6 +33,15 @@ namespace CHSMS.API.Controllers.MedicalRecord
             return Ok(record);
         }
 
+        [HttpGet("GetByP/{Pid}")]
+        public IActionResult GetMedicalRecordHistoryByPatientId(int Pid, DateTime? startDate, DateTime? endDate, string? doctorName)
+        {
+            var record = _medicalRecordHistoryService.GetMedicalRecordHistoryByPatientId(Pid, startDate, endDate, doctorName);
+            if (record == null || !record.Any())
+                return NotFound();
+            return Ok(record);
+        }
+
         [HttpGet("Search")]
         public IActionResult GetMedicalRecordHistoriesByDateRange(DateTime? startDate, DateTime? endDate, string? doctorName, string? patientName)
         {
@@ -44,20 +53,35 @@ namespace CHSMS.API.Controllers.MedicalRecord
         [HttpPost("Add")]
         public IActionResult AddMedicalRecordHistory([FromBody] MedicalRecordHistoryDTO medicalRecordDTO)
         {
+            Console.WriteLine("Received Medical Record DTO:");
+            Console.WriteLine($"PatientId: {medicalRecordDTO.PatientId}");
+            Console.WriteLine($"UserId: {medicalRecordDTO.UserId}");
+            Console.WriteLine($"DiagnoseConclusion: {medicalRecordDTO.DiagnoseConclusion}");
 
-            var result = _medicalRecordHistoryService.AddMedicalRecordHistory(medicalRecordDTO);
-            if (!result)
-                return BadRequest();
-            return Ok();
+            try
+            {
+                var result = _medicalRecordHistoryService.AddMedicalRecordHistory(medicalRecordDTO);
+
+                return Ok(new { message = "Thêm bệnh án thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
 
         [HttpPut("Update")]
         public IActionResult UpdateMedicalRecordHistory([FromBody] MedicalRecordHistoryDTO medicalRecordDTO)
         {
-            var result = _medicalRecordHistoryService.UpdateMedicalRecordHistory(medicalRecordDTO);
-            if (!result)
-                return BadRequest();
-            return Ok();
+            try
+            {
+                var result = _medicalRecordHistoryService.UpdateMedicalRecordHistory(medicalRecordDTO);
+                return Ok(new { message = "Cập nhật bệnh án thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
 
         [HttpDelete("Delete/{id}")]

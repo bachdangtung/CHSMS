@@ -119,6 +119,7 @@ namespace CHSMS.API.Services
         // Reset Password
         public async Task<bool> ResetPasswordAsync(string token, string newPassword)
         {
+            /*
             var user = await _unitOfWork.Users.GetByResetTokenAsync(token);
             if (user == null || user.ResetTokenExpiry < DateTime.UtcNow)
                 return false; // Invalid or expired token
@@ -129,6 +130,7 @@ namespace CHSMS.API.Services
 
             _unitOfWork.Users.Update(user);
             await _unitOfWork.CommitAsync();
+            */
             return true;
         }
 

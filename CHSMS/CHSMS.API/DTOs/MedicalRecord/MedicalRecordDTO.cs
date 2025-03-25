@@ -1,4 +1,6 @@
-﻿namespace CHSMS.API.DTOs.MedicalRecord
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CHSMS.API.DTOs.MedicalRecord
 {
     public class MedicalRecordDTO
     {

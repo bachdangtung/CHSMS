@@ -36,11 +36,25 @@ namespace CHSMS.API.Services
                     Job = record.MedicalRecord?.Job,
                     EthnicGroup = record.MedicalRecord?.EthnicGroup,
                     UserName = record.User?.UserName,
-                    Diagnosis = record.Diagnose,
+                    DiagnoseConclusion = record.DiagnoseConclusion,
                     TreatmentMethod = record.TreatmentMethod,
                     Symptom = record.Symptom,
                     RecordDate = record.Date,
-                    Note = record.Note
+                    Note = record.Note,
+                    BloodPressure = record.BloodPressure,
+                    Pulse = record.Pulse,
+                    RespiratoryRate = record.RespiratoryRate,
+                    Temperature = record.Temperature,
+                    Height = record.Height,
+                    Weight = record.Weight,
+                    MedicalRecordHistoryCode = record.MedicalRecordHistoryCode,
+                    InsuranceExemption = record.InsuranceExemption,
+                    PatientCategory = record.PatientCategory,
+                    DiseaseProgress = record.DiseaseProgress,
+                    DiseaseStage = record.DiseaseStage,
+                    ICD = record.ICD,
+                    MedicalOrder = record.MedicalOrder,
+                    TreatmentBed = record.TreatmentBed
                 };
                 medicalRecordDTOs.Add(recordDTO);
             }
@@ -48,9 +62,10 @@ namespace CHSMS.API.Services
         }
 
 
-        public MedicalRecordHistoryDTO? GetMedicalRecordHistory(int medicalRecordId)
+
+        public MedicalRecordHistoryDTO? GetMedicalRecordHistory(int medicalRecordHistoryId)
         {
-            var record = _medicalRecordHistoryRepository.GetMedicalRecordHistory(medicalRecordId);
+            var record = _medicalRecordHistoryRepository.GetMedicalRecordHistory(medicalRecordHistoryId);
             if (record == null) return null;
 
             return new MedicalRecordHistoryDTO
@@ -67,12 +82,70 @@ namespace CHSMS.API.Services
                 Job = record.MedicalRecord?.Job,
                 EthnicGroup = record.MedicalRecord?.EthnicGroup,
                 UserName = record.User?.UserName,
-                Diagnosis = record.Diagnose,
+                DiagnoseConclusion = record.DiagnoseConclusion,
                 TreatmentMethod = record.TreatmentMethod,
                 Symptom = record.Symptom,
                 RecordDate = record.Date,
-                Note = record.Note
+                Note = record.Note,
+                BloodPressure = record.BloodPressure,
+                Pulse = record.Pulse,
+                RespiratoryRate = record.RespiratoryRate,
+                Temperature = record.Temperature,
+                Height = record.Height,
+                Weight = record.Weight,
+                MedicalRecordHistoryCode = record.MedicalRecordHistoryCode,
+                InsuranceExemption = record.InsuranceExemption,
+                PatientCategory = record.PatientCategory,
+                DiseaseProgress = record.DiseaseProgress,
+                DiseaseStage = record.DiseaseStage,
+                ICD = record.ICD,
+                MedicalOrder = record.MedicalOrder,
+                TreatmentBed = record.TreatmentBed
             };
+        }
+
+        public List<MedicalRecordHistoryDTO> GetMedicalRecordHistoryByPatientId(int medicalRecordId, DateTime? startDate, DateTime? endDate, string? doctorName)
+        {
+            List<MedicalRecordHistoryDTO> medicalRecordDTOs = new List<MedicalRecordHistoryDTO>();
+            foreach (var record in _medicalRecordHistoryRepository.GetMedicalRecordHistoryByPatientId(medicalRecordId, startDate, endDate, doctorName))
+            {
+                var recordDTO = new MedicalRecordHistoryDTO
+                {
+                    MedicalRecordHistoryId = record.MedicalRecordHistoryId,
+                    PatientId = record.MedicalRecordId,
+                    UserId = record.UserId,
+                    DoctorName = record.User?.UserName,
+                    PatientName = record.MedicalRecord?.PatientName,
+                    Gender = record.MedicalRecord?.Gender,
+                    Dob = record.MedicalRecord?.Dob,
+                    HealthInsurance = record.MedicalRecord?.HealthInsurance,
+                    Address = record.MedicalRecord?.Address,
+                    Job = record.MedicalRecord?.Job,
+                    EthnicGroup = record.MedicalRecord?.EthnicGroup,
+                    UserName = record.User?.UserName,
+                    DiagnoseConclusion = record.DiagnoseConclusion,
+                    TreatmentMethod = record.TreatmentMethod,
+                    Symptom = record.Symptom,
+                    RecordDate = record.Date,
+                    Note = record.Note,
+                    BloodPressure = record.BloodPressure,
+                    Pulse = record.Pulse,
+                    RespiratoryRate = record.RespiratoryRate,
+                    Temperature = record.Temperature,
+                    Height = record.Height,
+                    Weight = record.Weight,
+                    MedicalRecordHistoryCode = record.MedicalRecordHistoryCode,
+                    InsuranceExemption = record.InsuranceExemption,
+                    PatientCategory = record.PatientCategory,
+                    DiseaseProgress = record.DiseaseProgress,
+                    DiseaseStage = record.DiseaseStage,
+                    ICD = record.ICD,
+                    MedicalOrder = record.MedicalOrder,
+                    TreatmentBed = record.TreatmentBed
+                };
+                medicalRecordDTOs.Add(recordDTO);
+            }
+            return medicalRecordDTOs;
         }
 
         public List<MedicalRecordHistoryDTO> GetMedicalRecordHistoriesByFilter(DateTime? startDate, DateTime? endDate, string? doctorName, string? patientName)
@@ -95,11 +168,25 @@ namespace CHSMS.API.Services
                     Job = record.MedicalRecord?.Job,
                     EthnicGroup = record.MedicalRecord?.EthnicGroup,
                     UserName = record.User?.UserName,
-                    Diagnosis = record.Diagnose,
+                    DiagnoseConclusion = record.DiagnoseConclusion,
                     TreatmentMethod = record.TreatmentMethod,
                     Symptom = record.Symptom,
                     RecordDate = record.Date,
-                    Note = record.Note
+                    Note = record.Note,
+                    BloodPressure = record.BloodPressure,
+                    Pulse = record.Pulse,
+                    RespiratoryRate = record.RespiratoryRate,
+                    Temperature = record.Temperature,
+                    Height = record.Height,
+                    Weight = record.Weight,
+                    MedicalRecordHistoryCode = record.MedicalRecordHistoryCode,
+                    InsuranceExemption = record.InsuranceExemption,
+                    PatientCategory = record.PatientCategory,
+                    DiseaseProgress = record.DiseaseProgress,
+                    DiseaseStage = record.DiseaseStage,
+                    ICD = record.ICD,
+                    MedicalOrder = record.MedicalOrder,
+                    TreatmentBed = record.TreatmentBed
                 });
             }
             return medicalRecordDTOs;
@@ -110,9 +197,11 @@ namespace CHSMS.API.Services
         {
             var record = new MedicalRecordHistory
             {
-                 MedicalRecordHistoryId = 0,
+                MedicalRecordHistoryId = 0,
                 MedicalRecordId = medicalRecordDTO.PatientId,
-                Diagnose = medicalRecordDTO.Diagnosis,
+                UserId = medicalRecordDTO.UserId,
+                Address = medicalRecordDTO.Address,
+                DiagnoseConclusion = medicalRecordDTO.DiagnoseConclusion,
                 TreatmentMethod = medicalRecordDTO.TreatmentMethod,
                 Symptom = medicalRecordDTO.Symptom,
                 Date = medicalRecordDTO.RecordDate,
@@ -122,7 +211,15 @@ namespace CHSMS.API.Services
                 Temperature = medicalRecordDTO.Temperature,
                 Height = medicalRecordDTO.Height,
                 Weight = medicalRecordDTO.Weight,
-                Note = medicalRecordDTO.Note
+                Note = medicalRecordDTO.Note,
+                MedicalRecordHistoryCode = medicalRecordDTO.MedicalRecordHistoryCode,
+                InsuranceExemption = medicalRecordDTO.InsuranceExemption,
+                PatientCategory = medicalRecordDTO.PatientCategory,
+                DiseaseProgress = medicalRecordDTO.DiseaseProgress,
+                DiseaseStage = medicalRecordDTO.DiseaseStage,
+                ICD = medicalRecordDTO.ICD,
+                MedicalOrder = medicalRecordDTO.MedicalOrder,
+                TreatmentBed = medicalRecordDTO.TreatmentBed
             };
             if (!_medicalRecordHistoryRepository.AddMedicalRecordHistory(record)) return false;
             return true;
@@ -135,8 +232,9 @@ namespace CHSMS.API.Services
             {
                 MedicalRecordHistoryId = medicalRecordDTO.MedicalRecordHistoryId,
                 UserId = medicalRecordDTO.UserId,
+                Address = medicalRecordDTO.Address,
                 MedicalRecordId = medicalRecordDTO.PatientId,
-                Diagnose = medicalRecordDTO.Diagnosis,
+                DiagnoseConclusion = medicalRecordDTO.DiagnoseConclusion,
                 TreatmentMethod = medicalRecordDTO.TreatmentMethod,
                 Symptom = medicalRecordDTO.Symptom,
                 Date = medicalRecordDTO.RecordDate,
@@ -146,7 +244,15 @@ namespace CHSMS.API.Services
                 Temperature = medicalRecordDTO.Temperature,
                 Height = medicalRecordDTO.Height,
                 Weight = medicalRecordDTO.Weight,
-                Note = medicalRecordDTO.Note
+                Note = medicalRecordDTO.Note,
+                MedicalRecordHistoryCode = medicalRecordDTO.MedicalRecordHistoryCode,
+                InsuranceExemption = medicalRecordDTO.InsuranceExemption,
+                PatientCategory = medicalRecordDTO.PatientCategory,
+                DiseaseProgress = medicalRecordDTO.DiseaseProgress,
+                DiseaseStage = medicalRecordDTO.DiseaseStage,
+                ICD = medicalRecordDTO.ICD,
+                MedicalOrder = medicalRecordDTO.MedicalOrder,
+                TreatmentBed = medicalRecordDTO.TreatmentBed
             };
             return _medicalRecordHistoryRepository.UpdateMedicalRecordHistory(record);
         }
