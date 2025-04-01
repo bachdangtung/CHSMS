@@ -217,17 +217,13 @@ namespace CHSMS.API.Repositories
 
         // Tìm kiếm thuốc theo nhiều tiêu chí
         public async Task<List<Medicine>> SearchMedicinesAsync(
-    int? medicineId = null,
-    string? medicineName = null,
-    string? activeIngredient = null,
-    string? dosage = null,
-    string? dosageForm = null,
-    double? quantity = null,
+    int? medicineId = null,string? medicineName = null,
+    string? activeIngredient = null,string? dosage = null,
+    string? dosageForm = null,double? quantity = null,
     double? importPrice = null,
-    DateTime? expiryDate = null,
-    string? batchNumber = null,
-    string? bidNumber = null,
-    bool? status = null)
+    DateTime? expiryDate = null,string? batchNumber = null,
+    string? bidNumber = null,bool? status = null, 
+    DateTime? minExpiryDate = null, DateTime? maxExpiryDate = null)
         {
             var query = _context.Medicines
                 .Include(m => m.MedicineInventories)
@@ -276,10 +272,16 @@ namespace CHSMS.API.Repositories
                 query = query.Where(m => m.MedicineInventories.Any(mi => mi.Quantity.ToString().StartsWith(quantity.Value.ToString())));
             }
 
-            if (expiryDate.HasValue)
+            if (minExpiryDate.HasValue)
             {
-                query = query.Where(m => m.MedicineInventories.Any(mi => mi.ExpiryDate.HasValue && mi.ExpiryDate.Value.Date == expiryDate.Value.Date));
+                query = query.Where(m => m.MedicineInventories.Any(mi => mi.ExpiryDate.HasValue && mi.ExpiryDate.Value.Date >= minExpiryDate.Value.Date));
             }
+
+            if (maxExpiryDate.HasValue)
+            {
+                query = query.Where(m => m.MedicineInventories.Any(mi => mi.ExpiryDate.HasValue && mi.ExpiryDate.Value.Date <= maxExpiryDate.Value.Date));
+            }
+
 
             if (!string.IsNullOrWhiteSpace(batchNumber))
             {
@@ -288,7 +290,7 @@ namespace CHSMS.API.Repositories
 
             if (status.HasValue)
             {
-                query = query.Where(m => m.Status.ToString().StartsWith(status.Value.ToString()));
+                query = query.Where(m => m.Status == status.Value);
             }
 
             var medicines = await query.ToListAsync();
