@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace CHSMS.API.Models
+namespace CHSMS.API.DTOs.MedicalRecord
 {
-    public partial class MedicalRecord
+    public class MedicalRecordDTO
     {
-        public MedicalRecord()
-        {
-            MedicalRecordHistories = new HashSet<MedicalRecordHistory>();
-        }
-
         public int MedicalRecordId { get; set; }
         public string? PatientName { get; set; }
         public string? Gender { get; set; }
@@ -24,6 +18,5 @@ namespace CHSMS.API.Models
         public bool? Status { get; set; }
         public string? Note { get; set; }
 
-        public virtual ICollection<MedicalRecordHistory> MedicalRecordHistories { get; set; }
     }
 }
