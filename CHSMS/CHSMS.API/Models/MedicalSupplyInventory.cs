@@ -15,6 +15,8 @@ namespace CHSMS.API.Models
         public DateTime? ExpiryDate { get; set; }
         public int? ReceiverId { get; set; }
         public string? Note { get; set; }
+        public string? BatchNumber { get; set; }
+        public double? ImportQuantity { get; set; }
 
         public virtual MedicalSupply? MedicalSupply { get; set; }
         public virtual User? Receiver { get; set; }

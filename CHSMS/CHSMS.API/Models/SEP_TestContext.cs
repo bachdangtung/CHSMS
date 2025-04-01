@@ -16,7 +16,6 @@ namespace CHSMS.API.Models
         {
         }
 
-        public virtual DbSet<Department> Departments { get; set; } = null!;
         public virtual DbSet<MedicalRecord> MedicalRecords { get; set; } = null!;
         public virtual DbSet<MedicalRecordHistory> MedicalRecordHistories { get; set; } = null!;
         public virtual DbSet<MedicalSupply> MedicalSupplies { get; set; } = null!;
@@ -25,38 +24,24 @@ namespace CHSMS.API.Models
         public virtual DbSet<Medicine> Medicines { get; set; } = null!;
         public virtual DbSet<MedicineConsumption> MedicineConsumptions { get; set; } = null!;
         public virtual DbSet<MedicineInventory> MedicineInventories { get; set; } = null!;
+        public virtual DbSet<MedicinePrescription> MedicinePrescriptions { get; set; } = null!;
         public virtual DbSet<Prescription> Prescriptions { get; set; } = null!;
-        public virtual DbSet<PrescriptionMedicalSupplyConsumption> PrescriptionMedicalSupplyConsumptions { get; set; } = null!;
         public virtual DbSet<PrescriptionMedicineConsumption> PrescriptionMedicineConsumptions { get; set; } = null!;
         public virtual DbSet<Role> Roles { get; set; } = null!;
         public virtual DbSet<Supplier> Suppliers { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
-        public virtual DbSet<VaccinationRecord> VaccinationRecords { get; set; } = null!;
-        public virtual DbSet<Vaccine> Vaccines { get; set; } = null!;
-        public virtual DbSet<VaccineInventory> VaccineInventories { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                IConfiguration config = new ConfigurationBuilder()
-                                        .SetBasePath(Directory.GetCurrentDirectory())
-                                        .AddJsonFile("appsettings.json", true, true)
-                                        .Build();
-                var strConn = config["ConnectionStrings:MyDatabase"];
-                optionsBuilder.UseSqlServer(strConn);
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseSqlServer("server=localhost; database=SEP_Test7;user=sa;password=123;Integrated Security=true;TrustServerCertificate=Yes");
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Department>(entity =>
-            {
-                entity.Property(e => e.DepartmentId).HasColumnName("DepartmentID");
-
-                entity.Property(e => e.DepartmentName).HasMaxLength(255);
-            });
-
             modelBuilder.Entity<MedicalRecord>(entity =>
             {
                 entity.ToTable("MedicalRecord");
@@ -104,20 +89,35 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.Date).HasColumnType("datetime");
 
+                entity.Property(e => e.Icd).HasColumnName("ICD");
+
+                entity.Property(e => e.MedicalRecordHistoryCode).HasMaxLength(50);
+
                 entity.Property(e => e.MedicalRecordId).HasColumnName("MedicalRecordID");
+
+                entity.Property(e => e.PatientCategory).HasMaxLength(50);
+
+                entity.Property(e => e.TreatmentBed).HasMaxLength(25);
+
+                entity.Property(e => e.UserId).HasColumnName("UserID");
 
                 entity.HasOne(d => d.MedicalRecord)
                     .WithMany(p => p.MedicalRecordHistories)
                     .HasForeignKey(d => d.MedicalRecordId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_MedicalRecordHistory_MedicalRecord");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.MedicalRecordHistories)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("FK_MedicalRecordHistory_Users");
             });
 
             modelBuilder.Entity<MedicalSupply>(entity =>
             {
                 entity.Property(e => e.MedicalSupplyId).HasColumnName("MedicalSupplyID");
 
-                entity.Property(e => e.BatchNumber).HasMaxLength(255);
+                entity.Property(e => e.MedicalSupplyCode).HasMaxLength(50);
 
                 entity.Property(e => e.MedicalSupplyName).HasMaxLength(255);
 
@@ -143,11 +143,9 @@ namespace CHSMS.API.Models
                     .ValueGeneratedOnAdd()
                     .HasColumnName("MSConsumptionId");
 
-                entity.Property(e => e.Bhyt).HasColumnName("BHYT");
-
                 entity.Property(e => e.ConsumptionDate).HasColumnType("date");
 
-                entity.Property(e => e.Msid).HasColumnName("MSID");
+                entity.Property(e => e.MedicalSupplyInventoryId).HasColumnName("MedicalSupplyInventoryID");
 
                 entity.Property(e => e.Note).HasMaxLength(255);
 
@@ -166,6 +164,10 @@ namespace CHSMS.API.Models
                 entity.ToTable("MedicalSupplyInventory");
 
                 entity.Property(e => e.SupplyInventoryId).HasColumnName("SupplyInventoryID");
+
+                entity.Property(e => e.BatchNumber)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
 
                 entity.Property(e => e.CertificateNumber).HasMaxLength(255);
 
@@ -198,26 +200,17 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.ActiveIngredient).HasMaxLength(255);
 
-                entity.Property(e => e.BatchNumber).HasMaxLength(255);
-
                 entity.Property(e => e.BidNumber).HasMaxLength(255);
 
                 entity.Property(e => e.Dosage).HasMaxLength(255);
 
                 entity.Property(e => e.DosageForm).HasMaxLength(255);
 
-                entity.Property(e => e.MedicineCode)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
+                entity.Property(e => e.IsBhyt).HasColumnName("IsBHYT");
+
+                entity.Property(e => e.MedicineCode).HasMaxLength(255);
 
                 entity.Property(e => e.MedicineName).HasMaxLength(255);
-
-                entity.Property(e => e.TreatmentType).HasMaxLength(255);
-
-                entity.HasOne(d => d.SupplierNavigation)
-                    .WithMany(p => p.Medicines)
-                    .HasForeignKey(d => d.Supplier)
-                    .HasConstraintName("FK_Medicine_Suppliers");
             });
 
             modelBuilder.Entity<MedicineConsumption>(entity =>
@@ -225,8 +218,6 @@ namespace CHSMS.API.Models
                 entity.ToTable("MedicineConsumption");
 
                 entity.Property(e => e.MedicineConsumptionId).HasColumnName("MedicineConsumptionID");
-
-                entity.Property(e => e.Bhyt).HasColumnName("BHYT");
 
                 entity.Property(e => e.ConsumptionDate).HasColumnType("date");
 
@@ -248,6 +239,10 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.MedicineInventoryId).HasColumnName("MedicineInventoryID");
 
+                entity.Property(e => e.BatchNumber)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.CertificateNumber).HasMaxLength(255);
 
                 entity.Property(e => e.ExpiryDate).HasColumnType("datetime");
@@ -258,22 +253,53 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.Note).HasMaxLength(255);
 
+                entity.Property(e => e.SupplierId).HasColumnName("SupplierID");
+
                 entity.Property(e => e.TransactionDate).HasColumnType("date");
 
                 entity.HasOne(d => d.Medicine)
                     .WithMany(p => p.MedicineInventories)
                     .HasForeignKey(d => d.MedicineId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__MedicalIn__Medic__5DCAEF64");
 
                 entity.HasOne(d => d.Receiver)
                     .WithMany(p => p.MedicineInventories)
                     .HasForeignKey(d => d.ReceiverId)
                     .HasConstraintName("FK_MedicineInventory_Users");
+
+                entity.HasOne(d => d.Supplier)
+                    .WithMany(p => p.MedicineInventories)
+                    .HasForeignKey(d => d.SupplierId)
+                    .HasConstraintName("FK_MedicineInventory_Suppliers");
+            });
+
+            modelBuilder.Entity<MedicinePrescription>(entity =>
+            {
+                entity.HasKey(e => new { e.PrescriptionId, e.MedicineId });
+
+                entity.ToTable("Medicine_Prescription");
+
+                entity.Property(e => e.MedicineId).HasColumnName("MedicineID");
+
+                entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
+
+                entity.HasOne(d => d.Medicine)
+                    .WithMany()
+                    .HasForeignKey(d => d.MedicineId)
+                    .HasConstraintName("FK_Medicine_Prescription_Medicine");
+
+                entity.HasOne(d => d.Prescription)
+                    .WithMany()
+                    .HasForeignKey(d => d.PrescriptionId)
+                    .HasConstraintName("FK_Medicine_Prescription_Prescriptions");
             });
 
             modelBuilder.Entity<Prescription>(entity =>
             {
                 entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
+
+                entity.Property(e => e.IsBhyt).HasColumnName("IsBHYT");
 
                 entity.Property(e => e.IssueDate).HasColumnType("date");
 
@@ -294,40 +320,22 @@ namespace CHSMS.API.Models
                     .HasConstraintName("FK__Prescript__UserI__5535A963");
             });
 
-            modelBuilder.Entity<PrescriptionMedicalSupplyConsumption>(entity =>
-            {
-                entity.HasNoKey();
-
-                entity.ToTable("Prescription_MedicalSupplyConsumption");
-
-                entity.Property(e => e.MsconsumtuionId).HasColumnName("MSConsumtuionId");
-
-                entity.HasOne(d => d.Msconsumtuion)
-                    .WithMany()
-                    .HasForeignKey(d => d.MsconsumtuionId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Prescription_MedicalSupplyConsumption_MedicalSupplyConsumption");
-
-                entity.HasOne(d => d.Prescription)
-                    .WithMany()
-                    .HasForeignKey(d => d.PrescriptionId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Prescription_MedicalSupplyConsumption_Prescriptions");
-            });
-
             modelBuilder.Entity<PrescriptionMedicineConsumption>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => new { e.PrescriptionId, e.MedicineConsumtionId });
 
                 entity.ToTable("Prescription_MedicineConsumption");
+
+                entity.HasIndex(e => e.MedicineConsumtionId, "IX_Prescription_MedicineConsumption")
+                    .IsUnique();
 
                 entity.Property(e => e.MedicineConsumtionId).HasColumnName("MedicineConsumtionID");
 
                 entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
 
                 entity.HasOne(d => d.MedicineConsumtion)
-                    .WithMany()
-                    .HasForeignKey(d => d.MedicineConsumtionId)
+                    .WithOne()
+                    .HasForeignKey<PrescriptionMedicineConsumption>(d => d.MedicineConsumtionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Prescription_MedicineConsumption_MedicineConsumption");
 
@@ -366,13 +374,13 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.Address).HasMaxLength(255);
 
-                entity.Property(e => e.DepartmentId).HasColumnName("DepartmentID");
-
                 entity.Property(e => e.Dob)
                     .HasColumnType("date")
                     .HasColumnName("DOB");
 
                 entity.Property(e => e.Email).HasMaxLength(255);
+
+                entity.Property(e => e.Fullname).HasMaxLength(50);
 
                 entity.Property(e => e.Gender).HasMaxLength(10);
 
@@ -390,77 +398,10 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.UserName).HasMaxLength(255);
 
-                entity.HasOne(d => d.Department)
-                    .WithMany(p => p.Users)
-                    .HasForeignKey(d => d.DepartmentId)
-                    .HasConstraintName("FK__Users__Departmen__571DF1D5");
-
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.Users)
                     .HasForeignKey(d => d.RoleId)
                     .HasConstraintName("FK__Users__RoleID__5812160E");
-            });
-
-            modelBuilder.Entity<VaccinationRecord>(entity =>
-            {
-                entity.ToTable("VaccinationRecord");
-
-                entity.Property(e => e.VaccinationRecordId).HasColumnName("VaccinationRecordID");
-
-                entity.Property(e => e.Note).HasMaxLength(255);
-
-                entity.Property(e => e.PatientId).HasColumnName("PatientID");
-
-                entity.Property(e => e.Status).HasMaxLength(255);
-
-                entity.Property(e => e.VaccinationDate).HasColumnType("date");
-
-                entity.Property(e => e.VaccineId).HasColumnName("VaccineID");
-
-                entity.HasOne(d => d.Patient)
-                    .WithMany(p => p.VaccinationRecords)
-                    .HasForeignKey(d => d.PatientId)
-                    .HasConstraintName("FK__Vaccinati__Patie__59063A47");
-
-                entity.HasOne(d => d.Vaccine)
-                    .WithMany(p => p.VaccinationRecords)
-                    .HasForeignKey(d => d.VaccineId)
-                    .HasConstraintName("FK__Vaccinati__Vacci__5441852A");
-            });
-
-            modelBuilder.Entity<Vaccine>(entity =>
-            {
-                entity.Property(e => e.VaccineId).HasColumnName("VaccineID");
-
-                entity.Property(e => e.BatchNumber).HasMaxLength(255);
-
-                entity.Property(e => e.BidNumber).HasMaxLength(255);
-
-                entity.Property(e => e.DosageForm).HasMaxLength(255);
-
-                entity.Property(e => e.ExpiryDate).HasColumnType("date");
-
-                entity.Property(e => e.VaccineName)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
-            });
-
-            modelBuilder.Entity<VaccineInventory>(entity =>
-            {
-                entity.ToTable("VaccineInventory");
-
-                entity.Property(e => e.VaccineInventoryId).HasColumnName("VaccineInventoryID");
-
-                entity.Property(e => e.Note).HasMaxLength(255);
-
-                entity.Property(e => e.TransactionDate).HasColumnType("date");
-
-                entity.Property(e => e.VaccineId).HasColumnName("VaccineID");
-
-                entity.HasOne(d => d.Vaccine)
-                    .WithMany(p => p.VaccineInventories)
-                    .HasForeignKey(d => d.VaccineId)
-                    .HasConstraintName("FK__VaccineIn__Vacci__5535A963");
             });
 
             OnModelCreatingPartial(modelBuilder);

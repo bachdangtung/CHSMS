@@ -18,8 +18,8 @@ namespace CHSMS.API.Models
         public bool? Status { get; set; }
         public double? ImportPrice { get; set; }
         public double? SellingPrice { get; set; }
-        public string? BatchNumber { get; set; }
         public int? BidNumber { get; set; }
+        public string? MedicalSupplyCode { get; set; }
 
         public virtual Supplier? Supplier { get; set; }
         public virtual ICollection<MedicalSupplyInventory> MedicalSupplyInventories { get; set; }

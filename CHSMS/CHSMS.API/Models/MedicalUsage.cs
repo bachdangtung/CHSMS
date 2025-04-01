@@ -15,7 +15,6 @@ namespace CHSMS.API.Models
         public string? Status { get; set; }
 
         public virtual Medicine? Medicine { get; set; }
-        public virtual Patient? Patient { get; set; }
         public virtual Prescription? Prescription { get; set; }
     }
 }
