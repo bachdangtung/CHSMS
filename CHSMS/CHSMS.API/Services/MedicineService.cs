@@ -1,13 +1,15 @@
 ﻿using CHSMS.API.DTOs.Medicine;
+using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories;
+using CHSMS.API.Repositories.Interfaces;
 using Newtonsoft.Json.Linq;
 
 namespace CHSMS.API.Services
 {
     public class MedicineService
     {
-        private readonly SEP_TestContext _context; // For transaction support
+        private readonly SEP_TestContext _context;
         private readonly MedicineRepository _medicineRepository;
 
         public MedicineService(MedicineRepository medicineRepository, SEP_TestContext context)
@@ -33,16 +35,31 @@ namespace CHSMS.API.Services
                     SellingPrice = medicine.SellingPrice,
                     Quantity = _medicineRepository.GetMedicineQuantity(medicine.MedicineId),
                     ShelfLife = medicine.ShelfLife,
-                    //BatchNumber = medicine.MedicineInventories.FirstOrDefault()?.BatchNumber,
+                    BatchNumber = medicine.MedicineInventories.FirstOrDefault()?.BatchNumber,
                     BidNumber = medicine.BidNumber,
+                    IsBhyt = medicine.IsBhyt,
                     //SupplierName = medicine.MedicineInventories.FirstOrDefault()?.Supplier?.Name,
-                    //ManufacturingDate = medicine.MedicineInventories.FirstOrDefault()?.ManufacturingDate,
-                    //ExpiryDate = medicine.MedicineInventories.FirstOrDefault()?.ExpiryDate,
+                    ManufacturingDate = medicine.MedicineInventories.FirstOrDefault()?.ManufacturingDate,
+                    ExpiryDate = medicine.MedicineInventories.FirstOrDefault()?.ExpiryDate,
                     Status = medicine.Status
                 };
                 medicineDTOs.Add(medicineDTO);
             }
             return medicineDTOs;
+        }
+
+        public List<UserDTO> GetAllReceivers()
+        {
+            return _medicineRepository.GetAllUsers()
+                .Select(u => new UserDTO { UserId = u.UserId, UserName = u.UserName })
+                .ToList();
+        }
+
+        public List<SupplierDTO> GetAllSuppliers()
+        {
+            return _medicineRepository.GetAllSuppliers()
+                .Select(s => new SupplierDTO { SupplierId = s.SupplierId, Name = s.Name })
+                .ToList();
         }
 
         //get all medicine in medicine inventory by medicineId
@@ -141,6 +158,9 @@ namespace CHSMS.API.Services
                     MedicineName = medicine.MedicineName,
                     ActiveIngredient = medicine.ActiveIngredient,
                     Dosage = medicine.Dosage,
+                    IsBhyt = medicine.IsBhyt,
+                    ExpiryDate = medicine.MedicineInventories.FirstOrDefault()?.ExpiryDate,
+                    ManufacturingDate = medicine.MedicineInventories.FirstOrDefault()?.ManufacturingDate,
                     DosageForm = medicine.DosageForm,
                     ImportPrice = medicine.ImportPrice,
                     SellingPrice = medicine.SellingPrice,
@@ -154,7 +174,60 @@ namespace CHSMS.API.Services
             return medicineDTOs;
         }
 
+        public async Task<List<MedicineDTO>> SearchMedicinesAsync(
+            int? medicineId = null,
+            string? medicineName = null,
+            string? activeIngredient = null,
+            string? dosage = null,
+            string? dosageForm = null,
+            double? quantity = null,
+            double? importPrice = null,
+            DateTime? expiryDate = null,
+            string? batchNumber = null,
+            string? bidNumber = null,
+            bool? status = null)
+        {
+            // Gọi repository để lấy dữ liệu
+            var medicines = await _medicineRepository.SearchMedicinesAsync(
+                medicineId, medicineName, activeIngredient, dosage, dosageForm, quantity,
+                importPrice, expiryDate, batchNumber, bidNumber, status
+            );
+            if (medicines == null || medicines.Count == 0)
+            {
+                return new List<MedicineDTO>(); // Trả về danh sách DTO rỗng
+            }
 
+
+            // Chuyển đổi dữ liệu thành DTO
+            var result = medicines.Select(m => new MedicineDTO
+            {
+                MedicineId = m.MedicineId,
+                MedicineName = m.MedicineName,
+                ActiveIngredient = m.ActiveIngredient,
+                Dosage = m.Dosage,
+                DosageForm = m.DosageForm,
+                ImportPrice = m.ImportPrice,
+                SellingPrice = m.SellingPrice,
+                ShelfLife = m.ShelfLife,
+                BidNumber = m.BidNumber,
+                Status = m.Status,
+                IsBhyt = m.IsBhyt,
+                ExpiryDate = m.MedicineInventories
+                            .OrderByDescending(mi => mi.ExpiryDate)
+                            .Select(mi => mi.ExpiryDate)
+                            .FirstOrDefault(),
+                BatchNumber = m.MedicineInventories
+                            .OrderByDescending(mi => mi.ExpiryDate)
+                            .Select(mi => mi.BatchNumber)
+                            .FirstOrDefault(),
+                Quantity = m.MedicineInventories
+                            .OrderByDescending(mi => mi.ExpiryDate)
+                            .Select(mi => mi.Quantity)
+                            .FirstOrDefault()
+            }).ToList();
+
+            return result;
+        }
 
         public bool AddMedicineInventory(MedicineInventoryDTO medicineInventoryDTO)
         {
@@ -178,7 +251,6 @@ namespace CHSMS.API.Services
                 TransactionType = medicineInventoryDTO.TransactionType,
                 BatchNumber = medicineInventoryDTO.BatchNumber,
                 SupplierId = medicineInventoryDTO.SupplierId,
-
             };
             return _medicineRepository.AddMedicineInventory(medicine);
         }

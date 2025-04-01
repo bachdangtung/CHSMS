@@ -61,6 +61,16 @@ namespace CHSMS.API.Repositories
             return medicineInventories;
         }
 
+        public List<User> GetAllUsers()
+        {
+            return _context.Users.ToList();
+        }
+
+        public List<Supplier> GetAllSuppliers()
+        {
+            return _context.Suppliers.ToList();
+        }
+
         // Get all medicines with pagination
         public Medicine? GetMedicine(int medicineId)
         {
@@ -94,7 +104,7 @@ namespace CHSMS.API.Repositories
         public double GetMedicineQuantity(int medicineId)
         {
             return _context.MedicineInventories
-                .Where(x => x.MedicineId == medicineId && x.Quantity > 0 && x.ExpiryDate > DateTime.Now)
+                .Where(x => x.MedicineId == medicineId && x.Quantity > 0)
                 .Sum(x => x.Quantity) ?? 0;
         }
 
@@ -114,9 +124,10 @@ namespace CHSMS.API.Repositories
             return _context.Medicines
                 .Include(m => m.MedicineInventories)
                 .ThenInclude(mi => mi.Supplier)
-                .Where(m => m.MedicineName.Contains(name))
+                .Where(m => m.MedicineName.StartsWith(name)) // Chỉ lấy thuốc bắt đầu bằng 'name'
                 .ToList();
         }
+
 
         // Add medicine inventory
         public bool AddMedicineInventory(MedicineInventory medicineInventory)
@@ -152,7 +163,7 @@ namespace CHSMS.API.Repositories
             existingInventory.BatchNumber = medicineInventory.BatchNumber;
             existingInventory.Quantity = medicineInventory.Quantity;
             existingInventory.ExpiryDate = medicineInventory.ExpiryDate;
-            //existingInventory.ManufacturingDate = medicineInventory.ManufacturingDate;
+            existingInventory.ManufacturingDate = medicineInventory.ManufacturingDate;
             existingInventory.SupplierId = medicineInventory.SupplierId;
             // Cập nhật thêm các trường cần thiết
 
@@ -205,26 +216,89 @@ namespace CHSMS.API.Repositories
         }
 
         // Tìm kiếm thuốc theo nhiều tiêu chí
-        public List<Medicine> SearchMedicines(int? supplierId = null, string? medicineName = null,
-                                           string? activeIngredient = null, string? dosage = null,
-                                           double? importPrice = null, int? shelfLife = null)
+        public async Task<List<Medicine>> SearchMedicinesAsync(
+    int? medicineId = null,
+    string? medicineName = null,
+    string? activeIngredient = null,
+    string? dosage = null,
+    string? dosageForm = null,
+    double? quantity = null,
+    double? importPrice = null,
+    DateTime? expiryDate = null,
+    string? batchNumber = null,
+    string? bidNumber = null,
+    bool? status = null)
         {
             var query = _context.Medicines
                 .Include(m => m.MedicineInventories)
                 .ThenInclude(mi => mi.Supplier)
                 .AsQueryable();
 
-            query = query.Where(m =>
-                (string.IsNullOrWhiteSpace(medicineName) || EF.Functions.Like(m.MedicineName, $"%{medicineName}%")) &&
-                (!supplierId.HasValue || m.MedicineInventories.Any(mi => mi.SupplierId == supplierId)) &&
-                (string.IsNullOrWhiteSpace(activeIngredient) || EF.Functions.Like(m.ActiveIngredient, $"%{activeIngredient}%")) &&
-                (string.IsNullOrWhiteSpace(dosage) || EF.Functions.Like(m.Dosage, $"%{dosage}%")) &&
-                (!importPrice.HasValue || m.ImportPrice == importPrice) &&
-                (!shelfLife.HasValue || m.ShelfLife == shelfLife)
-            );
+            // Áp dụng các bộ lọc
+            if (medicineId.HasValue)
+            {
+                query = query.Where(m => m.MedicineId == medicineId.Value);
+            }
 
-            return query.ToList();
+            if (!string.IsNullOrWhiteSpace(medicineName))
+            {
+                query = query.Where(m => EF.Functions.Like(m.MedicineName, $"{medicineName}%"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(activeIngredient))
+            {
+                query = query.Where(m => EF.Functions.Like(m.ActiveIngredient, $"{activeIngredient}%"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(dosage))
+            {
+                query = query.Where(m => EF.Functions.Like(m.Dosage, $"{dosage}%"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(dosageForm))
+            {
+                query = query.Where(m => EF.Functions.Like(m.DosageForm, $"{dosageForm}%"));
+            }
+
+            if (importPrice.HasValue)
+            {
+                query = query.Where(m => m.ImportPrice.ToString().StartsWith(importPrice.Value.ToString()));
+            }
+
+            if (!string.IsNullOrWhiteSpace(bidNumber))
+            {
+                query = query.Where(m => EF.Functions.Like(m.BidNumber, $"{bidNumber}%"));
+            }
+
+            // Lọc theo các thuộc tính trong MedicineInventories
+            if (quantity.HasValue)
+            {
+                query = query.Where(m => m.MedicineInventories.Any(mi => mi.Quantity.ToString().StartsWith(quantity.Value.ToString())));
+            }
+
+            if (expiryDate.HasValue)
+            {
+                query = query.Where(m => m.MedicineInventories.Any(mi => mi.ExpiryDate.HasValue && mi.ExpiryDate.Value.Date == expiryDate.Value.Date));
+            }
+
+            if (!string.IsNullOrWhiteSpace(batchNumber))
+            {
+                query = query.Where(m => m.MedicineInventories.Any(mi => EF.Functions.Like(mi.BatchNumber, $"{batchNumber}%")));
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(m => m.Status.ToString().StartsWith(status.Value.ToString()));
+            }
+
+            var medicines = await query.ToListAsync();
+            if (medicines == null || medicines.Count == 0)
+            {
+                return new List<Medicine>(); // Trả về danh sách rỗng
+            }
+            return medicines;
         }
+
 
         // Search for medicines
         public async Task<dynamic> SearchMedicinesData(string query)

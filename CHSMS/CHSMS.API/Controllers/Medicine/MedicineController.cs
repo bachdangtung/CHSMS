@@ -1,4 +1,5 @@
 ﻿using CHSMS.API.DTOs.Medicine;
+using CHSMS.API.Models;
 using CHSMS.API.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +25,20 @@ namespace CHSMS.API.Controllers
             return Ok(medicines);
         }
 
+        [HttpGet("receivers")]
+        public IActionResult GetAllReceivers()
+        {
+            var receivers = _medicineService.GetAllReceivers();
+            return Ok(receivers);
+        }
+
+        [HttpGet("suppliers")]
+        public IActionResult GetAllSuppliers()
+        {
+            var suppliers = _medicineService.GetAllSuppliers();
+            return Ok(suppliers);
+        }
+
         //get medicine inventory by medicineId
         [HttpGet("GetInventory/{medicineId}")]
         public ActionResult<IEnumerable<MedicineInventoryDTO>> GetMedicineInventory(int medicineId)
@@ -46,13 +61,39 @@ namespace CHSMS.API.Controllers
         }
 
         //search medicine by name
-        [HttpGet("Search")]
+        [HttpGet("SearchByName")]
         public ActionResult<IEnumerable<MedicineDTO>> SearchMedicine([FromQuery] string name)
         {
             var medicines = _medicineService.SearchMedicineByName(name);
             if (medicines == null || !medicines.Any())
                 return NotFound();
             return Ok(medicines);
+        }
+        [HttpGet("search")]
+        public async Task<ActionResult<List<MedicineDTO>>> SearchMedicines(
+            int? medicineId = null,
+            string? medicineName = null,
+            string? activeIngredient = null,
+            string? dosage = null,
+            string? dosageForm = null,
+            double? quantity = null,
+            double? importPrice = null,
+            DateTime? expiryDate = null,
+            string? batchNumber = null,
+            string? bidNumber = null,
+            bool? status = null)
+        {
+            var result = await _medicineService.SearchMedicinesAsync(
+                medicineId, medicineName, activeIngredient, dosage, dosageForm, quantity,
+                importPrice, expiryDate, batchNumber, bidNumber, status
+            );
+
+            if (result == null || result.Count == 0)
+            {
+                return NotFound("Không tìm thấy thuốc phù hợp");
+            }
+
+            return Ok(result);
         }
 
         //Add more medical supplyinventory
@@ -79,7 +120,7 @@ namespace CHSMS.API.Controllers
 
             var medicineId = medicineInventoryDTO.MedicineId; // Chuyển đổi int? -> int
 
-            var existingMedicine = _medicineService.GetMedicineById(medicineId);
+            var existingMedicine = _medicineService.GetMedicineInventoryByMedicineId(medicineId);
             if (existingMedicine == null)
                 return NotFound($"Medicine with ID {medicineId} not found.");
 
