@@ -42,11 +42,9 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
-builder.Services.AddScoped<MedicalSupplyReposotory>();
 builder.Services.AddScoped<MedicalRecordHistoryRepository>();
 builder.Services.AddScoped<MedicalRecordRepository>();
 
-builder.Services.AddScoped<MedicalSupplyService>();
 builder.Services.AddScoped<MedicalRecordHistoryService>();
 builder.Services.AddScoped<MedicalRecordService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
