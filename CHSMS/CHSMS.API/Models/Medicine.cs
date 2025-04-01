@@ -21,6 +21,7 @@ namespace CHSMS.API.Models
         public string? BidNumber { get; set; }
         public bool? Status { get; set; }
         public bool? IsBhyt { get; set; }
+        public string? MedicineCode { get; set; }
 
         public virtual ICollection<MedicineInventory> MedicineInventories { get; set; }
     }

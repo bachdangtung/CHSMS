@@ -10,6 +10,5 @@ namespace CHSMS.API.Models
         public DateTime? TransferedDate { get; set; }
         public string? Note { get; set; }
 
-        public virtual Patient? Patient { get; set; }
     }
 }

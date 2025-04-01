@@ -52,6 +52,12 @@ builder.Services.AddScoped<MedicalRecordService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
 builder.Services.AddScoped<IMedicineService, MedicineService>();
+builder.Services.AddScoped<MedicineRepository>();
+builder.Services.AddScoped<MedicineService>();
+builder.Services.AddScoped<PrescriptionRepository>();
+builder.Services.AddScoped<PrescriptionService>();
+
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -107,16 +113,18 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
-        policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        });
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
 });
-
 var app = builder.Build();
-app.UseCors("AllowAll");
+app.UseCors("AllowAll"); 
+app.UseSwagger();
+app.UseSwaggerUI();
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -131,11 +139,7 @@ app.UseCors("AllowLocalhost");
 app.UseCors("AllowAllOrigins");
 
 app.UseHttpsRedirection();
-
-app.UseCors("AllowAll");
-
-app.UseMiddleware<CorsMiddleware>();
-
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
