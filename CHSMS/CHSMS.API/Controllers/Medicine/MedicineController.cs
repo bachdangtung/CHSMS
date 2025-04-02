@@ -70,6 +70,7 @@ namespace CHSMS.API.Controllers
                 return NotFound();
             return Ok(medicines);
         }
+
         [HttpGet("search")]
         public async Task<ActionResult<List<MedicineDTO>>> SearchMedicines(
     [FromQuery] int? medicineId = null,
