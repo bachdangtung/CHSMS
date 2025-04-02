@@ -2,6 +2,7 @@
 using CHSMS.API.Models;
 using CHSMS.API.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace CHSMS.API.Controllers
 {
@@ -69,32 +70,61 @@ namespace CHSMS.API.Controllers
                 return NotFound();
             return Ok(medicines);
         }
+
         [HttpGet("search")]
         public async Task<ActionResult<List<MedicineDTO>>> SearchMedicines(
-            int? medicineId = null,
-            string? medicineName = null,
-            string? activeIngredient = null,
-            string? dosage = null,
-            string? dosageForm = null,
-            double? quantity = null,
-            double? importPrice = null,
-            DateTime? expiryDate = null,
-            string? batchNumber = null,
-            string? bidNumber = null,
-            bool? status = null)
+    [FromQuery] int? medicineId = null,
+    [FromQuery] string? medicineName = null,
+    [FromQuery] string? activeIngredient = null,
+    [FromQuery] string? dosage = null,
+    [FromQuery] string? dosageForm = null,
+    [FromQuery] double? quantity = null,
+    [FromQuery] double? importPrice = null,
+    [FromQuery] string? expiryDate = null,
+    [FromQuery] string? minExpiryDate = null,
+    [FromQuery] string? maxExpiryDate = null,
+    [FromQuery] string? batchNumber = null,
+    [FromQuery] string? bidNumber = null,
+    [FromQuery] bool? status = null)
         {
+            // Chuyển đổi expiryDate từ string sang DateTime?
+            DateTime? parsedExpiryDate = TryParseDate(expiryDate, "expiryDate");
+            DateTime? parsedMinExpiryDate = TryParseDate(minExpiryDate, "minExpiryDate");
+            DateTime? parsedMaxExpiryDate = TryParseDate(maxExpiryDate, "maxExpiryDate");
+
+            if (parsedExpiryDate == null && expiryDate != null)
+                return BadRequest("Định dạng expiryDate không hợp lệ. Vui lòng dùng dd/MM/yyyy.");
+
+            if (parsedMinExpiryDate == null && minExpiryDate != null)
+                return BadRequest("Định dạng minExpiryDate không hợp lệ. Vui lòng dùng dd/MM/yyyy.");
+
+            if (parsedMaxExpiryDate == null && maxExpiryDate != null)
+                return BadRequest("Định dạng maxExpiryDate không hợp lệ. Vui lòng dùng dd/MM/yyyy.");
+
             var result = await _medicineService.SearchMedicinesAsync(
                 medicineId, medicineName, activeIngredient, dosage, dosageForm, quantity,
-                importPrice, expiryDate, batchNumber, bidNumber, status
+                importPrice, parsedExpiryDate, batchNumber, bidNumber, status, parsedMinExpiryDate, parsedMaxExpiryDate
             );
 
             if (result == null || result.Count == 0)
             {
-                return NotFound("Không tìm thấy thuốc phù hợp");
+                return NotFound(new { Message = "Không tìm thấy thuốc phù hợp" });
             }
 
             return Ok(result);
         }
+        // Hàm chuyển đổi DateTime
+        private DateTime? TryParseDate(string? dateStr, string fieldName)
+        {
+            if (string.IsNullOrWhiteSpace(dateStr))
+                return null;
+
+            if (DateTime.TryParseExact(dateStr, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate))
+                return parsedDate;
+
+            return null; // Trả về null nếu định dạng sai
+        }
+
 
         //Add more medical supplyinventory
         [HttpPost("AddInventory")]

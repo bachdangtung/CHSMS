@@ -185,49 +185,59 @@ namespace CHSMS.API.Services
             DateTime? expiryDate = null,
             string? batchNumber = null,
             string? bidNumber = null,
-            bool? status = null)
+            bool? status = null,
+            DateTime? minExpiryDate = null,
+            DateTime? maxExpiryDate = null,
+            int pageNumber = 1,
+            int pageSize = 10)
         {
-            // Gọi repository để lấy dữ liệu
+            // Call repository to get data with pagination
             var medicines = await _medicineRepository.SearchMedicinesAsync(
                 medicineId, medicineName, activeIngredient, dosage, dosageForm, quantity,
-                importPrice, expiryDate, batchNumber, bidNumber, status
+                importPrice, expiryDate, batchNumber, bidNumber, status, minExpiryDate, maxExpiryDate,
+                pageNumber, pageSize
             );
-            if (medicines == null || medicines.Count == 0)
+
+            if (medicines == null || !medicines.Any())
             {
-                return new List<MedicineDTO>(); // Trả về danh sách DTO rỗng
+                return new List<MedicineDTO>();
             }
 
-
-            // Chuyển đổi dữ liệu thành DTO
-            var result = medicines.Select(m => new MedicineDTO
+            // Convert entities to DTOs
+            var result = medicines.Select(m =>
             {
-                MedicineId = m.MedicineId,
-                MedicineName = m.MedicineName,
-                ActiveIngredient = m.ActiveIngredient,
-                Dosage = m.Dosage,
-                DosageForm = m.DosageForm,
-                ImportPrice = m.ImportPrice,
-                SellingPrice = m.SellingPrice,
-                ShelfLife = m.ShelfLife,
-                BidNumber = m.BidNumber,
-                Status = m.Status,
-                IsBhyt = m.IsBhyt,
-                ExpiryDate = m.MedicineInventories
-                            .OrderByDescending(mi => mi.ExpiryDate)
-                            .Select(mi => mi.ExpiryDate)
-                            .FirstOrDefault(),
-                BatchNumber = m.MedicineInventories
-                            .OrderByDescending(mi => mi.ExpiryDate)
-                            .Select(mi => mi.BatchNumber)
-                            .FirstOrDefault(),
-                Quantity = m.MedicineInventories
-                            .OrderByDescending(mi => mi.ExpiryDate)
-                            .Select(mi => mi.Quantity)
-                            .FirstOrDefault()
+                // Get valid inventories ordered by expiry date
+                var validInventories = m.MedicineInventories
+                    .Where(mi => mi.ExpiryDate.HasValue && mi.Quantity > 0)
+                    .OrderBy(mi => mi.ExpiryDate)
+                    .ToList();
+
+                // Calculate total quantity
+                double totalQuantity = validInventories.Sum(mi => mi.Quantity ?? 0);
+
+                return new MedicineDTO
+                {
+                    MedicineId = m.MedicineId,
+                    MedicineName = m.MedicineName,
+                    ActiveIngredient = m.ActiveIngredient,
+                    Dosage = m.Dosage,
+                    DosageForm = m.DosageForm,
+                    ImportPrice = m.ImportPrice,
+                    SellingPrice = m.SellingPrice,
+                    ShelfLife = m.ShelfLife,
+                    BidNumber = m.BidNumber,
+                    Status = m.Status,
+                    IsBhyt = m.IsBhyt,
+                    // Get the earliest expiry date from valid inventories
+                    ExpiryDate = validInventories.FirstOrDefault()?.ExpiryDate,
+                    BatchNumber = validInventories.FirstOrDefault()?.BatchNumber,
+                    Quantity = totalQuantity // Show total quantity across all inventories
+                };
             }).ToList();
 
             return result;
         }
+
 
         public bool AddMedicineInventory(MedicineInventoryDTO medicineInventoryDTO)
         {

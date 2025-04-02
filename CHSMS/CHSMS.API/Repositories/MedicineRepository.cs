@@ -217,25 +217,22 @@ namespace CHSMS.API.Repositories
 
         // Tìm kiếm thuốc theo nhiều tiêu chí
         public async Task<List<Medicine>> SearchMedicinesAsync(
-    int? medicineId = null,
-    string? medicineName = null,
-    string? activeIngredient = null,
-    string? dosage = null,
-    string? dosageForm = null,
-    double? quantity = null,
+    int? medicineId = null, string? medicineName = null,
+    string? activeIngredient = null, string? dosage = null,
+    string? dosageForm = null, double? quantity = null,
     double? importPrice = null,
-    DateTime? expiryDate = null,
-    string? batchNumber = null,
-    string? bidNumber = null,
-    bool? status = null)
+    DateTime? expiryDate = null, string? batchNumber = null,
+    string? bidNumber = null, bool? status = null,
+    DateTime? minExpiryDate = null, DateTime? maxExpiryDate = null,
+    int pageNumber = 1, int pageSize = 10)
         {
             var query = _context.Medicines
                 .Include(m => m.MedicineInventories)
                 .ThenInclude(mi => mi.Supplier)
                 .AsQueryable();
 
-            // Áp dụng các bộ lọc
-            if (medicineId.HasValue)
+            // Apply filters
+            if (medicineId.HasValue && medicineId.Value > 0)
             {
                 query = query.Where(m => m.MedicineId == medicineId.Value);
             }
@@ -270,7 +267,7 @@ namespace CHSMS.API.Repositories
                 query = query.Where(m => EF.Functions.Like(m.BidNumber, $"{bidNumber}%"));
             }
 
-            // Lọc theo các thuộc tính trong MedicineInventories
+            // Filter by MedicineInventories properties
             if (quantity.HasValue)
             {
                 query = query.Where(m => m.MedicineInventories.Any(mi => mi.Quantity.ToString().StartsWith(quantity.Value.ToString())));
@@ -278,25 +275,48 @@ namespace CHSMS.API.Repositories
 
             if (expiryDate.HasValue)
             {
-                query = query.Where(m => m.MedicineInventories.Any(mi => mi.ExpiryDate.HasValue && mi.ExpiryDate.Value.Date == expiryDate.Value.Date));
+                // Exact expiry date match
+                query = query.Where(m => m.MedicineInventories.Any(mi =>
+                    mi.ExpiryDate.HasValue &&
+                    mi.ExpiryDate.Value.Date == expiryDate.Value.Date));
+            }
+            else
+            {
+                // Date range for expiry dates if provided
+                if (minExpiryDate.HasValue)
+                {
+                    query = query.Where(m => m.MedicineInventories.Any(mi =>
+                        mi.ExpiryDate.HasValue &&
+                        mi.ExpiryDate.Value.Date >= minExpiryDate.Value.Date));
+                }
+
+                if (maxExpiryDate.HasValue)
+                {
+                    query = query.Where(m => m.MedicineInventories.Any(mi =>
+                        mi.ExpiryDate.HasValue &&
+                        mi.ExpiryDate.Value.Date <= maxExpiryDate.Value.Date));
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(batchNumber))
             {
-                query = query.Where(m => m.MedicineInventories.Any(mi => EF.Functions.Like(mi.BatchNumber, $"{batchNumber}%")));
+                query = query.Where(m => m.MedicineInventories.Any(mi =>
+                    EF.Functions.Like(mi.BatchNumber, $"{batchNumber}%")));
             }
 
             if (status.HasValue)
             {
-                query = query.Where(m => m.Status.ToString().StartsWith(status.Value.ToString()));
+                query = query.Where(m => m.Status == status.Value);
             }
 
-            var medicines = await query.ToListAsync();
-            if (medicines == null || medicines.Count == 0)
-            {
-                return new List<Medicine>(); // Trả về danh sách rỗng
-            }
-            return medicines;
+            // Apply pagination for better performance
+            var pagedQuery = query
+                .OrderBy(m => m.MedicineId)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize);
+
+            var medicines = await pagedQuery.ToListAsync();
+            return medicines ?? new List<Medicine>();
         }
 
 
