@@ -116,13 +116,6 @@ builder.Services.AddCors(options =>
                         .AllowAnyHeader());
 });
 var app = builder.Build();
-app.UseCors("AllowAll"); 
-app.UseSwagger();
-app.UseSwaggerUI();
-app.UseAuthorization();
-app.MapControllers();
-
-app.Run();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -130,7 +123,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseMiddleware<TokenBlacklistMiddleware>();
+
+app.UseCors("AllowAll");
 
 app.UseCors("AllowLocalhost");
 
@@ -140,6 +134,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<TokenBlacklistMiddleware>();
 
 app.MapControllers();
 

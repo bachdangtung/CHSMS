@@ -53,7 +53,7 @@ public class PrescriptionService
             var prescription = new Prescription
             {
                 MedicalRecordHistoryId = dto.MedicalRecordHistoryId,
-                UserId = User,
+                UserId = dto.UserId,
                 IssueDate = dto.IssueDate,
                 Status = true, // Mặc định là true
                 Note = dto.Note,
