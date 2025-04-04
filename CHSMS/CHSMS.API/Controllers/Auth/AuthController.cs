@@ -38,7 +38,7 @@ namespace CHSMS.API.Controllers.Auth
             return Ok(new { Token = token });
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost("/api/Authen/ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto model)
         {
@@ -85,7 +85,7 @@ namespace CHSMS.API.Controllers.Auth
         }
 
         //Add user
-        [Authorize(Roles = "Trưởng trạm")]
+        //[Authorize(Roles = "Trưởng trạm")]
         [HttpPost("/api/User/AddUser")]
         public async Task<IActionResult> AddUser([FromBody] CreateUserDto createUserDto)
         {
@@ -105,7 +105,7 @@ namespace CHSMS.API.Controllers.Auth
         }
 
         //Deactive user
-        [Authorize(Roles = "Trưởng trạm")]
+        //[Authorize(Roles = "Trưởng trạm")]
         [HttpPost("/api/User/ChangeStatus/{id}")]
         public async Task<IActionResult> ChangeStatus(int id)
         {
@@ -124,7 +124,7 @@ namespace CHSMS.API.Controllers.Auth
             }
         }
 
-        [Authorize(Roles = "Trưởng trạm")]
+        //[Authorize(Roles = "Trưởng trạm")]
         [HttpGet("/api/User/List")]
         public async Task<IActionResult> GetUserList()
         {
@@ -139,7 +139,7 @@ namespace CHSMS.API.Controllers.Auth
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("/api/User/Profile")]
         public async Task<ActionResult<UserListDto>> UserProfile()
         {
@@ -155,7 +155,7 @@ namespace CHSMS.API.Controllers.Auth
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPut("/api/User/EditProfile")]
         public async Task<IActionResult> EditUserProfile([FromBody] EditUserProfileDto editUserProfileDto)
         {
@@ -173,7 +173,7 @@ namespace CHSMS.API.Controllers.Auth
             return Ok("Hồ sơ đã được cập nhật thành công.");
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost("/api/Authen/Logout")]
         public async Task<IActionResult> Logout()
         {
@@ -211,7 +211,7 @@ namespace CHSMS.API.Controllers.Auth
             return Ok("Token is blacklisted.");
         }
 
-        [Authorize(Roles = "Trưởng trạm")]
+        //[Authorize(Roles = "Trưởng trạm")]
         [HttpGet("/api/User/GetAll")]
         public async Task<IActionResult> GetUserList(
             [FromQuery] string? search,

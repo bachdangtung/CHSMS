@@ -193,13 +193,13 @@ namespace CHSMS.API.Services
         }
 
 
-        public bool AddMedicalRecordHistory(MedicalRecordHistoryDTO medicalRecordDTO)
+        public bool AddMedicalRecordHistory(int userId, MedicalRecordHistoryDTO medicalRecordDTO)
         {
             var record = new MedicalRecordHistory
             {
                 MedicalRecordHistoryId = 0,
                 MedicalRecordId = medicalRecordDTO.PatientId,
-                UserId = medicalRecordDTO.UserId,
+                UserId = userId,
                 Address = medicalRecordDTO.Address,
                 DiagnoseConclusion = medicalRecordDTO.DiagnoseConclusion,
                 TreatmentMethod = medicalRecordDTO.TreatmentMethod,

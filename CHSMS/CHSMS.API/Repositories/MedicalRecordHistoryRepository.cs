@@ -18,6 +18,7 @@ namespace CHSMS.API.Repositories
             return _context.MedicalRecordHistories
                 .Include(m => m.MedicalRecord)
                 .Include(m => m.User)
+                .OrderByDescending(m => m.Date)
                 .ToList();
         }
 
@@ -27,6 +28,7 @@ namespace CHSMS.API.Repositories
             return _context.MedicalRecordHistories
             .Include(m => m.MedicalRecord)
             .Include(m => m.User)
+            .OrderByDescending(m => m.Date)
             .FirstOrDefault(m => m.MedicalRecordHistoryId == medicalRecordHistoryId);
 
         }
@@ -36,7 +38,8 @@ namespace CHSMS.API.Repositories
             var query = _context.MedicalRecordHistories
        .Include(m => m.MedicalRecord)
        .Include(m => m.User)
-       .Where(x => x.MedicalRecordId == medicalRecordId) 
+       .Where(x => x.MedicalRecordId == medicalRecordId)
+       .OrderByDescending(m => m.Date)
        .AsQueryable();
 
             if (startDate.HasValue)
@@ -64,6 +67,7 @@ namespace CHSMS.API.Repositories
             var query = _context.MedicalRecordHistories
                 .Include(m => m.MedicalRecord)
                 .Include(m => m.User)
+                .OrderByDescending(m => m.Date)
                 .AsQueryable();
 
             if (startDate.HasValue && endDate.HasValue)

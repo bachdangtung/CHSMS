@@ -81,9 +81,7 @@ namespace CHSMS.API.Models
             {
                 entity.ToTable("MedicalRecordHistory");
 
-                entity.Property(e => e.MedicalRecordHistoryId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("MedicalRecordHistoryID");
+                entity.Property(e => e.MedicalRecordHistoryId).HasColumnName("MedicalRecordHistoryID");
 
                 entity.Property(e => e.Address).HasMaxLength(100);
 
