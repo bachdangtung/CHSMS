@@ -175,27 +175,24 @@ namespace CHSMS.API.Services
         }
 
         public async Task<List<MedicineDTO>> SearchMedicinesAsync(
-            int? medicineId = null,
-            string? medicineName = null,
-            string? activeIngredient = null,
-            string? dosage = null,
-            string? dosageForm = null,
-            double? quantity = null,
-            double? importPrice = null,
-            DateTime? expiryDate = null,
-            string? batchNumber = null,
-            string? bidNumber = null,
-            bool? status = null,
-            DateTime? minExpiryDate = null,
-            DateTime? maxExpiryDate = null,
-            int pageNumber = 1,
-            int pageSize = 10)
+    int? medicineId = null,
+    string? medicineName = null,
+    string? activeIngredient = null,
+    string? dosage = null,
+    string? dosageForm = null,
+    double? quantity = null,
+    double? importPrice = null,
+    DateTime? expiryDate = null,
+    string? batchNumber = null,
+    string? bidNumber = null,
+    bool? status = null,
+    DateTime? minExpiryDate = null,
+    DateTime? maxExpiryDate = null)
         {
-            // Call repository to get data with pagination
+            // Gọi repository nhưng **không truyền tham số phân trang**
             var medicines = await _medicineRepository.SearchMedicinesAsync(
                 medicineId, medicineName, activeIngredient, dosage, dosageForm, quantity,
-                importPrice, expiryDate, batchNumber, bidNumber, status, minExpiryDate, maxExpiryDate,
-                pageNumber, pageSize
+                importPrice, expiryDate, batchNumber, bidNumber, status, minExpiryDate, maxExpiryDate
             );
 
             if (medicines == null || !medicines.Any())
@@ -203,16 +200,14 @@ namespace CHSMS.API.Services
                 return new List<MedicineDTO>();
             }
 
-            // Convert entities to DTOs
+            // Chuyển đổi entity thành DTO
             var result = medicines.Select(m =>
             {
-                // Get valid inventories ordered by expiry date
                 var validInventories = m.MedicineInventories
                     .Where(mi => mi.ExpiryDate.HasValue && mi.Quantity > 0)
                     .OrderBy(mi => mi.ExpiryDate)
                     .ToList();
 
-                // Calculate total quantity
                 double totalQuantity = validInventories.Sum(mi => mi.Quantity ?? 0);
 
                 return new MedicineDTO
@@ -228,10 +223,9 @@ namespace CHSMS.API.Services
                     BidNumber = m.BidNumber,
                     Status = m.Status,
                     IsBhyt = m.IsBhyt,
-                    // Get the earliest expiry date from valid inventories
                     ExpiryDate = validInventories.FirstOrDefault()?.ExpiryDate,
                     BatchNumber = validInventories.FirstOrDefault()?.BatchNumber,
-                    Quantity = totalQuantity // Show total quantity across all inventories
+                    Quantity = totalQuantity
                 };
             }).ToList();
 

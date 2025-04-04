@@ -223,8 +223,7 @@ namespace CHSMS.API.Repositories
     double? importPrice = null,
     DateTime? expiryDate = null, string? batchNumber = null,
     string? bidNumber = null, bool? status = null,
-    DateTime? minExpiryDate = null, DateTime? maxExpiryDate = null,
-    int pageNumber = 1, int pageSize = 10)
+    DateTime? minExpiryDate = null, DateTime? maxExpiryDate = null)
         {
             var query = _context.Medicines
                 .Include(m => m.MedicineInventories)
@@ -275,14 +274,12 @@ namespace CHSMS.API.Repositories
 
             if (expiryDate.HasValue)
             {
-                // Exact expiry date match
                 query = query.Where(m => m.MedicineInventories.Any(mi =>
                     mi.ExpiryDate.HasValue &&
                     mi.ExpiryDate.Value.Date == expiryDate.Value.Date));
             }
             else
             {
-                // Date range for expiry dates if provided
                 if (minExpiryDate.HasValue)
                 {
                     query = query.Where(m => m.MedicineInventories.Any(mi =>
@@ -309,15 +306,14 @@ namespace CHSMS.API.Repositories
                 query = query.Where(m => m.Status == status.Value);
             }
 
-            // Apply pagination for better performance
-            var pagedQuery = query
-                .OrderBy(m => m.MedicineId)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize);
+            // Sắp xếp theo ID để đảm bảo kết quả có thứ tự rõ ràng
+            query = query.OrderBy(m => m.MedicineId);
 
-            var medicines = await pagedQuery.ToListAsync();
+            // Truy vấn dữ liệu
+            var medicines = await query.ToListAsync();
             return medicines ?? new List<Medicine>();
         }
+
 
 
         // Search for medicines
