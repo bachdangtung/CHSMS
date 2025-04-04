@@ -1,36 +1,25 @@
-﻿using CHSMS.API.DTOs.MedicineConsumption;
-using CHSMS.API.DTOs;
-using CHSMS.API.Models;
-using CHSMS.API.DTOs.User;
-using CHSMS.API.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
-using Microsoft.EntityFrameworkCore;
-using CHSMS.API.DTOs.Prescription;
+﻿using CHSMS.API.DTOs;
+using CHSMS.API.DTOs.MedicineConsumption;
 using CHSMS.API.DTOs.MedicineInventory;
-using CHSMS.API.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using CHSMS.API.DTOs.Prescription;
+using CHSMS.API.Models;
+using Microsoft.EntityFrameworkCore;
+
 
 
 public class PrescriptionService
 {
     private readonly PrescriptionRepository _repository;
-    
+
     private readonly SEP_TestContext _context;
 
-    
 
-    public PrescriptionService( PrescriptionRepository repository,SEP_TestContext context)
+    public PrescriptionService(PrescriptionRepository repository, SEP_TestContext context)
 
     {
         _repository = repository;
         _context = context;
-        
+
     }
 
     public async Task<int> CreatePrescriptionAsync(CreatePrescriptionDTO dto)
@@ -64,7 +53,7 @@ public class PrescriptionService
             var prescription = new Prescription
             {
                 MedicalRecordHistoryId = dto.MedicalRecordHistoryId,
-                UserId = dto.UserId,
+                UserId = User,
                 IssueDate = dto.IssueDate,
                 Status = true, // Mặc định là true
                 Note = dto.Note,
@@ -137,12 +126,12 @@ public class PrescriptionService
             if (prescription == null)
                 throw new Exception($"Không tìm thấy đơn thuốc với ID: {dto.PrescriptionId}");
 
-            
+
             var consumptions = await _repository.GetMedicineConsumptionsByPrescriptionIdAsync(dto.PrescriptionId);
             if (consumptions.All(c => c.Status ?? false))
                 throw new Exception("Đơn thuốc đã được xác nhận hoàn tất, không thể chỉnh sửa!");
 
-            
+
             prescription.MedicalRecordHistoryId = dto.MedicalRecordHistoryId;
             prescription.UserId = dto.UserId;
             prescription.IssueDate = dto.IssueDate;
@@ -150,7 +139,7 @@ public class PrescriptionService
             prescription.IsBhyt = dto.IsBhyt;
             await _repository.UpdatePrescriptionAsync(prescription);
 
-            
+
             foreach (var consumptionId in dto.MedicineConsumptionIdsToRemove)
             {
                 var pmc = await _repository.GetPrescriptionMedicineConsumptionByConsumptionIdAsync(consumptionId);
@@ -171,7 +160,7 @@ public class PrescriptionService
             if (medicineInventoryIds.Distinct().Count() != medicineInventoryIds.Count)
                 throw new Exception("Có thuốc bị trùng trong danh sách thêm mới. Vui lòng kiểm tra lại!");
 
-            
+
             foreach (var medDto in dto.MedicineConsumptionsToAdd)
             {
                 var inventory = await _repository.GetMedicineInventoryByIdAsync(medDto.MedicineInventoryId);
@@ -320,16 +309,16 @@ public class PrescriptionService
     public async Task<List<PrescriptionDTO>> GetAllPrescriptionsAsync()
     {
         var prescriptions = await _repository.GetAllPrescriptionsAsync();
-        return prescriptions.Where(p =>p.Status == true)
+        return prescriptions.Where(p => p.Status == true)
             .Select(p => new PrescriptionDTO
-        {
-            PrescriptionId = p.PrescriptionId,
-            IssueDate = p.IssueDate ?? DateTime.MinValue,
-            Status = p.Status.Value,
-            Note = p.Note ?? string.Empty,              
-            IsBhyt = p.IsBhyt ?? false,
-            PatientName = p.MedicalRecordHistory?.MedicalRecord?.PatientName
-        }).ToList();
+            {
+                PrescriptionId = p.PrescriptionId,
+                IssueDate = p.IssueDate ?? DateTime.MinValue,
+                Status = p.Status.Value,
+                Note = p.Note ?? string.Empty,
+                IsBhyt = p.IsBhyt ?? false,
+                PatientName = p.MedicalRecordHistory?.MedicalRecord?.PatientName
+            }).ToList();
     }
 
     public async Task<PrescriptionDTO> GetPrescriptionByMedicalRecordHistoryIdAsync(int medicalRecordHistoryId)
@@ -341,9 +330,9 @@ public class PrescriptionService
         return new PrescriptionDTO
         {
             PrescriptionId = prescription.PrescriptionId,
-            IssueDate = prescription.IssueDate ?? DateTime.MinValue, 
-            Status = prescription.Status ?? false,                  
-            Note = prescription.Note ?? string.Empty,              
+            IssueDate = prescription.IssueDate ?? DateTime.MinValue,
+            Status = prescription.Status ?? false,
+            Note = prescription.Note ?? string.Empty,
             IsBhyt = prescription.IsBhyt ?? false,
             PatientName = prescription.MedicalRecordHistory?.MedicalRecord?.PatientName
         };
@@ -554,6 +543,6 @@ public class PrescriptionService
 
 
 
-    
+
 
 

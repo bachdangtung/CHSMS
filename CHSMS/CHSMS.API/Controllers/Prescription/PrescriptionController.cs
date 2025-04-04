@@ -1,11 +1,5 @@
-﻿using CHSMS.API.DTOs;
-using CHSMS.API.DTOs.MedicineConsumption;
-using CHSMS.API.DTOs.Prescription;
-using CHSMS.API.Services;
+﻿using CHSMS.API.DTOs.Prescription;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -113,7 +107,7 @@ public class PrescriptionController : ControllerBase
     }
 
     // edit prescription có trong inventory
-    
+
     [HttpPut("doctor")]
     public async Task<IActionResult> EditPrescriptionForDoctor([FromBody] EditPrescriptionForDoctorDTO dto)
     {
@@ -133,14 +127,14 @@ public class PrescriptionController : ControllerBase
     {
         try
         {
-           
+
             if (dto.PrescriptionId <= 0)
                 return BadRequest(new { Message = "PrescriptionId không hợp lệ" });
 
             if (dto.MedicineConsumptionStatuses == null || !dto.MedicineConsumptionStatuses.Any())
                 return BadRequest(new { Message = "Danh sách MedicineConsumptionStatuses không được rỗng" });
 
-            
+
             await _prescriptionService.EditPrescriptionForPharmacistAsync(dto);
             return Ok(new { Message = "Chỉnh sửa trạng thái đơn thuốc thành công!" });
         }
@@ -164,18 +158,18 @@ public class PrescriptionController : ControllerBase
         }
     }
     [HttpGet("medicines-for-selection-no-bhyt")]
-        public async Task<IActionResult> GetMedicinesForSelectionNoBHYT()
+    public async Task<IActionResult> GetMedicinesForSelectionNoBHYT()
+    {
+        try
         {
-            try
-            {
-                var medicines = await _prescriptionService.GetMedicinesForSelectionNoBHYTAsync();
-                return Ok(medicines);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
+            var medicines = await _prescriptionService.GetMedicinesForSelectionNoBHYTAsync();
+            return Ok(medicines);
         }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
 
 
     [HttpPut("no-bhyt/{id}")]
@@ -192,7 +186,7 @@ public class PrescriptionController : ControllerBase
         }
     }
 
-    
+
 }
 
 

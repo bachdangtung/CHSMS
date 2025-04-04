@@ -51,6 +51,8 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<MedicineRepository>();
 builder.Services.AddScoped<MedicineService>();
 builder.Services.AddScoped<MedicineRepository>();
+builder.Services.AddScoped<MedicineService>();
+builder.Services.AddScoped<MedicineRepository>();
 builder.Services.AddScoped<PrescriptionRepository>();
 builder.Services.AddScoped<PrescriptionService>();
 
