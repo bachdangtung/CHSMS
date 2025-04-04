@@ -40,6 +40,20 @@ public class PrescriptionController : ControllerBase
         }
     }
 
+    [HttpGet("by-medical-record/{medicalRecordHistoryId}")]
+    public async Task<IActionResult> GetPrescriptionByMedicalRecordHistoryId(int medicalRecordHistoryId)
+    {
+        try
+        {
+            var prescription = await _prescriptionService.GetPrescriptionByMedicalRecordHistoryIdAsync(medicalRecordHistoryId);
+            return Ok(prescription);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
     [HttpGet("all")]
     public async Task<IActionResult> GetAllPrescriptions()
     {
@@ -67,19 +81,7 @@ public class PrescriptionController : ControllerBase
         }
     }
 
-    [HttpGet("by-medical-record/{medicalRecordHistoryId}")]
-    public async Task<IActionResult> GetPrescriptionByMedicalRecordHistoryId(int medicalRecordHistoryId)
-    {
-        try
-        {
-            var prescription = await _prescriptionService.GetPrescriptionByMedicalRecordHistoryIdAsync(medicalRecordHistoryId);
-            return Ok(prescription);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
-    }
+    
 
     [HttpGet("detail/{prescriptionId}")]
     public async Task<IActionResult> GetPrescriptionDetail(int prescriptionId)

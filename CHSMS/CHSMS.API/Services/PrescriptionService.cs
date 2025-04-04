@@ -1,6 +1,7 @@
 ﻿using CHSMS.API.DTOs.MedicineConsumption;
 using CHSMS.API.DTOs;
 using CHSMS.API.Models;
+using CHSMS.API.DTOs.User;
 using CHSMS.API.Repositories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,6 +9,12 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using CHSMS.API.DTOs.Prescription;
 using CHSMS.API.DTOs.MedicineInventory;
+using CHSMS.API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 
 public class PrescriptionService
@@ -15,6 +22,7 @@ public class PrescriptionService
     private readonly PrescriptionRepository _repository;
     
     private readonly SEP_TestContext _context;
+
     
 
     public PrescriptionService( PrescriptionRepository repository,SEP_TestContext context)
