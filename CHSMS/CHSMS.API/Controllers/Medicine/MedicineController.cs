@@ -61,16 +61,6 @@ namespace CHSMS.API.Controllers
             return Ok(medicine);
         }
 
-        //search medicine by name
-        [HttpGet("SearchByName")]
-        public ActionResult<IEnumerable<MedicineDTO>> SearchMedicine([FromQuery] string name)
-        {
-            var medicines = _medicineService.SearchMedicineByName(name);
-            if (medicines == null || !medicines.Any())
-                return NotFound();
-            return Ok(medicines);
-        }
-
         [HttpGet("search")]
         public async Task<ActionResult<List<MedicineDTO>>> SearchMedicines(
     [FromQuery] int? medicineId = null,
@@ -128,16 +118,28 @@ namespace CHSMS.API.Controllers
 
         //Add more medical supplyinventory
         [HttpPost("AddInventory")]
-        public IActionResult AddMedicine([FromBody] MedicineInventoryDTO medicineInventoryDTO)
+        public IActionResult AddMedicine([FromBody] MedicineInventoryAddDTO medicineInventoryAddDTO)
         {
-            if (medicineInventoryDTO == null)
+            if (medicineInventoryAddDTO == null)
                 return BadRequest("Invalid input data.");
 
-            var result = _medicineService.AddMedicineInventory(medicineInventoryDTO);
-            if (!result)
-                return BadRequest("Failed to add medicine inventory.");
+            try
+            {
+                var userIdClaim = User.FindFirst("Id")?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                    return Unauthorized("Không xác định được người dùng.");
+                var userId = int.Parse(userIdClaim);
 
-            return Ok("Medicine inventory added successfully.");
+                var result = _medicineService.AddMedicineInventory(medicineInventoryAddDTO, userId);
+                if (!result)
+                    return BadRequest("Failed to add medicine inventory.");
+
+                return Ok(new { message = "Medicine inventory added successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
         }
 
 
@@ -149,12 +151,13 @@ namespace CHSMS.API.Controllers
                 return BadRequest("Invalid input data. Medicine ID is required.");
 
             var medicineId = medicineInventoryDTO.MedicineId; // Chuyển đổi int? -> int
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
 
             var existingMedicine = _medicineService.GetMedicineInventoryByMedicineId(medicineId);
             if (existingMedicine == null)
                 return NotFound($"Medicine with ID {medicineId} not found.");
 
-            var result = _medicineService.UpdateMedicineInventory(medicineInventoryDTO);
+            var result = _medicineService.UpdateMedicineInventory(medicineInventoryDTO, userId);
             if (!result)
                 return BadRequest("Failed to update medicine inventory.");
 

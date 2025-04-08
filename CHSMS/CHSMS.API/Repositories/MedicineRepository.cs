@@ -118,17 +118,6 @@ namespace CHSMS.API.Repositories
             return null;
         }
 
-        //search medicine by name
-        public List<Medicine> SearchMedicineByName(string name)
-        {
-            return _context.Medicines
-                .Include(m => m.MedicineInventories)
-                .ThenInclude(mi => mi.Supplier)
-                .Where(m => m.MedicineName.StartsWith(name)) // Chỉ lấy thuốc bắt đầu bằng 'name'
-                .ToList();
-        }
-
-
         // Add medicine inventory
         public bool AddMedicineInventory(MedicineInventory medicineInventory)
         {
