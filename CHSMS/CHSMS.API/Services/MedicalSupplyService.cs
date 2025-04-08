@@ -1,7 +1,6 @@
 ﻿using CHSMS.API.DTOs.MedicalSupply;
 using CHSMS.API.Repositories;
 using CHSMS.API.Models;
-using System.Security.Cryptography.X509Certificates;
 
 namespace CHSMS.API.Services
 {
@@ -27,14 +26,18 @@ namespace CHSMS.API.Services
         }
 
         //Get one medical supply by ID
-        public MedicalSupplyDTO? GetMedicalSupply(int medicalSupplyId)
+        public List<MedicalSupplyInventoryDTO>? GetMedicalSupply(int medicalSupplyId)
         {
-            var medicalSupply = _medicalSupplyReposotory.GetMedicalSupply(medicalSupplyId);
+            var medicalSupply = _medicalSupplyReposotory.GetMedicalSupplyDetail(medicalSupplyId);
             if (medicalSupply == null)
                 return null;
-            var medicalSupplyDTO = ConvertToMedicalsupplyDTO(medicalSupply);
-            medicalSupplyDTO.Quantity = _medicalSupplyReposotory.GetSupplyQuantity(medicalSupply.MedicalSupplyId);
-            return medicalSupplyDTO;
+            List<MedicalSupplyInventoryDTO> medicalSupplyInventoryDTOs = new List<MedicalSupplyInventoryDTO>();
+            foreach (var item in medicalSupply)
+            {
+                var medicalSupplyInventoryDTO = ConvertToMedicalSupplyInventoryDTO(item);
+                medicalSupplyInventoryDTOs.Add(medicalSupplyInventoryDTO);
+            }
+            return medicalSupplyInventoryDTOs;
         }
 
         //Get medical supply detail
@@ -86,7 +89,7 @@ namespace CHSMS.API.Services
             return true;
         }
 
-        public int ConsumeMedicalSupply(int id, double Quantity, bool BHYT, string? Note)
+        public int ConsumeMedicalSupply(int id, double Quantity, string? Note)
         {
             if (Quantity <= 0)
             {
@@ -100,7 +103,7 @@ namespace CHSMS.API.Services
             {
                 return -3;
             }
-            return _medicalSupplyReposotory.ConsumeMedicalSupply(id, Quantity, BHYT, Note);
+            return _medicalSupplyReposotory.ConsumeMedicalSupply(id, Quantity, Note);
         }
 
         public Dictionary<MedicalSupplyDTO, double> ConsumeReport(DateTime? from, DateTime? to)
@@ -119,7 +122,7 @@ namespace CHSMS.API.Services
         }
 
         //convert to MedicalSupplyDTO
-        public MedicalSupplyDTO ConvertToMedicalsupplyDTO(MedicalSupply medicalSupply)
+        private MedicalSupplyDTO ConvertToMedicalsupplyDTO(MedicalSupply medicalSupply)
         {
             return new MedicalSupplyDTO
             {
@@ -136,7 +139,7 @@ namespace CHSMS.API.Services
         }
 
         //Convert to MedicalSupplyInventoryDTO
-        public MedicalSupplyInventoryDTO ConvertToMedicalSupplyInventoryDTO(MedicalSupplyInventory medicalSupplyInventory)
+        private MedicalSupplyInventoryDTO ConvertToMedicalSupplyInventoryDTO(MedicalSupplyInventory medicalSupplyInventory)
         {
             return new MedicalSupplyInventoryDTO
             {
@@ -169,6 +172,64 @@ namespace CHSMS.API.Services
                 medicalSupplyDTOs.Add(medicalSupplyDTO);
             }
             return medicalSupplyDTOs;
+        }
+
+        public List<MedicalSupplyConsumption> ConsumptionDetail(int id, DateTime? from, DateTime? to)
+        {
+            var result = _medicalSupplyReposotory.ConsumptionDetail(id, from, to);
+            return result;
+        }
+
+        public double GetAddOnMSI(int id, DateTime? from, DateTime? to)
+        {
+            return _medicalSupplyReposotory.GetAddOnMSI(id, from, to);
+        }
+
+        public List<MedicalSupplyConsumption> ConsumptionHistory(DateTime? from, DateTime? to)
+        {
+            return _medicalSupplyReposotory.ConsumptionHistory(from, to);
+        }
+
+        public MedicalSupply GetMedicalSupplyByMSIId(int id)
+        {
+            return _medicalSupplyReposotory.GetMedicalSupplyByMSIId(id);
+        }
+
+        public bool UpdateMedicalSupplyConsumption(ConsumpMSDTO medicalSupplyConsumption)
+        {
+            if (medicalSupplyConsumption == null)
+            {
+                return false;
+            }
+            var MSC = _medicalSupplyReposotory.GetSupplyConsumptionById(medicalSupplyConsumption.ConsumpMSID.Value);
+            if (MSC == null)
+            {
+                return false;
+            }
+            if (medicalSupplyConsumption.Quantity <= 0)
+            {
+                return false;
+            }
+            var medicalSupplyInventory = _medicalSupplyReposotory.GetMedicalSupplyInventoryById(medicalSupplyConsumption.MedicalSupplyInventoryId.Value);
+            if (medicalSupplyInventory == null)
+            {
+                return false;
+            }
+            var numberUpdate = medicalSupplyConsumption.Quantity.Value - MSC.Amount.Value;
+            medicalSupplyInventory.Quantity -= numberUpdate;
+            if (medicalSupplyInventory.Quantity < 0)
+            {
+                return false;
+            }
+            var result1 = _medicalSupplyReposotory.UpdateMedicalSupplyInventory(medicalSupplyInventory);
+            MSC.Amount=medicalSupplyConsumption.Quantity;
+            var result = _medicalSupplyReposotory.UpdateMedicalSupplyConsumption(MSC);
+
+            if (result1 && result)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

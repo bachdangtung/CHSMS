@@ -17,9 +17,9 @@ namespace CHSMS.API.Repositories
         }
 
         //Get one medical supply by ID
-        public MedicalSupply? GetMedicalSupply(int medicalSupplyId)
+        public List<MedicalSupplyInventory>? GetMedicalSupplyDetail(int medicalSupplyId)
         {
-            var result = _context.MedicalSupplies.Find(medicalSupplyId);
+            var result = _context.MedicalSupplyInventories.Where(x => x.MedicalSupplyId == medicalSupplyId).ToList();
             if (result == null)
                 return null;
             return result;
@@ -66,7 +66,7 @@ namespace CHSMS.API.Repositories
         }
 
         //Consume medical supply inventory
-        public int ConsumeMedicalSupply(int id, double Quantity, bool BHYT, string? Note)
+        public int ConsumeMedicalSupply(int id, double Quantity, string? Note)
         {
             var supplyInventory = GetAvailableMedicalSupplyInventory(id);
             var medicalSupplyConsumption = new List<MedicalSupplyConsumption>();
@@ -78,10 +78,9 @@ namespace CHSMS.API.Repositories
                     Quantity -= item.Quantity.Value;
                     medicalSupplyConsumption.Add(new MedicalSupplyConsumption
                     {
-                        Msid = item.SupplyInventoryId,
+                        MedicalSupplyInventoryId = item.SupplyInventoryId,
                         Amount = item.Quantity.Value,
                         ConsumptionDate = DateTime.Now,
-                        Bhyt = BHYT,
                         Note = Note
                     });
                 }
@@ -90,10 +89,9 @@ namespace CHSMS.API.Repositories
                     medicalSupplyConsumption.Add(new MedicalSupplyConsumption
                     {
                         MsconsumptionId = 0,
-                        Msid = item.SupplyInventoryId,
+                        MedicalSupplyInventoryId = item.SupplyInventoryId,
                         Amount = Quantity,
                         ConsumptionDate = DateTime.Now,
-                        Bhyt = BHYT,
                         Note = Note
                     });
                     item.Quantity -= Quantity;
@@ -154,7 +152,7 @@ namespace CHSMS.API.Repositories
             var listinventory = GetAllMedicalSupplyInventory(msid);
             foreach (var item in listinventory)
             {
-                listconsumption.Where(x => x.Msid == item.SupplyInventoryId)
+                listconsumption.Where(x => x.MedicalSupplyInventoryId == item.SupplyInventoryId)
                     .Sum(x => sum += x.Amount.Value);
             }
             return sum;
@@ -182,5 +180,65 @@ namespace CHSMS.API.Repositories
             }
             return sum;
         }
+
+        public MedicalSupply GetMedicalSupply(int id)
+        {
+            var result = _context.MedicalSupplies.Where(x => x.MedicalSupplyId == id).FirstOrDefault();
+            if (result == null)
+                return null;
+            return result;
+        }
+
+        public List<MedicalSupplyConsumption> ConsumptionDetail(int id, DateTime? from, DateTime? to)
+        {
+            var result = _context.MedicalSupplyConsumptions
+                .Where(x => x.MedicalSupplyInventoryId == id && x.ConsumptionDate >= from && x.ConsumptionDate <= to)
+                .ToList();
+            return result;
+        }
+
+        public double GetAddOnMSI(int id, DateTime? from, DateTime? to)
+        {
+            var result = _context.MedicalSupplyInventories
+                .Where(x => x.MedicalSupplyId == id && x.TransactionDate >= from && x.TransactionDate <= to)
+                .Sum(x => x.Quantity);
+            return result.Value;
+        }
+
+        public List<MedicalSupplyConsumption> ConsumptionHistory(DateTime? from, DateTime? to)
+        {
+            return _context.MedicalSupplyConsumptions
+                 .Where(x => x.ConsumptionDate >= from && x.ConsumptionDate <= to)
+                 .ToList();
+        }
+
+        public MedicalSupply? GetMedicalSupplyByMSIId(int id)
+        {
+            var msi = _context.MedicalSupplyInventories
+                .Where(x => x.SupplyInventoryId == id)
+                .FirstOrDefault();
+            return _context.MedicalSupplies
+                .Where(x => x.MedicalSupplyId == msi.MedicalSupplyId)
+                .FirstOrDefault();
+        }
+        public MedicalSupplyConsumption? GetSupplyConsumptionById(int id)
+        {
+            return _context.MedicalSupplyConsumptions
+                .Where(x => x.MsconsumptionId == id)
+                .FirstOrDefault();
+        }
+
+        public MedicalSupplyInventory? GetMedicalSupplyInventoryById(int id)
+        {
+            return _context.MedicalSupplyInventories
+                .Where(x => x.SupplyInventoryId == id)
+                .FirstOrDefault();
+        }
+        public bool UpdateMedicalSupplyConsumption(MedicalSupplyConsumption medicalSupplyConsumption)
+        {
+            _context.MedicalSupplyConsumptions.Update(medicalSupplyConsumption);
+            return _context.SaveChanges() > 0;
+        }
+
     }
 }
