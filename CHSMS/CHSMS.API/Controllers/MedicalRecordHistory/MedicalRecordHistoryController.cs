@@ -99,6 +99,13 @@ namespace CHSMS.API.Controllers.MedicalRecord
             return Ok();
         }
 
+        [HttpGet("TodayCount")]
+        public IActionResult GetTodayMedicalRecordHistoryCount()
+        {
+            var count = _medicalRecordHistoryService.GetTodayMedicalRecordHistoryCount();
+            return Ok(count);
+        }
+
         [HttpGet("GetAllUser")]
         public IActionResult GetAllUsers()
         {

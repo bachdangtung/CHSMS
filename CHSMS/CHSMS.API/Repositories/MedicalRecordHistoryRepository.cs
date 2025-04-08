@@ -22,6 +22,24 @@ namespace CHSMS.API.Repositories
                 .ToList();
         }
 
+        public List<MedicalRecordHistory> GetAllTodayMedicalRecordHistories()
+        {
+            return _context.MedicalRecordHistories
+                .Include(m => m.MedicalRecord)
+                .Include(m => m.User)
+                .Where(m => m.Date == DateTime.Today)
+                .OrderByDescending(m => m.Date)
+                .ToList();
+        }
+
+        public int CountTodayMedicalRecordHistories()
+        {
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+
+            return _context.MedicalRecordHistories
+                .Count(m => m.Date >= today && m.Date < tomorrow);
+        }
 
         public MedicalRecordHistory? GetMedicalRecordHistory(int medicalRecordHistoryId)
         {

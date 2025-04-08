@@ -263,6 +263,11 @@ namespace CHSMS.API.Services
             return _medicalRecordHistoryRepository.DeleteMedicalRecordHistory(medicalRecordId);
         }
 
+        public int GetTodayMedicalRecordHistoryCount()
+        {
+            return _medicalRecordHistoryRepository.CountTodayMedicalRecordHistories();
+        }
+
         public List<UserDTO> GetAllUsers()
         {
             List<UserDTO> medicalRecordDTOs = new List<UserDTO>();
