@@ -36,7 +36,7 @@ namespace CHSMS.API.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("server=.;database=SEP_Test11;uid=sa;pwd=sa;TrustServerCertificate=True;");
+                optionsBuilder.UseSqlServer("server=.;database=SEP_Test;uid=sa;pwd=sa;TrustServerCertificate=True;");
             }
         }
 
@@ -276,7 +276,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<MedicinePrescription>(entity =>
             {
-                entity.HasKey(e => new { e.PrescriptionId, e.MedicineId });
+                entity.HasNoKey();
 
                 entity.ToTable("Medicine_Prescription");
 
@@ -322,20 +322,17 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<PrescriptionMedicineConsumption>(entity =>
             {
-                entity.HasKey(e => new { e.PrescriptionId, e.MedicineConsumtionId });
+                entity.HasNoKey();
 
                 entity.ToTable("Prescription_MedicineConsumption");
-
-                entity.HasIndex(e => e.MedicineConsumtionId, "IX_Prescription_MedicineConsumption")
-                    .IsUnique();
 
                 entity.Property(e => e.MedicineConsumtionId).HasColumnName("MedicineConsumtionID");
 
                 entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
 
                 entity.HasOne(d => d.MedicineConsumtion)
-                    .WithOne()
-                    .HasForeignKey<PrescriptionMedicineConsumption>(d => d.MedicineConsumtionId)
+                    .WithMany()
+                    .HasForeignKey(d => d.MedicineConsumtionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Prescription_MedicineConsumption_MedicineConsumption");
 
@@ -387,6 +384,10 @@ namespace CHSMS.API.Models
                 entity.Property(e => e.Password).HasMaxLength(255);
 
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+
+                entity.Property(e => e.RefreshToken).HasMaxLength(255);
+
+                entity.Property(e => e.RefreshTokenExpiry).HasColumnType("datetime");
 
                 entity.Property(e => e.ResetToken).HasMaxLength(255);
 

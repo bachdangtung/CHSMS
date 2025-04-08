@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using NETCore.MailKit.Core;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace CHSMS.API.Services
@@ -26,19 +27,125 @@ namespace CHSMS.API.Services
             _mapper = mapper;
         }
 
-        public async Task<string?> AuthenticateAsync(string userName, string password)
+        /*        public async Task<string?> AuthenticateAsync(string userName, string password)
+                {
+                    var user = await _unitOfWork.Users.GetByUserNameAsync(userName);
+                    if (user.Status == false)
+                    {
+                        return "inactive";
+                    }
+                    if (user == null || !VerifyPassword(password, user.Password))
+                    {
+                        return null;
+                    }
+
+                    return GenerateJwtToken(user);
+                }*/
+        public async Task<TokenPairDto?> AuthenticateAsync(string userName, string password)
         {
             var user = await _unitOfWork.Users.GetByUserNameAsync(userName);
             if (user.Status == false)
             {
-                return "inactive";
+                return new TokenPairDto { AccessToken = "inactive" };
             }
             if (user == null || !VerifyPassword(password, user.Password))
             {
                 return null;
             }
 
-            return GenerateJwtToken(user);
+            return await GenerateTokenPair(user);
+        }
+
+        private async Task<TokenPairDto> GenerateTokenPair(User user)
+        {
+            var accessToken = GenerateJwtToken(user);
+            var refreshToken = GenerateRefreshToken();
+
+            var refreshTokenExpiryDays = _configuration.GetValue<int>("Jwt:RefreshTokenExpiryInDays");
+            var refreshTokenExpiry = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
+
+            // Store the refresh token in database
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiry = refreshTokenExpiry;
+            _unitOfWork.Users.Update(user);
+            await _unitOfWork.CommitAsync();
+
+            return new TokenPairDto
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
+                RefreshTokenExpiry = user.RefreshTokenExpiry.Value
+            };
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+
+        public async Task<TokenPairDto?> RefreshTokenAsync(string accessToken, string refreshToken)
+        {
+            var principal = GetPrincipalFromExpiredToken(accessToken);
+            var userId = int.Parse(principal.FindFirst("Id")?.Value);
+
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+
+            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiry <= DateTime.UtcNow)
+            {
+                return null;
+            }
+
+            return await GenerateTokenPair(user);
+        }
+
+        private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"].Trim())),
+                ValidateLifetime = false
+            };
+
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var securityToken);
+
+                if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+                    !jwtSecurityToken.Header.Alg.Equals("HS512", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    throw new SecurityTokenException("Invalid token algorithm");
+                }
+
+
+                return principal;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Token validation failed: " + ex.Message);
+                throw;
+            }
+
+        }
+
+        public async Task<bool> RevokeRefreshToken(int userId)
+        {
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (user == null) return false;
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiry = null;
+
+            _unitOfWork.Users.Update(user);
+            await _unitOfWork.CommitAsync();
+
+            return true;
         }
 
         private string GenerateJwtToken(User user)
@@ -47,7 +154,7 @@ namespace CHSMS.API.Services
             var expiryInMinutes = Convert.ToInt32(_configuration["Jwt:ExpiryInMinutes"]);
             var issuer = _configuration["Jwt:Issuer"];
             var audience = _configuration["Jwt:Audience"];
-            var secretKey = _configuration["Jwt:Key"];
+            var secretKey = _configuration["Jwt:Key"].Trim();
             var secretKeyByte = Encoding.UTF8.GetBytes(secretKey);
 
             var authClaims = new List<Claim>
@@ -136,7 +243,7 @@ namespace CHSMS.API.Services
 
             _unitOfWork.Users.Update(user);
             await _unitOfWork.CommitAsync();
-            
+
             return true;
         }
 
