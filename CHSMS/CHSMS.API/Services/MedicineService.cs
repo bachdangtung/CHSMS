@@ -145,6 +145,35 @@ namespace CHSMS.API.Services
             return medicineInventoryDTOs;
         }
 
+        //search medicine by name
+        public List<MedicineDTO> SearchMedicineByName(string name)
+        {
+            List<MedicineDTO> medicineDTOs = new List<MedicineDTO>();
+            var medicines = _medicineRepository.SearchMedicineByName(name);
+            foreach (var medicine in medicines)
+            {
+                var medicineDTO = new MedicineDTO
+                {
+                    MedicineId = medicine.MedicineId,
+                    MedicineName = medicine.MedicineName,
+                    ActiveIngredient = medicine.ActiveIngredient,
+                    Dosage = medicine.Dosage,
+                    IsBhyt = medicine.IsBhyt,
+                    ExpiryDate = medicine.MedicineInventories.FirstOrDefault()?.ExpiryDate,
+                    ManufacturingDate = medicine.MedicineInventories.FirstOrDefault()?.ManufacturingDate,
+                    DosageForm = medicine.DosageForm,
+                    ImportPrice = medicine.ImportPrice,
+                    SellingPrice = medicine.SellingPrice,
+                    Quantity = _medicineRepository.GetMedicineQuantity(medicine.MedicineId),
+                    ShelfLife = medicine.ShelfLife,
+                    BidNumber = medicine.BidNumber,
+                    Status = medicine.Status
+                };
+                medicineDTOs.Add(medicineDTO);
+            }
+            return medicineDTOs;
+        }
+
         public async Task<List<MedicineDTO>> SearchMedicinesAsync(
     int? medicineId = null,
     string? medicineName = null,

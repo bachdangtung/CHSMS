@@ -61,6 +61,16 @@ namespace CHSMS.API.Controllers
             return Ok(medicine);
         }
 
+        //search medicine by name
+        [HttpGet("SearchByName")]
+        public ActionResult<IEnumerable<MedicineDTO>> SearchMedicine([FromQuery] string name)
+        {
+            var medicines = _medicineService.SearchMedicineByName(name);
+            if (medicines == null || !medicines.Any())
+                return NotFound();
+            return Ok(medicines);
+        }
+
         [HttpGet("search")]
         public async Task<ActionResult<List<MedicineDTO>>> SearchMedicines(
     [FromQuery] int? medicineId = null,

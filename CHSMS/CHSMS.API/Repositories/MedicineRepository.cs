@@ -204,6 +204,16 @@ namespace CHSMS.API.Repositories
                 .ToList();
         }
 
+        //search medicine by name
+        public List<Medicine> SearchMedicineByName(string name)
+        {
+            return _context.Medicines
+                .Include(m => m.MedicineInventories)
+                .ThenInclude(mi => mi.Supplier)
+                .Where(m => m.MedicineName.StartsWith(name)) // Chỉ lấy thuốc bắt đầu bằng 'name'
+                .ToList();
+        }
+
         // Tìm kiếm thuốc theo nhiều tiêu chí
         public async Task<List<Medicine>> SearchMedicinesAsync(
     int? medicineId = null, string? medicineName = null,
