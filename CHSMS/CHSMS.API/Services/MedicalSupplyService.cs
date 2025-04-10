@@ -19,20 +19,20 @@ namespace CHSMS.API.Services
             foreach (var medicalSupply in _medicalSupplyReposotory.GetAllMedicalSupplies())
             {
                 var medicalSupplyDTO = ConvertToMedicalsupplyDTO(medicalSupply);
-                medicalSupplyDTO.Quantity = _medicalSupplyReposotory.GetSupplyQuantity(medicalSupply.MedicalSupplyId);
+                medicalSupplyDTO.Quantity = _medicalSupplyReposotory.GetMSQantityByID(medicalSupply.MedicalSupplyId);
                 medicalSupplyDTOs.Add(medicalSupplyDTO);
             }
             return medicalSupplyDTOs;
         }
 
         //Get one medical supply by ID
-        public List<MedicalSupplyInventoryDTO>? GetMedicalSupply(int medicalSupplyId)
+        public List<MedicalSupplyInventoryDTO>? GetMedicalSupplyById(int medicalSupplyId)
         {
-            var medicalSupply = _medicalSupplyReposotory.GetMedicalSupplyDetail(medicalSupplyId);
-            if (medicalSupply == null)
+            var msi = _medicalSupplyReposotory.GetMedicalSupplyInventoryByMSID(medicalSupplyId);
+            if (msi == null)
                 return null;
             List<MedicalSupplyInventoryDTO> medicalSupplyInventoryDTOs = new List<MedicalSupplyInventoryDTO>();
-            foreach (var item in medicalSupply)
+            foreach (var item in msi)
             {
                 var medicalSupplyInventoryDTO = ConvertToMedicalSupplyInventoryDTO(item);
                 medicalSupplyInventoryDTOs.Add(medicalSupplyInventoryDTO);
@@ -41,10 +41,10 @@ namespace CHSMS.API.Services
         }
 
         //Get medical supply detail
-        public List<MedicalSupplyInventoryDTO> MedicalSupplyDetail(int medicalSupplyId)
+        public List<MedicalSupplyInventoryDTO> MedicalSupplyInventoryByMedicalSupplyId(int medicalSupplyId)
         {
             List<MedicalSupplyInventoryDTO> supplyInventoryDTOs = new List<MedicalSupplyInventoryDTO>();
-            List<MedicalSupplyInventory> supplyInventories = _medicalSupplyReposotory.MedicalSupplyDetail(medicalSupplyId);
+            List<MedicalSupplyInventory> supplyInventories = _medicalSupplyReposotory.GetAllMedicalSupplyInventory(medicalSupplyId);
             foreach (var supplyInventory in supplyInventories)
             {
                 var supplyInventoryDTO = ConvertToMedicalSupplyInventoryDTO(supplyInventory);
@@ -95,27 +95,27 @@ namespace CHSMS.API.Services
             {
                 return -1;
             }
-            if (_medicalSupplyReposotory.GetMedicalSupply(id) == null)
+            if (_medicalSupplyReposotory.GetMedicalSupplyByID(id) == null)
             {
                 return -2;
             }
-            if (_medicalSupplyReposotory.GetSupplyQuantity(id) < Quantity)
+            if (_medicalSupplyReposotory.GetMSQantityByID(id) < Quantity)
             {
                 return -3;
             }
-            return _medicalSupplyReposotory.ConsumeMedicalSupply(id, Quantity, Note);
+            return _medicalSupplyReposotory.ConsumeMedicalSupplyByMSID(id, Quantity, Note);
         }
 
         public Dictionary<MedicalSupplyDTO, double> ConsumeReport(DateTime? from, DateTime? to)
         {
             MedicalSupplyDTO medicalSupplyDTO;
             Dictionary<MedicalSupplyDTO, double> result = new Dictionary<MedicalSupplyDTO, double>();
-            var dict = _medicalSupplyReposotory.MedicalSupplyConsumeReport(from, to);
+            var dict = _medicalSupplyReposotory.GetAllMedicalSupplyConsumeReport(from, to);
             foreach (var item in dict)
             {
                 medicalSupplyDTO = new MedicalSupplyDTO();
                 medicalSupplyDTO = ConvertToMedicalsupplyDTO(item.Key);
-                medicalSupplyDTO.Quantity = _medicalSupplyReposotory.GetSupplyQuantity(medicalSupplyDTO.MedicalSupplyId);
+                medicalSupplyDTO.Quantity = _medicalSupplyReposotory.GetMSQantityByID(medicalSupplyDTO.MedicalSupplyId);
                 result.Add(medicalSupplyDTO, item.Value);
             }
             return result;
@@ -168,7 +168,7 @@ namespace CHSMS.API.Services
             foreach (var item in medicalSupplies)
             {
                 var medicalSupplyDTO = ConvertToMedicalsupplyDTO(item);
-                medicalSupplyDTO.Quantity = _medicalSupplyReposotory.GetActualSupplyQuantity(item.MedicalSupplyId, date.Value);
+                medicalSupplyDTO.Quantity = _medicalSupplyReposotory.GetActualMSQuantity(item.MedicalSupplyId, date.Value);
                 medicalSupplyDTOs.Add(medicalSupplyDTO);
             }
             return medicalSupplyDTOs;
@@ -176,7 +176,7 @@ namespace CHSMS.API.Services
 
         public List<MedicalSupplyConsumption> ConsumptionDetail(int id, DateTime? from, DateTime? to)
         {
-            var result = _medicalSupplyReposotory.ConsumptionDetail(id, from, to);
+            var result = _medicalSupplyReposotory.MSConsumptionDetail(id, from, to);
             return result;
         }
 
@@ -192,7 +192,7 @@ namespace CHSMS.API.Services
 
         public MedicalSupply GetMedicalSupplyByMSIId(int id)
         {
-            return _medicalSupplyReposotory.GetMedicalSupplyByMSIId(id);
+            return _medicalSupplyReposotory.GetMedicalSupplyByMSIID(id);
         }
 
         public bool UpdateMedicalSupplyConsumption(ConsumpMSDTO medicalSupplyConsumption)
@@ -201,7 +201,7 @@ namespace CHSMS.API.Services
             {
                 return false;
             }
-            var MSC = _medicalSupplyReposotory.GetSupplyConsumptionById(medicalSupplyConsumption.ConsumpMSID.Value);
+            var MSC = _medicalSupplyReposotory.GetSupplyConsumptionByID(medicalSupplyConsumption.ConsumpMSID.Value);
             if (MSC == null)
             {
                 return false;

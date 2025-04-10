@@ -42,10 +42,10 @@ namespace CHSMS.API.Controllers.MedicalSupply
         {
             if (id == null)
                 return GetAllMedicalSupplies();
-            var medicalSupply = _medicalSupplyService.GetMedicalSupply(id.Value);
+            var medicalSupply = _medicalSupplyService.GetMedicalSupplyById(id.Value);
             if (medicalSupply == null)
                 return NotFound();
-            return Ok(_medicalSupplyService.GetMedicalSupply(id.Value));
+            return Ok(medicalSupply);
         }
 
         //Add more medical supplyinventory
