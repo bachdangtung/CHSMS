@@ -28,6 +28,7 @@ namespace CHSMS.API.Services
                 {
                     MedicineId = medicine.MedicineId,
                     MedicineName = medicine.MedicineName,
+                    MedicineCode = medicine.MedicineCode,
                     ActiveIngredient = medicine.ActiveIngredient,
                     Dosage = medicine.Dosage,
                     DosageForm = medicine.DosageForm,
@@ -73,6 +74,7 @@ namespace CHSMS.API.Services
                 MedicineId = medicineInventory.MedicineId,
                 MedicineName = medicineInventory.MedicineName,
                 Quantity = medicineInventory.Quantity,
+                ImportQuantity = medicineInventory.ImportQuantity,
                 TransactionType = medicineInventory.TransactionType,
                 Note = medicineInventory.Note,
                 CertificateNumber = medicineInventory.CertificateNumber,
@@ -233,113 +235,89 @@ namespace CHSMS.API.Services
         }
 
 
-        public bool AddMedicineInventory(MedicineInventoryAddDTO medicineInventoryAddDTO, int userId)
+        public AddMedicineInventoryResultDTO AddMedicineInventoryList(List<MedicineInventoryAddDTO> dtoList, int userId)
         {
-            var medicineData = _medicineRepository.GetMedicine(medicineInventoryAddDTO.MedicineId);
-            int? shelfLife = medicineData?.ShelfLife;
+            var result = new AddMedicineInventoryResultDTO();
+            var inventoryList = new List<MedicineInventory>();
 
-            var expiryDate = _medicineRepository.CalculateExpiryDate(
-                medicineInventoryAddDTO.ManufacturingDate,
-                shelfLife
-            );
-            var medicine = new MedicineInventory
+            foreach (var dto in dtoList)
             {
-                MedicineId = medicineInventoryAddDTO.MedicineId,
-                Quantity = medicineInventoryAddDTO.Quantity,
-                CertificateNumber = medicineInventoryAddDTO.CertificateNumber,
-                ManufacturingDate = medicineInventoryAddDTO.ManufacturingDate,
-                TransactionDate = medicineInventoryAddDTO.TransactionDate,
-                ExpiryDate = expiryDate,
-                Note = medicineInventoryAddDTO.Note,
-                ReceiverId = userId,
-                TransactionType = medicineInventoryAddDTO.TransactionType,
-                BatchNumber = medicineInventoryAddDTO.BatchNumber,
-                SupplierId = medicineInventoryAddDTO.SupplierId,
-            };
-            return _medicineRepository.AddMedicineInventory(medicine);
-        }
+                bool isDuplicate = _medicineRepository.CheckDuplicateBatch(
+                    dto.MedicineId,
+                    dto.BatchNumber,
+                    dto.TransactionDate
+                );
 
-        public bool UpdateMedicineInventory(MedicineInventoryDTO medicineInventoryDTO, int userId)
-        {
-            var medicineData = _medicineRepository.GetMedicine(medicineInventoryDTO.MedicineId);
-            int? shelfLife = medicineData?.ShelfLife;
-
-            var expiryDate = _medicineRepository.CalculateExpiryDate(
-                medicineInventoryDTO.ManufacturingDate,
-                shelfLife
-
-            );
-            var medicineInventory = new MedicineInventory
-            {
-                MedicineInventoryId = medicineInventoryDTO.MedicineInventoryId,
-                MedicineId = medicineInventoryDTO.MedicineId,
-                Quantity = medicineInventoryDTO.Quantity,
-                CertificateNumber = medicineInventoryDTO.CertificateNumber,
-                ManufacturingDate = medicineInventoryDTO.ManufacturingDate,
-                TransactionDate = medicineInventoryDTO.TransactionDate,
-                ExpiryDate = expiryDate,
-                Note = medicineInventoryDTO.Note,
-                ReceiverId = userId,
-                TransactionType = medicineInventoryDTO.TransactionType,
-                BatchNumber = medicineInventoryDTO.BatchNumber,
-                SupplierId = medicineInventoryDTO.SupplierId,
-            };
-            if (!_medicineRepository.UpdateMedicineInventory(medicineInventory)) return false;
-            return true;
-            //return _medicineRepository.UpdateMedicineInventory(medicineInventory);
-        }
-
-        public async Task<List<MedicineSuggestionDTO>> GetMedicineSuggestions(string query)
-        {
-            // Lấy dữ liệu thuốc từ repository (Google Sheets)
-            var data = await _medicineRepository.SearchMedicinesData(query);
-
-            var suggestions = new List<MedicineSuggestionDTO>();
-
-            // Lọc và ánh xạ dữ liệu vào DTO
-            foreach (var row in data.table.rows)
-            {
-                var medicineName = GetValueFromJToken(row.c[1]);
-
-                // Skip header row and empty rows
-                if (string.IsNullOrEmpty(medicineName) || medicineName.Equals("Name", StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                // Chỉ lấy những thuốc bắt đầu bằng từ khóa tìm kiếm (không phân biệt hoa thường)
-                if (string.IsNullOrEmpty(query) || medicineName.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+                if (isDuplicate)
                 {
-                    var suggestion = new MedicineSuggestionDTO
-                    {
-                        MedicineName = medicineName,
-                        ActiveIngredient = GetValueFromJToken(row.c[2]),
-                        Dosage = GetValueFromJToken(row.c[3]),
-                        DosageForm = GetValueFromJToken(row.c[6]),
-                        UnitPrice = GetValueFromJToken(row.c[12]),
-                        ShelfLife = GetValueFromJToken(row.c[14])
-                    };
-                    suggestions.Add(suggestion);
+                    result.Warnings.Add($"Thuốc ID {dto.MedicineId} với số lô {dto.BatchNumber} đã nhập trong ngày {dto.TransactionDate?.ToString("dd/MM/yyyy")}");
                 }
+
+                var medicineData = _medicineRepository.GetMedicine(dto.MedicineId);
+                int? shelfLife = medicineData?.ShelfLife;
+
+                var expiryDate = _medicineRepository.CalculateExpiryDate(dto.ManufacturingDate, shelfLife);
+
+                var medicine = new MedicineInventory
+                {
+                    MedicineId = dto.MedicineId,
+                    Quantity = dto.Quantity,
+                    CertificateNumber = dto.CertificateNumber,
+                    ManufacturingDate = dto.ManufacturingDate,
+                    TransactionDate = dto.TransactionDate,
+                    ExpiryDate = expiryDate,
+                    Note = dto.Note,
+                    ReceiverId = userId,
+                    TransactionType = dto.TransactionType,
+                    BatchNumber = dto.BatchNumber,
+                    SupplierId = dto.SupplierId,
+                };
+
+                inventoryList.Add(medicine);
             }
 
-            // Sắp xếp kết quả theo tên thuốc để trả về danh sách có tổ chức
-            return suggestions.OrderBy(s => s.MedicineName).ToList();
+            // Gọi hàm AddMedicineInventoryBatch trong repo
+            bool saved = _medicineRepository.AddMedicineInventoryList(inventoryList);
+            result.IsSuccess = saved;
+            result.AddedCount = saved ? inventoryList.Count : 0;
+
+            return result;
         }
 
-        private string GetValueFromJToken(JToken token)
+        public bool UpdateMedicineInventory(MedicineInventoryUpdateDTO dto, int userId)
         {
-            if (token == null)
-                return "";
+            var existing = _medicineRepository.GetInventoryById(dto.MedicineInventoryId);
+            if (existing == null)
+                throw new Exception("Không tìm thấy bản ghi.");
 
-            // If the token is a JValue
-            if (token is JValue jValue)
-                return jValue.Value?.ToString() ?? "";
+            if (existing.ReceiverId != userId)
+                throw new Exception("Bạn không có quyền sửa bản ghi này.");
 
-            // If the token is a JObject with 'v' property
-            if (token["v"] != null)
-                return token["v"].ToString();
+            if ((DateTime.Now - existing.TransactionDate)?.TotalHours > 24)
+                throw new Exception("Bản ghi đã quá 24 giờ, không thể chỉnh sửa.");
 
-            // As a last resort, try direct ToString()
-            return token.ToString() ?? "";
+            // cập nhật các trường được phép
+            existing.MedicineId = dto.MedicineId;
+            existing.CertificateNumber = dto.CertificateNumber;
+            existing.SupplierId = dto.SupplierId;
+            existing.TransactionType = dto.TransactionType;
+            existing.ImportQuantity = dto.ImportQuantity;
+            existing.Quantity = dto.Quantity;
+            existing.Note = dto.Note;
+            existing.BatchNumber = dto.BatchNumber;
+            existing.ManufacturingDate = dto.ManufacturingDate;
+            existing.TransactionDate = dto.TransactionDate;
+
+            return _medicineRepository.SaveChanges();
+        }
+        public List<MedicineInventory> GetRecentInventoryHistory(int userId)
+        {
+            return _medicineRepository.GetRecentInventoriesByUser(userId);
+        }
+
+        public List<MedicineDTO> FilterMedicineStock(MedicineInventoryFilter filter)
+        {
+            return _medicineRepository.GetFilteredMedicineInventory(filter);
         }
     }
 }

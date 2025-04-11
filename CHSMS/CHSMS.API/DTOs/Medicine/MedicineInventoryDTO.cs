@@ -8,6 +8,7 @@
         public string? CertificateNumber { get; set; }
         public bool? TransactionType { get; set; }
         public double? Quantity { get; set; }
+        public double? ImportQuantity { get; set; }
         public DateTime? ManufacturingDate { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public int? ReceiverId { get; set; }

@@ -1,7 +1,8 @@
 ﻿namespace CHSMS.API.DTOs.Medicine
 {
-    public class MedicineInventoryAddDTO
+    public class MedicineInventoryUpdateDTO
     {
+        public int MedicineInventoryId { get; set; }
         public int MedicineId { get; set; }
         public string? CertificateNumber { get; set; }
         public bool? TransactionType { get; set; }

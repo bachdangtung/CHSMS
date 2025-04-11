@@ -12,8 +12,6 @@ namespace CHSMS.API.Repositories
     {
         private readonly SEP_TestContext _context;
         private readonly HttpClient _httpClient;
-        private const string SheetID = "12aVbY2ZHYXkXg1CnZ_V_y_Rrw4i8BEoH"; // ID của Google Sheets
-        private const string SheetURL = $"https://docs.google.com/spreadsheets/d/{SheetID}/gviz/tq?tqx=out:json"; // URL API Google Sheets
         public MedicineRepository(HttpClient httpClient, SEP_TestContext context)
         {
             _context = context;
@@ -46,15 +44,16 @@ namespace CHSMS.API.Repositories
                     CertificateNumber = m.CertificateNumber,
                     TransactionType = m.TransactionType,
                     Quantity = m.Quantity,
+                    ImportQuantity = m.ImportQuantity,
                     ManufacturingDate = m.ManufacturingDate,
                     ExpiryDate = m.ExpiryDate,
                     ReceiverId = m.ReceiverId,
-                    ReceiverName = m.Receiver != null ? m.Receiver.UserName : null, // Lấy tên từ bảng User
+                    ReceiverName = m.Receiver != null ? m.Receiver.UserName : null,
                     TransactionDate = m.TransactionDate,
                     Note = m.Note,
                     BatchNumber = m.BatchNumber,
                     SupplierId = m.SupplierId,
-                    SupplierName = m.Supplier != null ? m.Supplier.Name : null // Lấy tên từ bảng Supplier
+                    SupplierName = m.Supplier != null ? m.Supplier.Name : null
                 })
                 .ToList();
 
@@ -119,19 +118,20 @@ namespace CHSMS.API.Repositories
         }
 
         // Add medicine inventory
-        public bool AddMedicineInventory(MedicineInventory medicineInventory)
+        public bool AddMedicineInventoryList(List<MedicineInventory> inventoryList)
         {
-            var medicineExists = _context.Medicines.Any(m => m.MedicineId == medicineInventory.MedicineId);
-            if (!medicineExists)
+            foreach (var item in inventoryList)
             {
-                throw new Exception("Thuốc không tồn tại trong hệ thống.");
+                var medicineExists = _context.Medicines.Any(m => m.MedicineId == item.MedicineId);
+                if (!medicineExists)
+                    throw new Exception($"Thuốc có ID {item.MedicineId} không tồn tại.");
             }
 
-            _context.MedicineInventories.Add(medicineInventory);
+            _context.MedicineInventories.AddRange(inventoryList);
             return _context.SaveChanges() > 0;
         }
 
-        // Update medicine inventory
+        // Update medicine inventory (bỏ)
         public bool UpdateMedicineInventory(MedicineInventory medicineInventory)
         {
             var existingInventory = _context.MedicineInventories
@@ -313,21 +313,121 @@ namespace CHSMS.API.Repositories
             return medicines ?? new List<Medicine>();
         }
 
-
-
-        // Search for medicines
-        public async Task<dynamic> SearchMedicinesData(string query)
+        public List<MedicineDTO> GetFilteredMedicineInventory(MedicineInventoryFilter filter)
         {
-            // For searching, we'll still get all data and filter it in the service
-            var response = await _httpClient.GetStringAsync(SheetURL);
-            return ParseGoogleSheetsResponse(response);
+            var virtualStockDict = GetVirtualStock();
+            var actualStockDict = GetActualStock();
+            var medicines = GetAllMedicine();
+
+            var medicineIds = medicines.Select(m => m.MedicineId).ToList();
+            var minimumStockDict = GetMinimumStock(medicineIds, filter.MinimumStock);
+
+            var result = new List<MedicineDTO>();
+
+            foreach (var medicine in medicines)
+            {
+                var virtualQty = virtualStockDict.TryGetValue(medicine.MedicineId, out var vQty) ? vQty : 0;
+                var actualQty = actualStockDict.TryGetValue(medicine.MedicineId, out var aQty) ? aQty : 0;
+                var minimumQty = minimumStockDict.TryGetValue(medicine.MedicineId, out var minQty) ? minQty : 0;
+
+                bool passesFilter = true;
+
+                // Filter 1: Theo tồn kho thực
+                if (filter.ViewActualStock && actualQty <= 0) passesFilter = false;
+
+                // Filter 2: Theo tồn kho ảo
+                if (filter.ViewVirtualStock && virtualQty <= 0) passesFilter = false;
+
+                // Filter 3: Theo tồn tối thiểu (độc lập)
+                if (filter.MinimumStock != null)
+                {
+                    if (actualQty < minimumQty && virtualQty < minimumQty)
+                        passesFilter = false;
+                }
+
+                if (passesFilter)
+                {
+                    var firstInventory = medicine.MedicineInventories.FirstOrDefault();
+                    result.Add(new MedicineDTO
+                    {
+                        MedicineId = medicine.MedicineId,
+                        MedicineName = medicine.MedicineName,
+                        MedicineCode = medicine.MedicineCode,
+                        ActiveIngredient = medicine.ActiveIngredient,
+                        Dosage = medicine.Dosage,
+                        DosageForm = medicine.DosageForm,
+                        ImportPrice = medicine.ImportPrice,
+                        SellingPrice = medicine.SellingPrice,
+                        Quantity = actualQty,
+                        ShelfLife = medicine.ShelfLife,
+                        BatchNumber = firstInventory?.BatchNumber,
+                        BidNumber = medicine.BidNumber,
+                        IsBhyt = medicine.IsBhyt,
+                        ManufacturingDate = firstInventory?.ManufacturingDate,
+                        ExpiryDate = firstInventory?.ExpiryDate,
+                        Status = medicine.Status
+                    });
+                }
+            }
+
+            return result;
         }
-        // Parse Google Sheets API response
-        private dynamic ParseGoogleSheetsResponse(string response)
+
+        private Dictionary<int, double> GetVirtualStock()
         {
-            // Google Sheets API returns data wrapped in a callback function, we need to extract the JSON
-            string jsonString = Regex.Match(response, @"(?<=\().*(?=\);)").Value;
-            return JObject.Parse(jsonString);
+            return _context.MedicineInventories
+                .GroupBy(i => i.MedicineId)
+                .Select(g => new
+                {
+                    MedicineId = g.Key,
+                    TotalImportQuantity = g.Sum(i => i.ImportQuantity ?? 0)
+                })
+                .ToDictionary(x => x.MedicineId, x => x.TotalImportQuantity);
+        }
+
+        private Dictionary<int, double> GetActualStock()
+        {
+            return _context.MedicineInventories
+                .GroupBy(i => i.MedicineId)
+                .Select(g => new
+                {
+                    MedicineId = g.Key,
+                    TotalQuantity = g.Sum(i => i.Quantity ?? 0)
+                })
+                .ToDictionary(x => x.MedicineId, x => x.TotalQuantity);
+        }
+        private Dictionary<int, double> GetMinimumStock(List<int> medicineIds, double? minimumStock)
+        {
+            double threshold = minimumStock ?? 0;
+
+            return medicineIds.ToDictionary(id => id, id => threshold);
+        }
+        public bool CheckDuplicateBatch(int medicineId, string? batchNumber, DateTime? transactionDate)
+        {
+            if (string.IsNullOrEmpty(batchNumber) || transactionDate == null)
+                return false;
+
+            return _context.MedicineInventories.Any(m =>
+                m.MedicineId == medicineId &&
+                m.BatchNumber == batchNumber &&
+                m.TransactionDate.Value.Date == transactionDate.Value.Date
+            );
+        }
+        public MedicineInventory GetInventoryById(int inventoryId)
+        {
+            return _context.MedicineInventories.FirstOrDefault(x => x.MedicineInventoryId == inventoryId);
+        }
+        // Repo implementation
+        public List<MedicineInventory> GetRecentInventoriesByUser(int userId)
+        {
+            return _context.MedicineInventories
+                .Where(x => x.ReceiverId == userId && x.TransactionDate >= DateTime.Now.AddDays(-1))
+                .ToList();
+        }
+
+        public bool SaveChanges()
+        {
+            return _context.SaveChanges() > 0;
         }
     }
 }

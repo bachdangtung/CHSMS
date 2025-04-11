@@ -103,7 +103,8 @@ namespace CHSMS.API.Controllers
 
             var result = await _medicineService.SearchMedicinesAsync(
                 medicineId, medicineName, activeIngredient, dosage, dosageForm, quantity,
-                importPrice, parsedExpiryDate, batchNumber, bidNumber, status, parsedMinExpiryDate, parsedMaxExpiryDate
+                importPrice, parsedExpiryDate, batchNumber, bidNumber, status, 
+                parsedMinExpiryDate, parsedMaxExpiryDate
             );
 
             if (result == null || result.Count == 0)
@@ -126,25 +127,28 @@ namespace CHSMS.API.Controllers
         }
 
 
-        //Add more medical supplyinventory
-        [HttpPost("AddInventory")]
-        public IActionResult AddMedicine([FromBody] MedicineInventoryAddDTO medicineInventoryAddDTO)
+        //Add more medicine inventory
+        [HttpPost("AddInventoryList")]
+        public IActionResult AddMedicineList([FromBody] List<MedicineInventoryAddDTO> medicineList)
         {
-            if (medicineInventoryAddDTO == null)
-                return BadRequest("Invalid input data.");
+            if (medicineList == null || !medicineList.Any())
+                return BadRequest("Danh sách thuốc trống.");
 
             try
             {
                 var userIdClaim = User.FindFirst("Id")?.Value;
                 if (string.IsNullOrEmpty(userIdClaim))
                     return Unauthorized("Không xác định được người dùng.");
+
                 var userId = int.Parse(userIdClaim);
 
-                var result = _medicineService.AddMedicineInventory(medicineInventoryAddDTO, userId);
-                if (!result)
-                    return BadRequest("Failed to add medicine inventory.");
+                var result = _medicineService.AddMedicineInventoryList(medicineList, userId);
 
-                return Ok(new { message = "Medicine inventory added successfully." });
+                return Ok(new
+                {
+                    message = $"Đã thêm {result.AddedCount} thuốc.",
+                    warnings = result.Warnings
+                });
             }
             catch (Exception ex)
             {
@@ -153,36 +157,46 @@ namespace CHSMS.API.Controllers
         }
 
 
-        //Update medical supply inventory by MSInventoryID
         [HttpPut("UpdateInventory")]
-        public IActionResult UpdateMedicine([FromBody] MedicineInventoryDTO medicineInventoryDTO)
+        public IActionResult UpdateInventory([FromBody] MedicineInventoryUpdateDTO dto)
         {
-            if (medicineInventoryDTO == null)
-                return BadRequest("Invalid input data. Medicine ID is required.");
+            try
+            {
+                var userIdClaim = User.FindFirst("Id")?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                    return Unauthorized("Không xác định được người dùng.");
 
-            var medicineId = medicineInventoryDTO.MedicineId; // Chuyển đổi int? -> int
-            var userId = int.Parse(User.FindFirst("Id")?.Value);
+                var userId = int.Parse(userIdClaim);
 
-            var existingMedicine = _medicineService.GetMedicineInventoryByMedicineId(medicineId);
-            if (existingMedicine == null)
-                return NotFound($"Medicine with ID {medicineId} not found.");
-
-            var result = _medicineService.UpdateMedicineInventory(medicineInventoryDTO, userId);
-            if (!result)
-                return BadRequest("Failed to update medicine inventory.");
-
-            return Ok("Medicine inventory updated successfully.");
+                var success = _medicineService.UpdateMedicineInventory(dto, userId);
+                if (success)
+                    return Ok("Cập nhật thành công.");
+                return BadRequest("Không thể cập nhật bản ghi.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi: {ex.Message}");
+            }
         }
 
-        [HttpGet("medicines/suggest")]
-        public async Task<IActionResult> GetMedicineSuggestions([FromQuery] MedicineSuggestionRequestDTO request)
+        [HttpGet("GetRecentInventoryHistory")]
+        public IActionResult GetRecentInventoryHistory()
         {
-            // Gọi service để lấy gợi ý thuốc
-            var suggestions = await _medicineService.GetMedicineSuggestions(
-                request.Query
+            var userIdClaim = User.FindFirst("Id")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized("Không xác định được người dùng.");
 
-            );
-            return Ok(suggestions);
+            int userId = int.Parse(userIdClaim);
+            var result = _medicineService.GetRecentInventoryHistory(userId);
+            return Ok(result);
+        }
+
+
+        [HttpPost("filter-inventory")]
+        public ActionResult<List<MedicineStockDTO>> FilterInventory([FromBody] MedicineInventoryFilter filter)
+        {
+            var result = _medicineService.FilterMedicineStock(filter);
+            return Ok(result);
         }
     }
 }
