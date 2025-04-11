@@ -85,12 +85,13 @@ public class PrescriptionRepository
             .OrderByDescending(p => p.IssueDate)
             .ToListAsync();
     }
-    public async Task<Prescription> GetPrescriptionByMedicalRecordHistoryIdAsync(int medicalRecordHistoryId)
+    public async Task<List<Prescription>> GetPrescriptionsByMedicalRecordHistoryIdAsync(int medicalRecordHistoryId)
     {
         return await _context.Prescriptions
             .Include(p => p.MedicalRecordHistory)
             .ThenInclude(mrh => mrh.MedicalRecord)
-            .FirstOrDefaultAsync(p => p.MedicalRecordHistoryId == medicalRecordHistoryId);
+            .Where(p => p.MedicalRecordHistoryId == medicalRecordHistoryId)
+            .ToListAsync();
     }
     public async Task<Prescription> GetPrescriptionDetailAsync(int prescriptionId)
     {

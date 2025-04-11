@@ -22,7 +22,7 @@ public class PrescriptionService
 
     }
 
-    public async Task<int> CreatePrescriptionAsync(CreatePrescriptionDTO dto)
+    public async Task<int> CreatePrescriptionAsync(int userId, int medicalRecordHistoryId,CreatePrescriptionDTO dto)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -52,8 +52,8 @@ public class PrescriptionService
             // Tạo Prescription với Status mặc định là true
             var prescription = new Prescription
             {
-                MedicalRecordHistoryId = dto.MedicalRecordHistoryId,
-                UserId = User,
+                MedicalRecordHistoryId = medicalRecordHistoryId,
+                UserId = userId,
                 IssueDate = dto.IssueDate,
                 Status = true, // Mặc định là true
                 Note = dto.Note,
@@ -126,12 +126,11 @@ public class PrescriptionService
             if (prescription == null)
                 throw new Exception($"Không tìm thấy đơn thuốc với ID: {dto.PrescriptionId}");
 
-
             var consumptions = await _repository.GetMedicineConsumptionsByPrescriptionIdAsync(dto.PrescriptionId);
             if (consumptions.All(c => c.Status ?? false))
                 throw new Exception("Đơn thuốc đã được xác nhận hoàn tất, không thể chỉnh sửa!");
 
-
+            // Gán các giá trị từ DTO (MedicalRecordHistoryId và UserId đã được gán trong controller)
             prescription.MedicalRecordHistoryId = dto.MedicalRecordHistoryId;
             prescription.UserId = dto.UserId;
             prescription.IssueDate = dto.IssueDate;
@@ -139,7 +138,7 @@ public class PrescriptionService
             prescription.IsBhyt = dto.IsBhyt;
             await _repository.UpdatePrescriptionAsync(prescription);
 
-
+            // Xóa các MedicineConsumption được chỉ định
             foreach (var consumptionId in dto.MedicineConsumptionIdsToRemove)
             {
                 var pmc = await _repository.GetPrescriptionMedicineConsumptionByConsumptionIdAsync(consumptionId);
@@ -150,7 +149,7 @@ public class PrescriptionService
                 }
             }
 
-            // Số lượng thuốc có trong 1 đơn
+            // Kiểm tra số lượng thuốc trong đơn
             var existingConsumptions = await _repository.GetMedicineConsumptionsByPrescriptionIdAsync(dto.PrescriptionId);
             if (existingConsumptions.Count() + dto.MedicineConsumptionsToAdd.Count > 10)
                 throw new Exception("Một đơn thuốc không được chứa quá 10 loại thuốc!");
@@ -160,7 +159,7 @@ public class PrescriptionService
             if (medicineInventoryIds.Distinct().Count() != medicineInventoryIds.Count)
                 throw new Exception("Có thuốc bị trùng trong danh sách thêm mới. Vui lòng kiểm tra lại!");
 
-
+            // Thêm các MedicineConsumption mới
             foreach (var medDto in dto.MedicineConsumptionsToAdd)
             {
                 var inventory = await _repository.GetMedicineInventoryByIdAsync(medDto.MedicineInventoryId);
@@ -219,10 +218,9 @@ public class PrescriptionService
             if (prescription == null)
                 throw new Exception($"Không tìm thấy đơn thuốc với ID: {dto.PrescriptionId}");
 
-            // Business Rule 9: Kiểm tra thời gian hiệu lực của đơn thuốc
-            var expiryDays = 7; // Đơn thuốc có hiệu lực trong 7 ngày
-            if (!prescription.IssueDate.HasValue || (DateTime.Now - prescription.IssueDate.Value).TotalDays > expiryDays)
-                throw new Exception("Đơn thuốc đã hết hạn hoặc không có ngày phát hành, không thể chỉnh sửa trạng thái!");
+            // Business Rule: Chỉ cho phép chỉnh sửa trong cùng ngày với IssueDate
+            if (!prescription.IssueDate.HasValue || prescription.IssueDate.Value.Date != DateTime.Now.Date)
+                throw new Exception("Chỉ được chỉnh sửa trạng thái đơn thuốc trong ngày phát hành đơn thuốc!");
 
             foreach (var statusDto in dto.MedicineConsumptionStatuses)
             {
@@ -230,17 +228,22 @@ public class PrescriptionService
                 if (consumption == null)
                     throw new Exception($"Không tìm thấy MedicineConsumption với ID: {statusDto.MedicineConsumptionId}");
 
+                if (!statusDto.Status) // Kiểm tra rollback
+                {
+                    // Kiểm tra chỉ được rollback 1 lần
+                    if (!consumption.Status.HasValue || !consumption.Status.Value)
+                        throw new Exception($"MedicineConsumption ID {statusDto.MedicineConsumptionId} đã được rollback trước đó hoặc chưa được phát thuốc, không thể rollback!");
+                }
+
                 // Cập nhật Status
                 consumption.Status = statusDto.Status;
                 await _repository.UpdateMedicineConsumptionAsync(consumption);
 
-                // Nếu Status được đổi thành true, tính TotalPrice và trừ Quantity
-                if (statusDto.Status)
+                if (statusDto.Status) // Phát thuốc
                 {
                     if (!consumption.MedicineInventoryId.HasValue)
-                    {
                         throw new Exception($"MedicineInventoryId không được để trống trong MedicineConsumption với ID: {consumption.MedicineConsumptionId}");
-                    }
+
                     var inventory = await _repository.GetMedicineInventoryByIdAsync(consumption.MedicineInventoryId.Value);
                     if (inventory == null)
                         throw new Exception($"Không tìm thấy kho thuốc với ID: {consumption.MedicineInventoryId}");
@@ -253,15 +256,31 @@ public class PrescriptionService
                     // Kiểm tra số lượng tồn kho tối thiểu (cho dược sĩ)
                     const int minimumQuantity = 10;
                     if (inventory.Quantity < minimumQuantity)
-                    {
                         throw new Exception($"Số lượng tồn kho của thuốc ID {consumption.MedicineInventoryId} dưới ngưỡng tối thiểu ({minimumQuantity}) sau khi phát thuốc!");
-                    }
 
                     await _repository.UpdateMedicineInventoryAsync(inventory);
 
                     // Tính TotalPrice
                     var pmc = await _repository.GetPrescriptionMedicineConsumptionByConsumptionIdAsync(consumption.MedicineConsumptionId);
                     pmc.TotalPrice = (consumption.Amount ?? 0) * (inventory.Medicine.SellingPrice ?? 0);
+                    await _repository.UpdatePrescriptionMedicineConsumptionAsync(pmc);
+                }
+                else // Rollback (Status = false)
+                {
+                    if (!consumption.MedicineInventoryId.HasValue)
+                        throw new Exception($"MedicineInventoryId không được để trống trong MedicineConsumption với ID: {consumption.MedicineConsumptionId}");
+
+                    var inventory = await _repository.GetMedicineInventoryByIdAsync(consumption.MedicineInventoryId.Value);
+                    if (inventory == null)
+                        throw new Exception($"Không tìm thấy kho thuốc với ID: {consumption.MedicineInventoryId}");
+
+                    // Hoàn lại Quantity
+                    inventory.Quantity += (consumption.Amount ?? 0);
+                    await _repository.UpdateMedicineInventoryAsync(inventory);
+
+                    // Đặt lại TotalPrice
+                    var pmc = await _repository.GetPrescriptionMedicineConsumptionByConsumptionIdAsync(consumption.MedicineConsumptionId);
+                    pmc.TotalPrice = 0; // Hoặc giá trị ban đầu nếu có
                     await _repository.UpdatePrescriptionMedicineConsumptionAsync(pmc);
                 }
             }
@@ -293,6 +312,8 @@ public class PrescriptionService
     }
 
 
+
+
     public async Task<List<PrescriptionDTO>> GetPrescriptionsByUserIdListAsync(int userId)
     {
         var prescriptions = await _repository.GetPrescriptionsByUserIdAsync(userId);
@@ -306,10 +327,12 @@ public class PrescriptionService
             PatientName = p.MedicalRecordHistory?.MedicalRecord?.PatientName
         }).ToList();
     }
+
+    // lấy danh sách đơn thuốc có bhyt
     public async Task<List<PrescriptionDTO>> GetAllPrescriptionsAsync()
     {
         var prescriptions = await _repository.GetAllPrescriptionsAsync();
-        return prescriptions.Where(p => p.Status == true)
+        return prescriptions.Where(p => p.IsBhyt == true)
             .Select(p => new PrescriptionDTO
             {
                 PrescriptionId = p.PrescriptionId,
@@ -321,21 +344,36 @@ public class PrescriptionService
             }).ToList();
     }
 
-    public async Task<PrescriptionDTO> GetPrescriptionByMedicalRecordHistoryIdAsync(int medicalRecordHistoryId)
+    // lấy danh sách đơn thuốc ko có bhyt
+    public async Task<List<PrescriptionDTO>> GetAllPrescriptionsNoBHYTAsync()
     {
-        var prescription = await _repository.GetPrescriptionByMedicalRecordHistoryIdAsync(medicalRecordHistoryId);
-        if (prescription == null)
+        var prescriptions = await _repository.GetAllPrescriptionsNoBHYTAsync();
+        return prescriptions.Where(p => p.IsBhyt == false)
+            .Select(p => new PrescriptionDTO
+            {
+                PrescriptionId = p.PrescriptionId,
+                IssueDate = p.IssueDate ?? DateTime.MinValue,
+                Status = p.Status.Value,
+                Note = p.Note ?? string.Empty,
+                IsBhyt = p.IsBhyt ?? false,
+                PatientName = p.MedicalRecordHistory?.MedicalRecord?.PatientName
+            }).ToList();
+    }
+    public async Task<List<PrescriptionDTO>> GetPrescriptionsByMedicalRecordHistoryIdAsync(int medicalRecordHistoryId)
+    {
+        var prescriptions = await _repository.GetPrescriptionsByMedicalRecordHistoryIdAsync(medicalRecordHistoryId);
+        if (prescriptions == null || !prescriptions.Any())
             throw new Exception("Không tìm thấy đơn thuốc");
 
-        return new PrescriptionDTO
+        return prescriptions.Select(p => new PrescriptionDTO
         {
-            PrescriptionId = prescription.PrescriptionId,
-            IssueDate = prescription.IssueDate ?? DateTime.MinValue,
-            Status = prescription.Status ?? false,
-            Note = prescription.Note ?? string.Empty,
-            IsBhyt = prescription.IsBhyt ?? false,
-            PatientName = prescription.MedicalRecordHistory?.MedicalRecord?.PatientName
-        };
+            PrescriptionId = p.PrescriptionId,
+            IssueDate = p.IssueDate ?? DateTime.MinValue,
+            Status = p.Status ?? false,
+            Note = p.Note ?? string.Empty,
+            IsBhyt = p.IsBhyt ?? false,
+            PatientName = p.MedicalRecordHistory?.MedicalRecord?.PatientName
+        }).ToList();
     }
 
     public async Task<PrescriptionDetailDTO> GetPrescriptionDetailAsync(int prescriptionId)
@@ -362,19 +400,28 @@ public class PrescriptionService
             IssueDate = prescription.IssueDate ?? DateTime.MinValue,
             Status = prescription.Status ?? false,
             Note = prescription.Note ?? string.Empty,
-            UserName = prescription.User?.UserName ?? string.Empty,
+            FullName = prescription.User?.Fullname ?? string.Empty,
             PatientName = prescription.MedicalRecordHistory?.MedicalRecord?.PatientName ?? string.Empty,
+            Gender = prescription.MedicalRecordHistory?.MedicalRecord?.Gender ?? string.Empty,
+            Dob = prescription.MedicalRecordHistory?.MedicalRecord?.Dob?? DateTime.MinValue,
+            Address = prescription.MedicalRecordHistory?.MedicalRecord.Address ?? string.Empty,
             HealthInsurance = prescription.MedicalRecordHistory?.MedicalRecord?.HealthInsurance ?? string.Empty,
             DiagnoseConclusion = prescription.MedicalRecordHistory?.DiagnoseConclusion ?? string.Empty,
+            IsBhyt = prescription.IsBhyt ?? false,
             MedicineConsumptions = prescriptionMedicineConsumptions.Select(pmc => new MedicineConsumptionDetailDTO
             {
                 MedicineConsumptionId = pmc.MedicineConsumtion.MedicineConsumptionId, // Thêm ánh xạ này
-                Amount = (int)(pmc.MedicineConsumtion.Amount ?? 0), // Chuyển từ double? sang int
+                Amount = (int)(pmc.MedicineConsumtion.Amount ?? 0),
                 ConsumptionDate = pmc.MedicineConsumtion.ConsumptionDate ?? DateTime.MinValue,
                 Note = pmc.MedicineConsumtion.Note ?? string.Empty,
                 IsSpecialMedicine = pmc.MedicineConsumtion.IsSpecialMedicine ?? false,
                 Status = pmc.MedicineConsumtion.Status ?? false,
                 MedicineName = pmc.MedicineConsumtion.MedicineInventory?.Medicine?.MedicineName ?? string.Empty,
+                DosageForm = pmc.MedicineConsumtion.MedicineInventory?.Medicine?.DosageForm?? string.Empty,
+                BatchNumber = pmc.MedicineConsumtion.MedicineInventory?.BatchNumber ?? string.Empty,
+                TransactionDate = pmc.MedicineConsumtion.MedicineInventory?.TransactionDate??DateTime.MinValue,
+                ExpiryDate = pmc.MedicineConsumtion.MedicineInventory?.ExpiryDate ?? DateTime.MinValue,
+                Quantity = pmc.MedicineConsumtion.MedicineInventory?.Quantity ?? 0,
                 TotalPrice = pmc.TotalPrice.HasValue ? Convert.ToDecimal(pmc.TotalPrice.Value) : 0m
             }).ToList(),
             TotalPrice = totalPrice
@@ -524,20 +571,7 @@ public class PrescriptionService
             throw new Exception($"Lỗi khi chỉnh sửa đơn thuốc: {ex.Message}");
         }
     }
-    public async Task<List<PrescriptionDTO>> GetAllPrescriptionsNoBHYTAsync()
-    {
-        var prescriptions = await _repository.GetAllPrescriptionsNoBHYTAsync();
-        return prescriptions.Where(p => p.Status == false)
-            .Select(p => new PrescriptionDTO
-            {
-                PrescriptionId = p.PrescriptionId,
-                IssueDate = p.IssueDate ?? DateTime.MinValue,
-                Status = p.Status.Value,
-                Note = p.Note ?? string.Empty,
-                IsBhyt = p.IsBhyt ?? false,
-                PatientName = p.MedicalRecordHistory?.MedicalRecord?.PatientName
-            }).ToList();
-    }
+    
 
 }
 
