@@ -46,6 +46,7 @@ namespace CHSMS.API.Repositories
             double sum = GetMSQantityByID(medicalSupplyId).Value;
             sum += MedicalSupplyConsumeReport(medicalSupplyId, date, DateTime.Now);
             sum -= GetInputAmountOfMS(medicalSupplyId, date, DateTime.Now).Value;
+            sum += GetNumberOfExpiredMSI(medicalSupplyId, date, DateTime.Now);
             return sum;
         }
         //Add medical supply inventory      
@@ -177,7 +178,7 @@ namespace CHSMS.API.Repositories
             var list = GetInputMedicalSupplyInventoryByDate(from, to).Where(x => x.MedicalSupplyId == MSID);
             foreach (var item in list)
             {
-                sum += item.Quantity.Value;
+                sum += item.ImportQuantity.Value;
             }
             return sum;
         }
@@ -204,7 +205,7 @@ namespace CHSMS.API.Repositories
         {
             var result = _context.MedicalSupplyInventories
                 .Where(x => x.MedicalSupplyId == id && x.TransactionDate >= from && x.TransactionDate <= to)
-                .Sum(x => x.Quantity);
+                .Sum(x => x.ImportQuantity);
             return result.Value;
         }
 
@@ -241,6 +242,14 @@ namespace CHSMS.API.Repositories
         {
             _context.MedicalSupplyConsumptions.Update(medicalSupplyConsumption);
             return _context.SaveChanges() > 0;
+        }
+        public double GetNumberOfExpiredMSI(int MSID, DateTime? from, DateTime? to)
+        {
+            double sum = 0;
+            sum += _context.MedicalSupplyInventories
+                .Where(x => x.MedicalSupplyId == MSID && x.ExpiryDate <= DateTime.Now && x.ExpiryDate >= from)
+                .Sum(x => x.Quantity).Value;
+            return sum;
         }
 
     }

@@ -55,7 +55,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
             var result = _medicalSupplyService.AddMedicalSupplyInventory(medicalSupplyInventoryDTO);
             if (!result)
                 return BadRequest();
-            return Ok();
+            return Ok("done");
         }
 
         //Update medical supply inventory by MSInventoryID
@@ -96,6 +96,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
             foreach (var item in result)
             {
                 var addOn = _medicalSupplyService.GetAddOnMSI(item.Key.MedicalSupplyId, from, to);
+                var expry = _medicalSupplyService.GetExpiryMSI(item.Key.MedicalSupplyId, from, to);
                 list.Add(new
                 {
                     medicalSupplyId = item.Key.MedicalSupplyId,
@@ -103,6 +104,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
                     consump = item.Value,
                     present = item.Key.Quantity.Value,
                     addnew = addOn,
+                    expry = expry,
                     before = actual.Find(x => x.MedicalSupplyId == item.Key.MedicalSupplyId).Quantity.Value
                 });
             }
@@ -124,9 +126,13 @@ namespace CHSMS.API.Controllers.MedicalSupply
             foreach (var item in list)
             {
                 var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyInventoryId.Value);
+                var medicalSupplyInventory = _medicalSupplyService.GetMedicalSupplyInventoryById(item.MedicalSupplyInventoryId);
                 result.Add(new
                 {
+                    consumpMSID = item.MsconsumptionId,
+                    medicalSupplyInventoryId = item.MedicalSupplyInventoryId,
                     medicalSupplyName = medicalSupply.MedicalSupplyName,
+                    batchNumber = medicalSupplyInventory.BatchNumber,
                     quantity = item.Amount,
                     date = item.ConsumptionDate,
                     note = item.Note
@@ -140,6 +146,37 @@ namespace CHSMS.API.Controllers.MedicalSupply
             var result = _medicalSupplyService.UpdateMedicalSupplyConsumption(medicalSupplyConsumption);
             if (result == null)
                 return NotFound();
+            return Ok(result);
+        }
+
+        //Get all medical supply inventory
+        [HttpGet("GetMedicalSupplyInventory")]
+        public IActionResult GetMedicalSupplyInventory()
+        {
+            var ms = _medicalSupplyService.GetAllMedicalSupplies();
+            List<object> result = new List<object>();
+            foreach (var item in ms)
+            {
+                var medicalSupplyInventory = _medicalSupplyService.GetMedicalSupplyById(item.MedicalSupplyId);
+                if (medicalSupplyInventory == null)
+                    continue;
+                foreach (var item2 in medicalSupplyInventory)
+                {
+                    if (item2.Quantity == null)
+                        continue;
+                    result.Add(new
+                    {
+                        MSID = item.MedicalSupplyId,
+                        MSName = item.MedicalSupplyName,
+                        MSType = item.SupplyType,
+                        BatchNumber = "" + item2.BatchNumber,
+                        Quantity = item2.Quantity.Value,
+                        UnitOfMeasure = item.UnitOfMeasure.ToString(),
+                        ExpiryDate = item2.ExpiryDate.Value,
+                        BidNumber = item.BidNumber.Value,
+                    });
+                }
+            }
             return Ok(result);
         }
     }

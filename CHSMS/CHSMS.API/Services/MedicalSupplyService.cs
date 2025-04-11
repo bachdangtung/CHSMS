@@ -66,6 +66,8 @@ namespace CHSMS.API.Services
                 Note = medicalSupplyInventoryDTO.Note,
                 ReceiverId = medicalSupplyInventoryDTO.ReceiverId,
                 TransactionType = medicalSupplyInventoryDTO.TransactionType,
+                BatchNumber = medicalSupplyInventoryDTO.BatchNumber,
+                ImportQuantity = medicalSupplyInventoryDTO.Quantity,
             };
             if (!_medicalSupplyReposotory.AddMedicalSupplyInventory(medicalSupply)) return false;
             return true;
@@ -135,6 +137,7 @@ namespace CHSMS.API.Services
                 ImportPrice = medicalSupply.ImportPrice,
                 SellingPrice = medicalSupply.SellingPrice,
                 BidNumber = medicalSupply.BidNumber,
+                
             };
         }
 
@@ -230,6 +233,16 @@ namespace CHSMS.API.Services
                 return true;
             }
             return false;
+        }
+
+        public object GetExpiryMSI(int medicalSupplyId, DateTime? from, DateTime? to)
+        {
+            return _medicalSupplyReposotory.GetNumberOfExpiredMSI(medicalSupplyId, from, to);
+        }
+
+        public MedicalSupplyInventory GetMedicalSupplyInventoryById(int? medicalSupplyInventoryId)
+        {
+            return _medicalSupplyReposotory.GetMedicalSupplyInventoryById(medicalSupplyInventoryId.Value);
         }
     }
 }
