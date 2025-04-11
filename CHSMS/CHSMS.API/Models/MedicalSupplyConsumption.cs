@@ -6,10 +6,9 @@ namespace CHSMS.API.Models
     public partial class MedicalSupplyConsumption
     {
         public int MsconsumptionId { get; set; }
-        public int? Msid { get; set; }
+        public int? MedicalSupplyInventoryId { get; set; }
         public double? Amount { get; set; }
         public DateTime? ConsumptionDate { get; set; }
-        public int? Consumptiontype { get; set; }
         public string? Note { get; set; }
 
         public virtual MedicalSupplyInventory Msconsumption { get; set; } = null!;

@@ -8,7 +8,6 @@ namespace CHSMS.API.Models
         public MedicalRecord()
         {
             MedicalRecordHistories = new HashSet<MedicalRecordHistory>();
-            VaccinationRecords = new HashSet<VaccinationRecord>();
         }
 
         public int MedicalRecordId { get; set; }
@@ -26,6 +25,5 @@ namespace CHSMS.API.Models
         public string? Note { get; set; }
 
         public virtual ICollection<MedicalRecordHistory> MedicalRecordHistories { get; set; }
-        public virtual ICollection<VaccinationRecord> VaccinationRecords { get; set; }
     }
 }
