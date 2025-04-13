@@ -2,9 +2,9 @@
 {
     public class ConsumpMSDTO
     {
-        public int MedicalSupplyId { get; set; }
-        public double Quantity { get; set; }
-        public bool? BHYT { get; set; }
+        public int? ConsumpMSID { get; set; }
+        public int? MedicalSupplyInventoryId { get; set; }
+        public double? Quantity { get; set; }
         public string? Note { get; set; }
     }
 }
