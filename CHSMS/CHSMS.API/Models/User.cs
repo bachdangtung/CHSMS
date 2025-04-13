@@ -28,6 +28,8 @@ namespace CHSMS.API.Models
         public string? Specialization { get; set; }
         public bool? Status { get; set; }
         public string? Fullname { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiry { get; set; }
 
         public virtual Role? Role { get; set; }
         public virtual ICollection<ExternalPrescription> ExternalPrescriptions { get; set; }
