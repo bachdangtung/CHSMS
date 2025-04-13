@@ -11,10 +11,12 @@ namespace CHSMS.API.Controllers
     public class MedicineController : ControllerBase
     {
         private readonly MedicineService _medicineService;
+        private readonly ILogger<MedicineController> _logger;
 
-        public MedicineController(MedicineService medicineService)
+        public MedicineController(MedicineService medicineService, ILogger<MedicineController> logger)
         {
             _medicineService = medicineService;
+            _logger = logger;
         }
 
         [HttpGet("medicines")]
@@ -132,17 +134,37 @@ namespace CHSMS.API.Controllers
         public IActionResult AddMedicineList([FromBody] List<MedicineInventoryAddDTO> medicineList)
         {
             if (medicineList == null || !medicineList.Any())
+            {
+                _logger.LogWarning("Yêu cầu thêm danh sách thuốc trống.");
                 return BadRequest("Danh sách thuốc trống.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Dữ liệu DTO không hợp lệ: {Errors}", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return BadRequest(ModelState);
+            }
 
             try
             {
                 var userIdClaim = User.FindFirst("Id")?.Value;
-                if (string.IsNullOrEmpty(userIdClaim))
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+                {
+                    _logger.LogWarning("Không lấy được userId từ claims.");
                     return Unauthorized("Không xác định được người dùng.");
-
-                var userId = int.Parse(userIdClaim);
+                }
 
                 var result = _medicineService.AddMedicineInventoryList(medicineList, userId);
+
+                if (!result.IsSuccess && result.Warnings.Any())
+                {
+                    _logger.LogWarning("Lỗi khi thêm thuốc: {Warnings}", result.Warnings);
+                    return BadRequest(new
+                    {
+                        message = "Có lỗi khi thêm thuốc.",
+                        warnings = result.Warnings
+                    });
+                }
 
                 return Ok(new
                 {
@@ -152,9 +174,11 @@ namespace CHSMS.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Lỗi server: {ex.Message}");
+                _logger.LogError(ex, "Lỗi server khi thêm danh sách thuốc.");
+                return StatusCode(500, "Đã xảy ra lỗi server. Vui lòng thử lại sau.");
             }
         }
+
 
 
         [HttpPut("UpdateInventory")]

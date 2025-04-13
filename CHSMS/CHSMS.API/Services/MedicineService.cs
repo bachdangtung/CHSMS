@@ -11,11 +11,13 @@ namespace CHSMS.API.Services
     {
         private readonly SEP_TestContext _context;
         private readonly MedicineRepository _medicineRepository;
+        private readonly ILogger<MedicineService> _logger;
 
-        public MedicineService(MedicineRepository medicineRepository, SEP_TestContext context)
+        public MedicineService(MedicineRepository medicineRepository, SEP_TestContext context, ILogger<MedicineService> logger)
         {
             _medicineRepository = medicineRepository;
             _context = context;
+            _logger = logger;
         }
 
         // Get all medicines
@@ -240,6 +242,13 @@ namespace CHSMS.API.Services
             var result = new AddMedicineInventoryResultDTO();
             var inventoryList = new List<MedicineInventory>();
 
+            if (dtoList == null || !dtoList.Any())
+            {
+                _logger.LogWarning("Danh sách DTO trống khi thêm thuốc.");
+                result.Warnings.Add("Danh sách DTO trống.");
+                return result;
+            }
+
             foreach (var dto in dtoList)
             {
                 bool isDuplicate = _medicineRepository.CheckDuplicateBatch(
@@ -250,39 +259,79 @@ namespace CHSMS.API.Services
 
                 if (isDuplicate)
                 {
-                    result.Warnings.Add($"Thuốc ID {dto.MedicineId} với số lô {dto.BatchNumber} đã nhập trong ngày {dto.TransactionDate?.ToString("dd/MM/yyyy")}");
+                    var warning = $"Thuốc ID {dto.MedicineId} với số lô {dto.BatchNumber} đã nhập trong ngày {dto.TransactionDate.ToString("dd/MM/yyyy")}";
+                    _logger.LogWarning(warning);
+                    result.Warnings.Add(warning);
+                    continue;
                 }
 
                 var medicineData = _medicineRepository.GetMedicine(dto.MedicineId);
-                int? shelfLife = medicineData?.ShelfLife;
+                if (medicineData == null)
+                {
+                    var warning = $"Thuốc ID {dto.MedicineId} không tồn tại.";
+                    _logger.LogWarning(warning);
+                    result.Warnings.Add(warning);
+                    continue;
+                }
 
+                if (dto.SupplierId <= 0)
+                {
+                    var warning = $"Nhà cung cấp không hợp lệ cho thuốc ID {dto.MedicineId}.";
+                    _logger.LogWarning(warning);
+                    result.Warnings.Add(warning);
+                    continue;
+                }
+
+                int? shelfLife = medicineData.ShelfLife;
                 var expiryDate = _medicineRepository.CalculateExpiryDate(dto.ManufacturingDate, shelfLife);
 
                 var medicine = new MedicineInventory
                 {
                     MedicineId = dto.MedicineId,
-                    Quantity = dto.Quantity,
-                    CertificateNumber = dto.CertificateNumber,
+                    Quantity = dto.ImportQuantity,
+                    ImportQuantity = dto.ImportQuantity,
+                    CertificateNumber = dto.CertificateNumber ?? string.Empty,
                     ManufacturingDate = dto.ManufacturingDate,
                     TransactionDate = dto.TransactionDate,
                     ExpiryDate = expiryDate,
-                    Note = dto.Note,
+                    Note = dto.Note ?? string.Empty,
                     ReceiverId = userId,
                     TransactionType = dto.TransactionType,
                     BatchNumber = dto.BatchNumber,
-                    SupplierId = dto.SupplierId,
+                    SupplierId = dto.SupplierId
                 };
 
                 inventoryList.Add(medicine);
             }
 
-            // Gọi hàm AddMedicineInventoryBatch trong repo
-            bool saved = _medicineRepository.AddMedicineInventoryList(inventoryList);
-            result.IsSuccess = saved;
-            result.AddedCount = saved ? inventoryList.Count : 0;
+            if (inventoryList.Any())
+            {
+                try
+                {
+                    bool saved = _medicineRepository.AddMedicineInventoryList(inventoryList);
+                    result.IsSuccess = saved;
+                    result.AddedCount = saved ? inventoryList.Count : 0;
+                    if (!saved)
+                    {
+                        _logger.LogError("Lỗi khi lưu danh sách thuốc vào database.");
+                        result.Warnings.Add("Lỗi khi lưu dữ liệu vào database.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Lỗi khi lưu danh sách thuốc.");
+                    result.Warnings.Add("Lỗi khi lưu dữ liệu: " + ex.Message);
+                }
+            }
+            else
+            {
+                _logger.LogWarning("Không có thuốc nào được thêm do lỗi dữ liệu.");
+                result.Warnings.Add("Không có thuốc nào được thêm do lỗi dữ liệu.");
+            }
 
             return result;
         }
+
 
         public bool UpdateMedicineInventory(MedicineInventoryUpdateDTO dto, int userId)
         {
