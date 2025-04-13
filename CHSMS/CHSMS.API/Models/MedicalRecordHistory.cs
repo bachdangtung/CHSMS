@@ -33,7 +33,6 @@ namespace CHSMS.API.Models
         public string? Icd { get; set; }
         public string? MedicalOrder { get; set; }
         public string? TreatmentBed { get; set; }
-
         public string? Note { get; set; }
 
         public virtual MedicalRecord MedicalRecord { get; set; } = null!;
