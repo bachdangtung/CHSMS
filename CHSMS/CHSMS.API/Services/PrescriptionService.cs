@@ -542,6 +542,11 @@ public class PrescriptionService
             }).ToList();
     }
 
+    public int GetTodayPrescriptionCount()
+    {
+        return _repository.CountTodayPrescriptions();
+    }
+
 }
 
 

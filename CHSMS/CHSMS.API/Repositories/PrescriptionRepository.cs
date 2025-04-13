@@ -234,7 +234,16 @@ public class PrescriptionRepository
         }
     }
 
-    
+    public int CountTodayPrescriptions()
+    {
+        var today = DateTime.Today;
+        var tomorrow = today.AddDays(1);
+
+        return _context.Prescriptions
+            .Count(m => m.IssueDate >= today && m.IssueDate < tomorrow);
+    }
+
+
 
 
 }
