@@ -137,7 +137,7 @@ namespace CHSMS.API.Services
                 ImportPrice = medicalSupply.ImportPrice,
                 SellingPrice = medicalSupply.SellingPrice,
                 BidNumber = medicalSupply.BidNumber,
-                
+
             };
         }
 
@@ -225,7 +225,7 @@ namespace CHSMS.API.Services
                 return false;
             }
             var result1 = _medicalSupplyReposotory.UpdateMedicalSupplyInventory(medicalSupplyInventory);
-            MSC.Amount=medicalSupplyConsumption.Quantity;
+            MSC.Amount = medicalSupplyConsumption.Quantity;
             var result = _medicalSupplyReposotory.UpdateMedicalSupplyConsumption(MSC);
 
             if (result1 && result)
@@ -243,6 +243,19 @@ namespace CHSMS.API.Services
         public MedicalSupplyInventory GetMedicalSupplyInventoryById(int? medicalSupplyInventoryId)
         {
             return _medicalSupplyReposotory.GetMedicalSupplyInventoryById(medicalSupplyInventoryId.Value);
+        }
+
+        public List<MedicalSupplyInventory> GetMedicalSupplyImportHistory(DateTime fromDate, DateTime toDate)
+        {
+            if (fromDate == null || toDate == null)
+            {
+                return null;
+            }
+            if (fromDate > toDate || fromDate > DateTime.Now)
+            {
+                return null;
+            }
+            return _medicalSupplyReposotory.GetMedicalSupplyImportHistory(fromDate, toDate);
         }
     }
 }

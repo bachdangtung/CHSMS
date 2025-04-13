@@ -179,5 +179,35 @@ namespace CHSMS.API.Controllers.MedicalSupply
             }
             return Ok(result);
         }
+
+        [HttpGet("GetMedicalSupplyImportHistory")]
+        public IActionResult GetMedicalSupplyImportHistory(DateTime fromDate, DateTime toDate)
+        {
+            var msi = _medicalSupplyService.GetMedicalSupplyImportHistory(fromDate, toDate);
+            if (msi == null)
+                return NotFound();
+            var result = new List<object>();
+            foreach(var item in msi)
+            {
+                var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyId.Value);
+                result.Add(new
+                {
+                    MSID = medicalSupply.MedicalSupplyId,
+                    MedicalSupplyName = medicalSupply.MedicalSupplyName,
+                    CertificateNumber = item.CertificateNumber,
+                    BatchNumber = item.BatchNumber,
+                    ImportAmount = item.ImportQuantity,
+                    TransactionDate = item.TransactionDate,
+                    ManufactureDate = item.ManufactureDate,
+                    ExpiryDate = item.ExpiryDate,
+                    Date = item.TransactionDate,
+                    Note = item.Note,
+
+                });
+            }
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
     }
 }

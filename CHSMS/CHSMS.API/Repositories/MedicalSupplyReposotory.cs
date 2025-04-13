@@ -252,5 +252,11 @@ namespace CHSMS.API.Repositories
             return sum;
         }
 
+        public List<MedicalSupplyInventory> GetMedicalSupplyImportHistory(DateTime fromDate, DateTime toDate)
+        {
+            return _context.MedicalSupplyInventories
+                .Where(x => x.TransactionDate >= fromDate && x.TransactionDate <= toDate)
+                .ToList();
+        }
     }
 }
