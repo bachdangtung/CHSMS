@@ -359,6 +359,8 @@ public class PrescriptionService
                 PatientName = p.MedicalRecordHistory?.MedicalRecord?.PatientName
             }).ToList();
     }
+
+    // Lấy đơn thuốc theo Lịch sử bệnh án
     public async Task<List<PrescriptionDTO>> GetPrescriptionsByMedicalRecordHistoryIdAsync(int medicalRecordHistoryId)
     {
         var prescriptions = await _repository.GetPrescriptionsByMedicalRecordHistoryIdAsync(medicalRecordHistoryId);
@@ -422,156 +424,12 @@ public class PrescriptionService
                 TransactionDate = pmc.MedicineConsumtion.MedicineInventory?.TransactionDate??DateTime.MinValue,
                 ExpiryDate = pmc.MedicineConsumtion.MedicineInventory?.ExpiryDate ?? DateTime.MinValue,
                 Quantity = pmc.MedicineConsumtion.MedicineInventory?.Quantity ?? 0,
+                IsBhyt = pmc.MedicineConsumtion.MedicineInventory.Medicine?.IsBhyt ?? false,
                 TotalPrice = pmc.TotalPrice.HasValue ? Convert.ToDecimal(pmc.TotalPrice.Value) : 0m
             }).ToList(),
             TotalPrice = totalPrice
         };
     }
-
-    // Tạo đơn thuốc kê ngoài(thuốc ko được bhyt chi trả)
-    public async Task<int> CreatePrescriptionNoBHYTAsync(CreatePrescriptionNoBHYTDTO dto)
-    {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-
-        try
-        {
-            // Business Rule 3: Kiểm tra IssueDate
-            if (dto.IssueDate > DateTime.Now)
-                throw new Exception("Ngày phát hành không được là ngày trong tương lai!");
-
-            // Business Rule 4: Kiểm tra số lượng tối đa thuốc
-            if (dto.MedicinesToAdd.Count > 10)
-                throw new Exception("Một đơn thuốc không được chứa quá 10 loại thuốc!");
-
-            // Kiểm tra trùng MedicineId
-            var medicineIds = dto.MedicinesToAdd.Select(mc => mc.MedicineId).ToList();
-            if (medicineIds.Distinct().Count() != medicineIds.Count)
-                throw new Exception("Có thuốc bị trùng trong đơn thuốc. Vui lòng kiểm tra lại!");
-
-            // Lấy danh sách thuốc hợp lệ (Status = true)
-            var validMedicines = await _repository.GetMedicinesForSelectionNoBHYTAsync();
-
-            // Tạo Prescription
-            var prescription = new Prescription
-            {
-                MedicalRecordHistoryId = dto.MedicalRecordHistoryId,
-                UserId = dto.UserId,
-                IssueDate = dto.IssueDate,
-                Status = false, // Mặc định là false (chưa xác nhận)
-                Note = dto.Note,
-                IsBhyt = dto.IsBhyt
-            };
-            var createdPrescription = await _repository.CreatePrescriptionNoBHYTAsync(prescription);
-
-            // Tạo MedicinePrescription
-            foreach (var medDto in dto.MedicinesToAdd)
-            {
-                // Kiểm tra xem MedicineId có trong danh sách thuốc hợp lệ không
-                var medicine = validMedicines.FirstOrDefault(m => m.MedicineId == medDto.MedicineId);
-                if (medicine == null)
-                    throw new Exception($"Không tìm thấy thuốc với ID: {medDto.MedicineId} hoặc thuốc không hoạt động!");
-
-                var medicinePrescription = new MedicinePrescription
-                {
-                    PrescriptionId = createdPrescription.PrescriptionId,
-                    MedicineId = medDto.MedicineId,
-                    Amount = medDto.Amount,
-                    Note = medDto.Note
-                };
-                await _repository.CreateMedicinePrescriptionNoBHYTAsync(medicinePrescription);
-            }
-
-            await transaction.CommitAsync();
-            return createdPrescription.PrescriptionId;
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            throw new Exception($"Lỗi khi tạo đơn thuốc: {ex.Message}");
-        }
-    }
-
-    public async Task<List<Medicine>> GetMedicinesForSelectionNoBHYTAsync()
-    {
-        return await _repository.GetMedicinesForSelectionNoBHYTAsync();
-    }
-
-    // chỉnh sửa đơn thuốc kê ngoài((thuốc ko được bhyt chi trả))
-    public async Task<int> EditPrescriptionNoBHYTAsync(int id, CreatePrescriptionNoBHYTDTO dto)
-    {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-
-        try
-        {
-            // Business Rule 3: Kiểm tra IssueDate
-            if (dto.IssueDate > DateTime.Now)
-                throw new Exception("Ngày phát hành không được là ngày trong tương lai!");
-
-            // Kiểm tra trạng thái đơn thuốc
-            var prescription = await _repository.GetPrescriptionByIdAsync(id);
-            if (prescription == null)
-                throw new Exception($"Không tìm thấy đơn thuốc với ID: {id}");
-
-            // Cập nhật thông tin đơn thuốc
-            prescription.MedicalRecordHistoryId = dto.MedicalRecordHistoryId;
-            prescription.UserId = dto.UserId;
-            prescription.IssueDate = dto.IssueDate;
-            prescription.Note = dto.Note;
-            prescription.IsBhyt = dto.IsBhyt;
-            await _repository.UpdatePrescriptionAsync(prescription);
-
-            // Xóa các MedicinePrescription được chỉ định trong MedicineIdsToRemove
-            foreach (var medicineId in dto.MedicineIdsToRemove)
-            {
-                await _repository.DeleteMedicinePrescriptionAsync(id, medicineId);
-            }
-
-            // Kiểm tra số lượng thuốc tối đa
-            var existingMedicines = await _repository.GetMedicinePrescriptionsByPrescriptionIdAsync(id);
-            if (existingMedicines.Count + dto.MedicinesToAdd.Count > 10)
-                throw new Exception("Một đơn thuốc không được chứa quá 10 loại thuốc!");
-
-            // Kiểm tra trùng MedicineId trong danh sách thêm mới
-            var medicineIds = dto.MedicinesToAdd.Select(mc => mc.MedicineId).ToList();
-            if (medicineIds.Distinct().Count() != medicineIds.Count)
-                throw new Exception("Có thuốc bị trùng trong danh sách thêm mới. Vui lòng kiểm tra lại!");
-
-            // Kiểm tra trùng với các MedicineId hiện có
-            var existingMedicineIds = existingMedicines.Select(mp => mp.MedicineId).ToList();
-            if (medicineIds.Any(id => existingMedicineIds.Contains(id)))
-                throw new Exception("Có thuốc trong danh sách thêm mới đã tồn tại trong đơn thuốc. Vui lòng kiểm tra lại!");
-
-            // Lấy danh sách thuốc hợp lệ (Status = true)
-            var validMedicines = await _repository.GetMedicinesForSelectionNoBHYTAsync();
-
-            // Thêm mới MedicinePrescription
-            foreach (var medDto in dto.MedicinesToAdd)
-            {
-                // Kiểm tra xem MedicineId có trong danh sách thuốc hợp lệ không
-                var medicine = validMedicines.FirstOrDefault(m => m.MedicineId == medDto.MedicineId);
-                if (medicine == null)
-                    throw new Exception($"Không tìm thấy thuốc với ID: {medDto.MedicineId} hoặc thuốc không hoạt động!");
-
-                var medicinePrescription = new MedicinePrescription
-                {
-                    PrescriptionId = id,
-                    MedicineId = medDto.MedicineId,
-                    Amount = medDto.Amount,
-                    Note = medDto.Note
-                };
-                await _repository.CreateMedicinePrescriptionNoBHYTAsync(medicinePrescription);
-            }
-
-            await transaction.CommitAsync();
-            return id;
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            throw new Exception($"Lỗi khi chỉnh sửa đơn thuốc: {ex.Message}");
-        }
-    }
-    
 
     public int GetTodayPrescriptionCount()
     {

@@ -187,54 +187,6 @@ public class PrescriptionRepository
         await _context.SaveChangesAsync();
     }
 
-    // Tạo đơn thuốc không có bảo hiểm y tế
-
-    public async Task<Prescription> CreatePrescriptionNoBHYTAsync(Prescription prescription)
-    {
-        _context.Prescriptions.Add(prescription);
-        await _context.SaveChangesAsync();
-        return prescription;
-    }
-
-    public async Task CreateMedicinePrescriptionNoBHYTAsync(MedicinePrescription medicinePrescription)
-    {
-        _context.MedicinePrescriptions.Add(medicinePrescription);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task<List<Medicine>> GetMedicinesForSelectionNoBHYTAsync()
-    {
-        return await _context.Medicines
-            .Where(m => m.Status == true) // Chỉ lấy các thuốc có Status = true
-            .Select(m => new Medicine
-            {
-                MedicineId = m.MedicineId,
-                MedicineName = m.MedicineName,
-                ActiveIngredient = m.ActiveIngredient,
-                Dosage = m.Dosage,
-                DosageForm = m.DosageForm,
-                IsBhyt = m.IsBhyt
-            })
-            .ToListAsync();
-    }
-    public async Task<List<MedicinePrescription>> GetMedicinePrescriptionsByPrescriptionIdAsync(int prescriptionId)
-    {
-        return await _context.MedicinePrescriptions
-            .Where(mp => mp.PrescriptionId == prescriptionId)
-            .ToListAsync();
-    }
-
-    public async Task DeleteMedicinePrescriptionAsync(int prescriptionId, int medicineId)
-    {
-        var medicinePrescription = await _context.MedicinePrescriptions
-            .FirstOrDefaultAsync(mp => mp.PrescriptionId == prescriptionId && mp.MedicineId == medicineId);
-        if (medicinePrescription != null)
-        {
-            _context.MedicinePrescriptions.Remove(medicinePrescription);
-            await _context.SaveChangesAsync();
-        }
-    }
-
     public int CountTodayPrescriptions()
     {
         var today = DateTime.Today;
@@ -242,9 +194,6 @@ public class PrescriptionRepository
 
         return _context.Prescriptions
             .Count(m => m.IssueDate >= today && m.IssueDate < tomorrow);
-    }
-
-
-
+    }    
 
 }

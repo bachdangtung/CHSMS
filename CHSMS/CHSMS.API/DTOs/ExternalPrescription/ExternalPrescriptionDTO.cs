@@ -1,8 +1,8 @@
-﻿namespace CHSMS.API.DTOs.Prescription
+﻿namespace CHSMS.API.DTOs.ExternalPrescription
 {
-    public class PrescriptionNoBhytDTO
+    public class ExternalPrescriptionDTO
     {
-        public int PrescriptionId { get; set; }
+        public int ExternalPrescriptionId { get; set; }
         public DateTime IssueDate { get; set; }
         public bool Status { get; set; }
         public string Note { get; set; }
