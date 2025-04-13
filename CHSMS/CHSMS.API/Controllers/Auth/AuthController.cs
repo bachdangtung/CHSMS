@@ -19,25 +19,6 @@ namespace CHSMS.API.Controllers.Auth
             _configuration = configuration;
         }
 
-        // Login (Returns JWT Token)
-        /*        [HttpPost("/api/Authen/Login")]
-                public async Task<IActionResult> Login([FromBody] LoginDto model)
-                {
-                    if (!ModelState.IsValid)
-                    {
-                        return BadRequest(ModelState);
-                    }
-                    var token = await _authService.AuthenticateAsync(model.UserName, model.Password);
-                    if (token == "inactive")
-                    {
-                        return Unauthorized("Tài khoản không tồn tại hoặc đã bị vô hiệu hóa.");
-                    }
-                    if (token == null)
-                        return Unauthorized("Sai tài khoản hoặc mật khẩu.");
-
-                    return Ok(new { Token = token });
-                }*/
-
         [HttpPost("/api/Authen/Login")]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {

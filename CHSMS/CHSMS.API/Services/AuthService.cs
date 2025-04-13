@@ -26,31 +26,16 @@ namespace CHSMS.API.Services
             _emailService = emailService;
             _mapper = mapper;
         }
-
-        /*        public async Task<string?> AuthenticateAsync(string userName, string password)
-                {
-                    var user = await _unitOfWork.Users.GetByUserNameAsync(userName);
-                    if (user.Status == false)
-                    {
-                        return "inactive";
-                    }
-                    if (user == null || !VerifyPassword(password, user.Password))
-                    {
-                        return null;
-                    }
-
-                    return GenerateJwtToken(user);
-                }*/
         public async Task<TokenPairDto?> AuthenticateAsync(string userName, string password)
         {
             var user = await _unitOfWork.Users.GetByUserNameAsync(userName);
-            if (user.Status == false)
-            {
-                return new TokenPairDto { AccessToken = "inactive" };
-            }
             if (user == null || !VerifyPassword(password, user.Password))
             {
                 return null;
+            }
+            if (user.Status == false)
+            {
+                return new TokenPairDto { AccessToken = "inactive" };
             }
 
             return await GenerateTokenPair(user);
@@ -61,7 +46,7 @@ namespace CHSMS.API.Services
             var accessToken = GenerateJwtToken(user);
             var refreshToken = GenerateRefreshToken();
 
-            var refreshTokenExpiryDays = _configuration.GetValue<int>("Jwt:RefreshTokenExpiryInDays");
+            var refreshTokenExpiryDays = Convert.ToInt32(_configuration["Jwt:RefreshTokenExpiryInDays"]);
             var refreshTokenExpiry = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
 
             // Store the refresh token in database
@@ -148,7 +133,7 @@ namespace CHSMS.API.Services
             return true;
         }
 
-        private string GenerateJwtToken(User user)
+        public string GenerateJwtToken(User user)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var expiryInMinutes = Convert.ToInt32(_configuration["Jwt:ExpiryInMinutes"]);
@@ -349,7 +334,7 @@ namespace CHSMS.API.Services
             return _mapper.Map<IEnumerable<UserListDto>>(userList);
         }
 
-        private string GenerateRandomPassword(int length = 12)
+        public string GenerateRandomPassword(int length = 12)
         {
             if (length < 8 || length > 32) throw new ArgumentException("Password length must be between 8 and 32.");
 
