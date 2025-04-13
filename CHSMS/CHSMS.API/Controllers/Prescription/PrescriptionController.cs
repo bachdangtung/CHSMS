@@ -1,4 +1,5 @@
 ﻿using CHSMS.API.DTOs.Prescription;
+using CHSMS.API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -37,7 +38,7 @@ public class PrescriptionController : ControllerBase
         }
     }
 
-    [HttpGet("by-medical-record/{medicalRecordHistoryId}")]
+    [HttpGet("get-prescription-by-medical-record/{medicalRecordHistoryId}")]
     public async Task<IActionResult> GetPrescriptionsByMedicalRecordHistoryId(int medicalRecordHistoryId)
     {
         try
@@ -162,47 +163,7 @@ public class PrescriptionController : ControllerBase
         }
     }
 
-    [HttpPost("create-prescription-no-bhyt")]
-    public async Task<IActionResult> CreatePrescriptionNoBHYT([FromBody] CreatePrescriptionNoBHYTDTO dto)
-    {
-        try
-        {
-            var prescriptionId = await _prescriptionService.CreatePrescriptionNoBHYTAsync(dto);
-            return Ok(new { Message = "Tạo đơn thuốc thành công!", PrescriptionId = prescriptionId });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
-    }
-    [HttpGet("medicines-for-selection-no-bhyt")]
-    public async Task<IActionResult> GetMedicinesForSelectionNoBHYT()
-    {
-        try
-        {
-            var medicines = await _prescriptionService.GetMedicinesForSelectionNoBHYTAsync();
-            return Ok(medicines);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
-    }
-
-
-    [HttpPut("no-bhyt/{id}")]
-    public async Task<IActionResult> EditPrescriptionNoBHYT(int id, [FromBody] CreatePrescriptionNoBHYTDTO dto)
-    {
-        try
-        {
-            var updatedPrescriptionId = await _prescriptionService.EditPrescriptionNoBHYTAsync(id, dto);
-            return Ok(new { Message = "Chỉnh sửa đơn thuốc thành công!", PrescriptionId = updatedPrescriptionId });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
-    }
+    
 
 
 }

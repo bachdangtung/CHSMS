@@ -7,6 +7,7 @@ namespace CHSMS.API.Models
     {
         public MedicalRecordHistory()
         {
+            ExternalPrescriptions = new HashSet<ExternalPrescription>();
             Prescriptions = new HashSet<Prescription>();
         }
 
@@ -36,6 +37,7 @@ namespace CHSMS.API.Models
 
         public virtual MedicalRecord MedicalRecord { get; set; } = null!;
         public virtual User? User { get; set; }
+        public virtual ICollection<ExternalPrescription> ExternalPrescriptions { get; set; }
         public virtual ICollection<Prescription> Prescriptions { get; set; }
     }
 }

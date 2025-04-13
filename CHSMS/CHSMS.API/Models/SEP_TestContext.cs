@@ -16,6 +16,7 @@ namespace CHSMS.API.Models
         {
         }
 
+        public virtual DbSet<ExternalPrescription> ExternalPrescriptions { get; set; } = null!;
         public virtual DbSet<MedicalRecord> MedicalRecords { get; set; } = null!;
         public virtual DbSet<MedicalRecordHistory> MedicalRecordHistories { get; set; } = null!;
         public virtual DbSet<MedicalSupply> MedicalSupplies { get; set; } = null!;
@@ -36,12 +37,39 @@ namespace CHSMS.API.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("server=.;database=SEP_Test11;uid=sa;pwd=sa;TrustServerCertificate=True;");
+                optionsBuilder.UseSqlServer("server=localhost; database=SEP_Test7;user=sa;password=123;Integrated Security=true;TrustServerCertificate=Yes");
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ExternalPrescription>(entity =>
+            {
+                entity.ToTable("ExternalPrescription");
+
+                entity.Property(e => e.ExternalPrescriptionId).HasColumnName("ExternalPrescriptionID");
+
+                entity.Property(e => e.IsBhyt).HasColumnName("IsBHYT");
+
+                entity.Property(e => e.IssueDate).HasColumnType("date");
+
+                entity.Property(e => e.MedicalRecordHistoryId).HasColumnName("MedicalRecordHistoryID");
+
+                entity.Property(e => e.Note).HasMaxLength(255);
+
+                entity.Property(e => e.UserId).HasColumnName("UserID");
+
+                entity.HasOne(d => d.MedicalRecordHistory)
+                    .WithMany(p => p.ExternalPrescriptions)
+                    .HasForeignKey(d => d.MedicalRecordHistoryId)
+                    .HasConstraintName("FK_ExternalPrescription_MedicalRecordHistory");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.ExternalPrescriptions)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("FK_ExternalPrescription_Users");
+            });
+
             modelBuilder.Entity<MedicalRecord>(entity =>
             {
                 entity.ToTable("MedicalRecord");
@@ -77,9 +105,7 @@ namespace CHSMS.API.Models
             {
                 entity.ToTable("MedicalRecordHistory");
 
-                entity.Property(e => e.MedicalRecordHistoryId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("MedicalRecordHistoryID");
+                entity.Property(e => e.MedicalRecordHistoryId).HasColumnName("MedicalRecordHistoryID");
 
                 entity.Property(e => e.Address).HasMaxLength(100);
 
@@ -276,23 +302,26 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<MedicinePrescription>(entity =>
             {
-                entity.HasKey(e => new { e.PrescriptionId, e.MedicineId });
+                entity.HasKey(e => new { e.ExternalPrescriptionId, e.MedicineId });
+
 
                 entity.ToTable("Medicine_Prescription");
 
+                entity.Property(e => e.ExternalPrescriptionId).HasColumnName("ExternalPrescriptionID");
+
                 entity.Property(e => e.MedicineId).HasColumnName("MedicineID");
 
-                entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
+                entity.HasOne(d => d.ExternalPrescription)
+                    .WithMany()
+                    .HasForeignKey(d => d.ExternalPrescriptionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Medicine_Prescription_ExternalPrescription");
 
                 entity.HasOne(d => d.Medicine)
                     .WithMany()
                     .HasForeignKey(d => d.MedicineId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Medicine_Prescription_Medicine");
-
-                entity.HasOne(d => d.Prescription)
-                    .WithMany()
-                    .HasForeignKey(d => d.PrescriptionId)
-                    .HasConstraintName("FK_Medicine_Prescription_Prescriptions");
             });
 
             modelBuilder.Entity<Prescription>(entity =>
@@ -323,6 +352,7 @@ namespace CHSMS.API.Models
             modelBuilder.Entity<PrescriptionMedicineConsumption>(entity =>
             {
                 entity.HasKey(e => new { e.PrescriptionId, e.MedicineConsumtionId });
+
 
                 entity.ToTable("Prescription_MedicineConsumption");
 

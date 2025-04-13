@@ -1,6 +1,6 @@
-﻿namespace CHSMS.API.DTOs.Prescription
+﻿namespace CHSMS.API.DTOs.ExternalPrescription
 {
-    public class MedicinePrescriptionNoBHYTDTO
+    public class MedicinePrescriptionDTO
     {
         public int MedicineId { get; set; }
         public int Amount { get; set; }
