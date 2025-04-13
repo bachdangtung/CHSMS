@@ -1,11 +1,8 @@
-﻿using CHSMS.API.DTOs;
-using CHSMS.API.DTOs.MedicineConsumption;
-using CHSMS.API.DTOs.Prescription;
-using CHSMS.API.Services;
+﻿using CHSMS.API.DTOs.Prescription;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
+
 
 [Route("api/[controller]")]
 [ApiController]
@@ -32,6 +29,24 @@ public class PrescriptionController : ControllerBase
         try
         {
             var prescriptions = await _prescriptionService.GetPrescriptionsByUserIdListAsync(userId);
+            return Ok(prescriptions);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    [HttpGet("by-medical-record/{medicalRecordHistoryId}")]
+    public async Task<IActionResult> GetPrescriptionsByMedicalRecordHistoryId(int medicalRecordHistoryId)
+    {
+        try
+        {
+            var prescriptions = await _prescriptionService.GetPrescriptionsByMedicalRecordHistoryIdAsync(medicalRecordHistoryId);
+            if (prescriptions == null || !prescriptions.Any())
+            {
+                return NotFound(new { Message = "Không tìm thấy đơn thuốc nào" });
+            }
             return Ok(prescriptions);
         }
         catch (Exception ex)
@@ -67,19 +82,7 @@ public class PrescriptionController : ControllerBase
         }
     }
 
-    [HttpGet("by-medical-record/{medicalRecordHistoryId}")]
-    public async Task<IActionResult> GetPrescriptionByMedicalRecordHistoryId(int medicalRecordHistoryId)
-    {
-        try
-        {
-            var prescription = await _prescriptionService.GetPrescriptionByMedicalRecordHistoryIdAsync(medicalRecordHistoryId);
-            return Ok(prescription);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
-    }
+    
 
     [HttpGet("detail/{prescriptionId}")]
     public async Task<IActionResult> GetPrescriptionDetail(int prescriptionId)
@@ -94,14 +97,16 @@ public class PrescriptionController : ControllerBase
             return BadRequest(new { Message = ex.Message });
         }
     }
-
+    
     // tạo đơn thuốc có bhyt
-    [HttpPost("create")]
-    public async Task<IActionResult> CreatePrescription([FromBody] CreatePrescriptionDTO dto)
+    [HttpPost("create/{medicalRecordHistoryId}")]
+    public async Task<IActionResult> CreatePrescription(int medicalRecordHistoryId, [FromBody] CreatePrescriptionDTO dto)
     {
+
         try
         {
-            var prescriptionId = await _prescriptionService.CreatePrescriptionAsync(dto);
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
+            var prescriptionId = await _prescriptionService.CreatePrescriptionAsync(userId, medicalRecordHistoryId, dto);
             return Ok(new { PrescriptionId = prescriptionId });
         }
         catch (Exception ex)
@@ -111,14 +116,22 @@ public class PrescriptionController : ControllerBase
     }
 
     // edit prescription có trong inventory
-    
-    [HttpPut("doctor")]
-    public async Task<IActionResult> EditPrescriptionForDoctor([FromBody] EditPrescriptionForDoctorDTO dto)
+
+    [HttpPut("edit-for-doctor/{prescriptionId}/{medicalRecordHistoryId}")]
+    public async Task<IActionResult> EditPrescriptionForDoctor(int prescriptionId, int medicalRecordHistoryId, [FromBody] EditPrescriptionForDoctorDTO dto)
     {
         try
         {
+            // Lấy UserId từ token
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
+
+            // Gán các giá trị vào DTO
+            dto.PrescriptionId = prescriptionId;
+            dto.MedicalRecordHistoryId = medicalRecordHistoryId;
+            dto.UserId = userId;
+
             await _prescriptionService.EditPrescriptionForDoctorAsync(dto);
-            return Ok(new { Message = "Chỉnh sửa đơn thuốc thành công." });
+            return Ok(new { Message = "Chỉnh sửa đơn thuốc thành công!" });
         }
         catch (Exception ex)
         {
@@ -126,19 +139,20 @@ public class PrescriptionController : ControllerBase
         }
     }
 
-    [HttpPut("pharmacist")]
-    public async Task<IActionResult> EditPrescriptionForPharmacist([FromBody] EditPrescriptionForPharmacistDTO dto)
+    [HttpPut("edit-for-pharmacist/{prescriptionId}")]
+    public async Task<IActionResult> EditPrescriptionForPharmacist(int prescriptionId, [FromBody] EditPrescriptionForPharmacistDTO dto)
     {
         try
         {
-           
-            if (dto.PrescriptionId <= 0)
+            if (prescriptionId <= 0)
                 return BadRequest(new { Message = "PrescriptionId không hợp lệ" });
+
+            if (dto.PrescriptionId != prescriptionId)
+                return BadRequest(new { Message = "PrescriptionId trong DTO không khớp với prescriptionId trong URL" });
 
             if (dto.MedicineConsumptionStatuses == null || !dto.MedicineConsumptionStatuses.Any())
                 return BadRequest(new { Message = "Danh sách MedicineConsumptionStatuses không được rỗng" });
 
-            
             await _prescriptionService.EditPrescriptionForPharmacistAsync(dto);
             return Ok(new { Message = "Chỉnh sửa trạng thái đơn thuốc thành công!" });
         }
@@ -162,18 +176,18 @@ public class PrescriptionController : ControllerBase
         }
     }
     [HttpGet("medicines-for-selection-no-bhyt")]
-        public async Task<IActionResult> GetMedicinesForSelectionNoBHYT()
+    public async Task<IActionResult> GetMedicinesForSelectionNoBHYT()
+    {
+        try
         {
-            try
-            {
-                var medicines = await _prescriptionService.GetMedicinesForSelectionNoBHYTAsync();
-                return Ok(medicines);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
+            var medicines = await _prescriptionService.GetMedicinesForSelectionNoBHYTAsync();
+            return Ok(medicines);
         }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
 
 
     [HttpPut("no-bhyt/{id}")]

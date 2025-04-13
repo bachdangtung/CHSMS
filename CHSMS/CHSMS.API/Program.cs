@@ -1,4 +1,4 @@
-using CHSMS.API.Configuration;
+﻿using CHSMS.API.Configuration;
 using CHSMS.API.Middleware;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories;
@@ -48,10 +48,11 @@ builder.Services.AddScoped<MedicalRecordRepository>();
 builder.Services.AddScoped<MedicalRecordHistoryService>();
 builder.Services.AddScoped<MedicalRecordService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
-builder.Services.AddScoped<IMedicineService, MedicineService>();
 builder.Services.AddScoped<MedicineRepository>();
 builder.Services.AddScoped<MedicineService>();
+builder.Services.AddScoped<MedicineRepository>();
+builder.Services.AddScoped<MedicineService>();
+builder.Services.AddScoped<MedicineRepository>();
 builder.Services.AddScoped<PrescriptionRepository>();
 builder.Services.AddScoped<PrescriptionService>();
 
