@@ -10,6 +10,5 @@ namespace CHSMS.API.Services.Interfaces
         List<MedicineInventoryDTO> MedicineDetail(int medicineId);
         bool AddMedicineInventory(MedicineInventoryAddDTO medicineInventory);
         bool UpdateMedicineInventory(MedicineInventoryDTO medicineInventory);
-        Task<List<MedicineSuggestionDTO>> GetMedicineSuggestions(string query);
     }
 }

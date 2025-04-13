@@ -4,6 +4,7 @@
     {
         public int MedicineId { get; set; }
         public string? MedicineName { get; set; }
+        public string? MedicineCode { get; set; }
         public string? ActiveIngredient { get; set; }
         public string? Dosage { get; set; }
         public string? DosageForm { get; set; }
