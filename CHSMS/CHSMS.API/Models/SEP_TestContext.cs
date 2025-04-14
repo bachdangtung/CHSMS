@@ -30,6 +30,8 @@ namespace CHSMS.API.Models
         public virtual DbSet<PrescriptionMedicineConsumption> PrescriptionMedicineConsumptions { get; set; } = null!;
         public virtual DbSet<Role> Roles { get; set; } = null!;
         public virtual DbSet<Supplier> Suppliers { get; set; } = null!;
+        public virtual DbSet<UseMedicalSuppliesMedicalSupplyConsumption> UseMedicalSuppliesMedicalSupplyConsumptions { get; set; } = null!;
+        public virtual DbSet<UseMedicalSupply> UseMedicalSupplies { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -302,7 +304,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<MedicinePrescription>(entity =>
             {
-                entity.HasKey(e => new { e.ExternalPrescriptionId, e.MedicineId });
+                entity.HasKey(e => new { e.MedicineId, e.ExternalPrescriptionId });
 
 
                 entity.ToTable("Medicine_Prescription");
@@ -353,7 +355,6 @@ namespace CHSMS.API.Models
             {
                 entity.HasKey(e => new { e.PrescriptionId, e.MedicineConsumtionId });
 
-
                 entity.ToTable("Prescription_MedicineConsumption");
 
                 entity.HasIndex(e => e.MedicineConsumtionId, "IX_Prescription_MedicineConsumption")
@@ -398,6 +399,55 @@ namespace CHSMS.API.Models
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
             });
 
+            modelBuilder.Entity<UseMedicalSuppliesMedicalSupplyConsumption>(entity =>
+            {
+                entity.HasKey(e => new { e.MsconsumptionId, e.UseMedicalSupplieId });
+
+
+                entity.ToTable("UseMedicalSupplies_MedicalSupplyConsumption");
+
+                entity.Property(e => e.MsconsumptionId).HasColumnName("MSConsumptionId");
+
+                entity.Property(e => e.UseMedicalSupplieId).HasColumnName("UseMedicalSupplieID");
+
+                entity.HasOne(d => d.Msconsumption)
+                    .WithMany()
+                    .HasForeignKey(d => d.MsconsumptionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UseMedicalSupplies_MedicalSupplyConsumption_MedicalSupplyConsumption");
+
+                entity.HasOne(d => d.UseMedicalSupplie)
+                    .WithMany()
+                    .HasForeignKey(d => d.UseMedicalSupplieId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UseMedicalSupplies_MedicalSupplyConsumption_UseMedicalSupplies");
+            });
+
+            modelBuilder.Entity<UseMedicalSupply>(entity =>
+            {
+                entity.HasKey(e => e.UseMedicalSupplieId);
+
+                entity.Property(e => e.UseMedicalSupplieId).HasColumnName("UseMedicalSupplieID");
+
+                entity.Property(e => e.IssueDate).HasColumnType("date");
+
+                entity.Property(e => e.MedicalRecordHistoryId).HasColumnName("MedicalRecordHistoryID");
+
+                entity.Property(e => e.Note).HasMaxLength(255);
+
+                entity.Property(e => e.UserId).HasColumnName("UserID");
+
+                entity.HasOne(d => d.MedicalRecordHistory)
+                    .WithMany(p => p.UseMedicalSupplies)
+                    .HasForeignKey(d => d.MedicalRecordHistoryId)
+                    .HasConstraintName("FK_UseMedicalSupplies_MedicalRecordHistory");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.UseMedicalSupplies)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("FK_UseMedicalSupplies_Users");
+            });
+
             modelBuilder.Entity<User>(entity =>
             {
                 entity.Property(e => e.UserId).HasColumnName("UserID");
@@ -417,6 +467,10 @@ namespace CHSMS.API.Models
                 entity.Property(e => e.Password).HasMaxLength(255);
 
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+
+                entity.Property(e => e.RefreshToken).HasMaxLength(255);
+
+                entity.Property(e => e.RefreshTokenExpiry).HasColumnType("datetime");
 
                 entity.Property(e => e.ResetToken).HasMaxLength(255);
 

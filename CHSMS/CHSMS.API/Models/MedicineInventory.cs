@@ -22,6 +22,7 @@ namespace CHSMS.API.Models
         public string? Note { get; set; }
         public string? BatchNumber { get; set; }
         public int? SupplierId { get; set; }
+        public double? ImportQuantity { get; set; }
 
         public virtual Medicine Medicine { get; set; } = null!;
         public virtual User? Receiver { get; set; }

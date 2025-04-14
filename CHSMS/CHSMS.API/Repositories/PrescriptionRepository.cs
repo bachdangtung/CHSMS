@@ -186,7 +186,4 @@ public class PrescriptionRepository
         _context.PrescriptionMedicineConsumptions.Update(pmc);
         await _context.SaveChangesAsync();
     }
-
-    
-
 }
