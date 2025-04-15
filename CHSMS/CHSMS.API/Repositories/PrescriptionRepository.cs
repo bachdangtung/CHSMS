@@ -186,4 +186,14 @@ public class PrescriptionRepository
         _context.PrescriptionMedicineConsumptions.Update(pmc);
         await _context.SaveChangesAsync();
     }
+
+    public int CountTodayPrescriptions()
+    {
+        var today = DateTime.Today;
+        var tomorrow = today.AddDays(1);
+
+        return _context.Prescriptions
+            .Count(m => m.IssueDate >= today && m.IssueDate < tomorrow);
+    }    
+
 }

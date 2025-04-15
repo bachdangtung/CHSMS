@@ -1,5 +1,7 @@
 ﻿using CHSMS.API.DTOs.MedicalRecord;
+using CHSMS.API.DTOs.User;
 using CHSMS.API.Services;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,6 +22,7 @@ namespace CHSMS.API.Controllers.MedicalRecord
         [HttpGet("GetAll")]
         public IActionResult GetAllMedicalRecordHiatories()
         {
+            var userId = User.FindFirst("id")?.Value;
             var records = _medicalRecordHistoryService.GetAllMedicalRecordHistories();
             return Ok(records);
         }
@@ -53,14 +56,17 @@ namespace CHSMS.API.Controllers.MedicalRecord
         [HttpPost("Add")]
         public IActionResult AddMedicalRecordHistory([FromBody] MedicalRecordHistoryDTO medicalRecordDTO)
         {
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
             Console.WriteLine("Received Medical Record DTO:");
             Console.WriteLine($"PatientId: {medicalRecordDTO.PatientId}");
-            Console.WriteLine($"UserId: {medicalRecordDTO.UserId}");
+            Console.WriteLine($"UserId: {userId}");
             Console.WriteLine($"DiagnoseConclusion: {medicalRecordDTO.DiagnoseConclusion}");
 
             try
             {
-                var result = _medicalRecordHistoryService.AddMedicalRecordHistory(medicalRecordDTO);
+
+                //var result = await _authService.EditUserProfileAsync(userId, editUserProfileDto);
+                var result = _medicalRecordHistoryService.AddMedicalRecordHistory(userId, medicalRecordDTO);
 
                 return Ok(new { message = "Thêm bệnh án thành công!" });
             }
@@ -91,6 +97,13 @@ namespace CHSMS.API.Controllers.MedicalRecord
             if (!result)
                 return NotFound();
             return Ok();
+        }
+
+        [HttpGet("TodayCount")]
+        public IActionResult GetTodayMedicalRecordHistoryCount()
+        {
+            var count = _medicalRecordHistoryService.GetTodayMedicalRecordHistoryCount();
+            return Ok(count);
         }
 
         [HttpGet("GetAllUser")]

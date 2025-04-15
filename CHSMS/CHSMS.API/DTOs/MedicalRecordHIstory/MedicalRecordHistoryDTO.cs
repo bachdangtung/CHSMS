@@ -13,6 +13,7 @@ namespace CHSMS.API.DTOs.MedicalRecord
         //[Required(ErrorMessage = "Bác sĩ phụ trách không được để trống.")]
         public int? UserId { get; set; }
         public string? DoctorName { get; set; }
+        public string? Fullname { get; set; }
         public string? PatientName { get; set; }
         public string? Gender { get; set; }
         public DateTime? Dob { get; set; }

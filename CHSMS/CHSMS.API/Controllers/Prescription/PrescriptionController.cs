@@ -153,6 +153,13 @@ public class PrescriptionController : ControllerBase
 
     
 
+    [HttpGet("TodayCount")]
+    public IActionResult GetTodayPrescriptionCount()
+    {
+        var count = _prescriptionService.GetTodayPrescriptionCount();
+        return Ok(count);
+    }
+
 
 }
 

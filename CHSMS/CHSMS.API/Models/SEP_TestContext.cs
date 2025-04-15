@@ -39,7 +39,7 @@ namespace CHSMS.API.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("server=localhost; database=SEP_Test7;user=sa;password=123;Integrated Security=true;TrustServerCertificate=Yes");
+                optionsBuilder.UseSqlServer("Server=.;Database=SEP_Test;TrustServerCertificate=True;Integrated Security=true;");
             }
         }
 
@@ -301,8 +301,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<MedicinePrescription>(entity =>
             {
-                entity.HasKey(e => new { e.ExternalPrescriptionId, e.MedicineId });
-
+                entity.HasNoKey();
 
                 entity.ToTable("Medicine_Prescription");
 
@@ -350,21 +349,17 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<PrescriptionMedicineConsumption>(entity =>
             {
-                entity.HasKey(e => new { e.PrescriptionId, e.MedicineConsumtionId });
-
+                entity.HasNoKey();
 
                 entity.ToTable("Prescription_MedicineConsumption");
-
-                entity.HasIndex(e => e.MedicineConsumtionId, "IX_Prescription_MedicineConsumption")
-                    .IsUnique();
 
                 entity.Property(e => e.MedicineConsumtionId).HasColumnName("MedicineConsumtionID");
 
                 entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
 
                 entity.HasOne(d => d.MedicineConsumtion)
-                    .WithOne()
-                    .HasForeignKey<PrescriptionMedicineConsumption>(d => d.MedicineConsumtionId)
+                    .WithMany()
+                    .HasForeignKey(d => d.MedicineConsumtionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Prescription_MedicineConsumption_MedicineConsumption");
 

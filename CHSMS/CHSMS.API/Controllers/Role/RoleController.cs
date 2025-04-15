@@ -13,7 +13,7 @@ namespace CHSMS.API.Controllers.Role
             _roleService = roleService;
         }
 
-        [Authorize(Roles = "Trưởng trạm")]
+        //[Authorize(Roles = "Trưởng trạm")]
         [HttpGet("/api/Role/GetAll")]
         public async Task<IActionResult> GetAll()
         {

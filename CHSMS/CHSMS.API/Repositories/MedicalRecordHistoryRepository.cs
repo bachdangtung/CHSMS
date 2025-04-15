@@ -18,15 +18,35 @@ namespace CHSMS.API.Repositories
             return _context.MedicalRecordHistories
                 .Include(m => m.MedicalRecord)
                 .Include(m => m.User)
+                .OrderByDescending(m => m.Date)
                 .ToList();
         }
 
+        public List<MedicalRecordHistory> GetAllTodayMedicalRecordHistories()
+        {
+            return _context.MedicalRecordHistories
+                .Include(m => m.MedicalRecord)
+                .Include(m => m.User)
+                .Where(m => m.Date == DateTime.Today)
+                .OrderByDescending(m => m.Date)
+                .ToList();
+        }
+
+        public int CountTodayMedicalRecordHistories()
+        {
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+
+            return _context.MedicalRecordHistories
+                .Count(m => m.Date >= today && m.Date < tomorrow);
+        }
 
         public MedicalRecordHistory? GetMedicalRecordHistory(int medicalRecordHistoryId)
         {
             return _context.MedicalRecordHistories
             .Include(m => m.MedicalRecord)
             .Include(m => m.User)
+            .OrderByDescending(m => m.Date)
             .FirstOrDefault(m => m.MedicalRecordHistoryId == medicalRecordHistoryId);
 
         }
@@ -36,7 +56,8 @@ namespace CHSMS.API.Repositories
             var query = _context.MedicalRecordHistories
        .Include(m => m.MedicalRecord)
        .Include(m => m.User)
-       .Where(x => x.MedicalRecordId == medicalRecordId) 
+       .Where(x => x.MedicalRecordId == medicalRecordId)
+       .OrderByDescending(m => m.Date)
        .AsQueryable();
 
             if (startDate.HasValue)
@@ -64,6 +85,7 @@ namespace CHSMS.API.Repositories
             var query = _context.MedicalRecordHistories
                 .Include(m => m.MedicalRecord)
                 .Include(m => m.User)
+                .OrderByDescending(m => m.Date)
                 .AsQueryable();
 
             if (startDate.HasValue && endDate.HasValue)

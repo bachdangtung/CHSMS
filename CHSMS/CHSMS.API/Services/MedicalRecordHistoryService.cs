@@ -29,6 +29,7 @@ namespace CHSMS.API.Services
                     UserId = record.UserId,
                     DoctorName = record.User?.UserName,
                     PatientName = record.MedicalRecord?.PatientName,
+                    Fullname = record.User?.Fullname,
                     Gender = record.MedicalRecord?.Gender,
                     Dob = record.MedicalRecord?.Dob,
                     HealthInsurance = record.MedicalRecord?.HealthInsurance,
@@ -73,6 +74,7 @@ namespace CHSMS.API.Services
                 MedicalRecordHistoryId = record.MedicalRecordHistoryId,
                 PatientId = record.MedicalRecordId,
                 UserId = record.UserId,
+                Fullname = record.User?.Fullname,
                 DoctorName = record.User?.UserName,
                 PatientName = record.MedicalRecord?.PatientName,
                 Gender = record.MedicalRecord?.Gender,
@@ -114,6 +116,7 @@ namespace CHSMS.API.Services
                     MedicalRecordHistoryId = record.MedicalRecordHistoryId,
                     PatientId = record.MedicalRecordId,
                     UserId = record.UserId,
+                    Fullname = record.User?.Fullname,
                     DoctorName = record.User?.UserName,
                     PatientName = record.MedicalRecord?.PatientName,
                     Gender = record.MedicalRecord?.Gender,
@@ -159,6 +162,7 @@ namespace CHSMS.API.Services
                     MedicalRecordHistoryId = record.MedicalRecordHistoryId,
                     PatientId = record.MedicalRecordId,
                     UserId = record.UserId,
+                    Fullname = record.User?.Fullname,
                     DoctorName = record.User?.UserName,
                     PatientName = record.MedicalRecord?.PatientName,
                     Dob = record.MedicalRecord?.Dob,
@@ -193,13 +197,13 @@ namespace CHSMS.API.Services
         }
 
 
-        public bool AddMedicalRecordHistory(MedicalRecordHistoryDTO medicalRecordDTO)
+        public bool AddMedicalRecordHistory(int userId, MedicalRecordHistoryDTO medicalRecordDTO)
         {
             var record = new MedicalRecordHistory
             {
                 MedicalRecordHistoryId = 0,
                 MedicalRecordId = medicalRecordDTO.PatientId,
-                UserId = medicalRecordDTO.UserId,
+                UserId = userId,
                 Address = medicalRecordDTO.Address,
                 DiagnoseConclusion = medicalRecordDTO.DiagnoseConclusion,
                 TreatmentMethod = medicalRecordDTO.TreatmentMethod,
@@ -261,6 +265,11 @@ namespace CHSMS.API.Services
         public bool DeleteMedicalRecordHistory(int medicalRecordId)
         {
             return _medicalRecordHistoryRepository.DeleteMedicalRecordHistory(medicalRecordId);
+        }
+
+        public int GetTodayMedicalRecordHistoryCount()
+        {
+            return _medicalRecordHistoryRepository.CountTodayMedicalRecordHistories();
         }
 
         public List<UserDTO> GetAllUsers()

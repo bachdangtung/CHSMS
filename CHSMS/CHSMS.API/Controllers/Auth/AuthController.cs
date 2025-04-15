@@ -19,7 +19,6 @@ namespace CHSMS.API.Controllers.Auth
             _configuration = configuration;
         }
 
-        // Login (Returns JWT Token)
         [HttpPost("/api/Authen/Login")]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
@@ -27,16 +26,29 @@ namespace CHSMS.API.Controllers.Auth
             {
                 return BadRequest(ModelState);
             }
-            var token = await _authService.AuthenticateAsync(model.UserName, model.Password);
-            if (token == "inactive")
+            var tokenPair = await _authService.AuthenticateAsync(model.UserName, model.Password);
+            if (tokenPair?.AccessToken == "inactive")
             {
                 return Unauthorized("Tài khoản không tồn tại hoặc đã bị vô hiệu hóa.");
             }
-            if (token == null)
+            if (tokenPair == null)
                 return Unauthorized("Sai tài khoản hoặc mật khẩu.");
 
-            return Ok(new { Token = token });
+            return Ok(tokenPair);
         }
+
+        [HttpPost("/api/Authen/RefreshToken")]
+        public async Task<IActionResult> RefreshToken([FromBody] TokenRequestDto request)
+        {
+            var tokenPair = await _authService.RefreshTokenAsync(request.AccessToken, request.RefreshToken);
+            if (tokenPair == null)
+            {
+                return BadRequest("Invalid token or refresh token");
+            }
+
+            return Ok(tokenPair);
+        }
+
 
         [Authorize]
         [HttpPost("/api/Authen/ChangePassword")]
@@ -85,7 +97,7 @@ namespace CHSMS.API.Controllers.Auth
         }
 
         //Add user
-        [Authorize(Roles = "Trưởng trạm")]
+        //[Authorize(Roles = "Trưởng trạm")]
         [HttpPost("/api/User/AddUser")]
         public async Task<IActionResult> AddUser([FromBody] CreateUserDto createUserDto)
         {
@@ -105,7 +117,7 @@ namespace CHSMS.API.Controllers.Auth
         }
 
         //Deactive user
-        [Authorize(Roles = "Trưởng trạm")]
+        //[Authorize(Roles = "Trưởng trạm")]
         [HttpPost("/api/User/ChangeStatus/{id}")]
         public async Task<IActionResult> ChangeStatus(int id)
         {
@@ -124,7 +136,7 @@ namespace CHSMS.API.Controllers.Auth
             }
         }
 
-        [Authorize(Roles = "Trưởng trạm")]
+        //[Authorize(Roles = "Trưởng trạm")]
         [HttpGet("/api/User/List")]
         public async Task<IActionResult> GetUserList()
         {
@@ -139,7 +151,7 @@ namespace CHSMS.API.Controllers.Auth
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("/api/User/Profile")]
         public async Task<ActionResult<UserListDto>> UserProfile()
         {
@@ -155,7 +167,7 @@ namespace CHSMS.API.Controllers.Auth
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPut("/api/User/EditProfile")]
         public async Task<IActionResult> EditUserProfile([FromBody] EditUserProfileDto editUserProfileDto)
         {
@@ -173,28 +185,56 @@ namespace CHSMS.API.Controllers.Auth
             return Ok("Hồ sơ đã được cập nhật thành công.");
         }
 
+        /*        [Authorize]
+                [HttpPost("/api/Authen/Logout")]
+                public async Task<IActionResult> Logout()
+                {
+                    var userId = User.FindFirst("Id")?.Value;
+                    var jti = User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+
+                    if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(jti))
+                    {
+                        return BadRequest("Invalid token claims.");
+                    }
+
+                    // Read expiry time from appsettings.json (200 minutes)
+                    var expiryInMinutes = Convert.ToInt32(_configuration["Jwt:ExpiryInMinutes"]);
+
+                    var cacheKey = $"blacklist:{jti}";
+                    var options = new DistributedCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(expiryInMinutes)
+                    };
+
+                    await _cache.SetStringAsync(cacheKey, userId, options);
+
+                    return Ok("Logged out successfully.");
+                }*/
+
         [Authorize]
         [HttpPost("/api/Authen/Logout")]
         public async Task<IActionResult> Logout()
         {
-            var userId = User.FindFirst("Id")?.Value;
+            var userId = int.Parse(User.FindFirst("Id")?.Value);
             var jti = User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
 
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(jti))
+            if (string.IsNullOrEmpty(userId.ToString()) || string.IsNullOrEmpty(jti))
             {
                 return BadRequest("Invalid token claims.");
             }
 
-            // Read expiry time from appsettings.json (200 minutes)
-            var expiryInMinutes = Convert.ToInt32(_configuration["Jwt:ExpiryInMinutes"]);
+            // Revoke refresh token
+            await _authService.RevokeRefreshToken(userId);
 
+            // Blacklist current token
+            var expiryInMinutes = Convert.ToInt32(_configuration["Jwt:ExpiryInMinutes"]);
             var cacheKey = $"blacklist:{jti}";
             var options = new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(expiryInMinutes)
             };
 
-            await _cache.SetStringAsync(cacheKey, userId, options);
+            await _cache.SetStringAsync(cacheKey, userId.ToString(), options);
 
             return Ok("Logged out successfully.");
         }
@@ -211,7 +251,7 @@ namespace CHSMS.API.Controllers.Auth
             return Ok("Token is blacklisted.");
         }
 
-        [Authorize(Roles = "Trưởng trạm")]
+        //[Authorize(Roles = "Trưởng trạm")]
         [HttpGet("/api/User/GetAll")]
         public async Task<IActionResult> GetUserList(
             [FromQuery] string? search,
