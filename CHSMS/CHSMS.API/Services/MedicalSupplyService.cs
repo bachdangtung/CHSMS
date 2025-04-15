@@ -6,8 +6,8 @@ namespace CHSMS.API.Services
 {
     public class MedicalSupplyService
     {
-        private readonly MedicalSupplyReposotory _medicalSupplyReposotory;
-        public MedicalSupplyService(MedicalSupplyReposotory medicalSupplyReposotory)
+        private readonly MedicalSupplyRepository _medicalSupplyReposotory;
+        public MedicalSupplyService(MedicalSupplyRepository medicalSupplyReposotory)
         {
             _medicalSupplyReposotory = medicalSupplyReposotory;
         }

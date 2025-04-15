@@ -54,6 +54,8 @@ builder.Services.AddScoped<MedicalRecordService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<MedicineRepository>();
 builder.Services.AddScoped<MedicineService>();
+builder.Services.AddScoped<MedicalSupplyRepository>();
+builder.Services.AddScoped<MedicalSupplyService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
