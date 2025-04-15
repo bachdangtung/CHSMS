@@ -1,6 +1,7 @@
 ﻿using CHSMS.API.DTOs.Medicine;
 using CHSMS.API.Models;
 using CHSMS.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 
@@ -203,6 +204,7 @@ namespace CHSMS.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("GetRecentInventoryHistory")]
         public IActionResult GetRecentInventoryHistory()
         {
