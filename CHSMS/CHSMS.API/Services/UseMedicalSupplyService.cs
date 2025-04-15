@@ -1,5 +1,6 @@
 ﻿using CHSMS.API.DTOs;
 using CHSMS.API.DTOs.MedicalSupply;
+using CHSMS.API.DTOs.MedicalSupplyConsumption;
 using CHSMS.API.DTOs.UseMedicalSupply;
 using CHSMS.API.Models;
 using Microsoft.EntityFrameworkCore;
@@ -83,6 +84,7 @@ public class UseMedicalSupplyService
                     Amount = msDto.Amount,
                     ConsumptionDate = msDto.ConsumptionDate,
                     Note = msDto.Note,
+                    Status = false // Mặc định là false
                 };
                 var createdConsumption = await _repository.CreateMedicalSupplyConsumptionAsync(consumption);
 
@@ -177,6 +179,7 @@ public class UseMedicalSupplyService
                     Amount = msDto.Amount,
                     ConsumptionDate = msDto.ConsumptionDate,
                     Note = msDto.Note,
+                    Status = false // Mặc định là false
                 };
                 var createdConsumption = await _repository.CreateMedicalSupplyConsumptionAsync(consumption);
 
@@ -253,7 +256,7 @@ public class UseMedicalSupplyService
 
                     // Tính TotalPrice
                     var umsmsc = await _repository.GetUseMedicalSuppliesMedicalSupplyConsumptionByConsumptionIdAsync(consumption.MsconsumptionId);
-                    umsmsc.TotalPrice = (consumption.Amount ?? 0) * (inventory.MedicalSupply.SellingPrice ?? 0);
+                    umsmsc.TotalPrice = (consumption.Amount ?? 0) * (inventory.MedicalSupply?.SellingPrice ?? 0);
                     await _repository.UpdateUseMedicalSuppliesMedicalSupplyConsumptionAsync(umsmsc);
                 }
                 else // Rollback (Status = false)
@@ -285,16 +288,16 @@ public class UseMedicalSupplyService
         }
     }
 
-    public async Task<List<MedicalSupplyInventoryDTO>> GetAllMedicalSuppliesInInventoryAsync()
+    public async Task<List<MedicalSupplyInventoryforUseDTO>> GetAllMedicalSuppliesInInventoryAsync()
     {
         var inventories = await _repository.GetAvailableMedicalSuppliesAsync();
-        return inventories.Select(msi => new MedicalSupplyInventoryDTO
+        return inventories.Select(msi => new MedicalSupplyInventoryforUseDTO
         {
             MedicalSupplyId = msi.MedicalSupplyId,
-            MedicalSupplyName = msi.MedicalSupply.MedicalSupplyName,
-            MedicalSupplyInventoryId = msi.MedicalSupplyInventoryId,
+            MedicalSupplyName = msi.MedicalSupply?.MedicalSupplyName ?? string.Empty,
+            MedicalSupplyInventoryId = msi.SupplyInventoryId,
             Quantity = msi.Quantity ?? 0,
-            ExpiryDate = msi.ExpiryDate ?? DateTime.MinValue,
+            ExpiryDate = msi.ExpiryDate ?? DateTime.MinValue
         }).ToList();
     }
 
@@ -307,7 +310,7 @@ public class UseMedicalSupplyService
             IssueDate = ums.IssueDate ?? DateTime.MinValue,
             Status = ums.Status ?? false,
             Note = ums.Note ?? string.Empty,
-            PatientName = ums.MedicalRecordHistory?.MedicalRecord?.PatientName
+            PatientName = ums.MedicalRecordHistory?.MedicalRecord?.PatientName ?? string.Empty
         }).ToList();
     }
 
@@ -320,7 +323,7 @@ public class UseMedicalSupplyService
             IssueDate = ums.IssueDate ?? DateTime.MinValue,
             Status = ums.Status ?? false,
             Note = ums.Note ?? string.Empty,
-            PatientName = ums.MedicalRecordHistory?.MedicalRecord?.PatientName
+            PatientName = ums.MedicalRecordHistory?.MedicalRecord?.PatientName ?? string.Empty
         }).ToList();
     }
 
@@ -336,7 +339,7 @@ public class UseMedicalSupplyService
             IssueDate = ums.IssueDate ?? DateTime.MinValue,
             Status = ums.Status ?? false,
             Note = ums.Note ?? string.Empty,
-            PatientName = ums.MedicalRecordHistory?.MedicalRecord?.PatientName
+            PatientName = ums.MedicalRecordHistory?.MedicalRecord?.PatientName ?? string.Empty
         }).ToList();
     }
 
@@ -368,7 +371,7 @@ public class UseMedicalSupplyService
             PatientName = useMedicalSupply.MedicalRecordHistory?.MedicalRecord?.PatientName ?? string.Empty,
             Gender = useMedicalSupply.MedicalRecordHistory?.MedicalRecord?.Gender ?? string.Empty,
             Dob = useMedicalSupply.MedicalRecordHistory?.MedicalRecord?.Dob ?? DateTime.MinValue,
-            Address = useMedicalSupply.MedicalRecordHistory?.MedicalRecord.Address ?? string.Empty,
+            Address = useMedicalSupply.MedicalRecordHistory?.MedicalRecord?.Address ?? string.Empty,
             HealthInsurance = useMedicalSupply.MedicalRecordHistory?.MedicalRecord?.HealthInsurance ?? string.Empty,
             DiagnoseConclusion = useMedicalSupply.MedicalRecordHistory?.DiagnoseConclusion ?? string.Empty,
             MedicalSupplyConsumptions = useMedicalSuppliesConsumptions.Select(umsmsc => new MedicalSupplyConsumptionDetailDTO

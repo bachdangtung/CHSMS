@@ -1,6 +1,6 @@
 ﻿namespace CHSMS.API.DTOs.UseMedicalSupply
 {
-    public class MedicalSupplyInventoryDTO
+    public class MedicalSupplyInventoryforUseDTO
     {
         public int MedicalSupplyId { get; set; }
         public string MedicalSupplyName { get; set; }

@@ -1,4 +1,6 @@
-﻿namespace CHSMS.API.DTOs.UseMedicalSupply
+﻿using CHSMS.API.DTOs.MedicalSupplyConsumption;
+
+namespace CHSMS.API.DTOs.UseMedicalSupply
 {
     public class UseMedicalSupplyDetailDTO
     {
@@ -9,7 +11,7 @@
         public string FullName { get; set; }
         public string PatientName { get; set; }
         public string Gender { get; set; }
-        public DateTime Dob { get; set; }
+        public DateTime? Dob { get; set; }
         public string Address { get; set; }
         public string HealthInsurance { get; set; }
         public string DiagnoseConclusion { get; set; }

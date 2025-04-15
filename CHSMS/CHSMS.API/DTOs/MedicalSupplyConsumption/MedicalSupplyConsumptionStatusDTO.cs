@@ -1,4 +1,4 @@
-﻿namespace CHSMS.API.DTOs.UseMedicalSupply
+﻿namespace CHSMS.API.DTOs.MedicalSupplyConsumption
 {
     public class MedicalSupplyConsumptionStatusDTO
     {

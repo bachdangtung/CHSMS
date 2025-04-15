@@ -13,7 +13,7 @@
         public DateTime? TransactionDate { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public double? Quantity { get; set; }
-        public string DosageForm {  get; set; }
+        public string DosageForm { get; set; }
         public decimal TotalPrice { get; set; }
         public bool IsBhyt { get; set; }
     }

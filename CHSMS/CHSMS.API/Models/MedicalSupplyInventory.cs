@@ -6,7 +6,7 @@ namespace CHSMS.API.Models
     public partial class MedicalSupplyInventory
     {
         public int SupplyInventoryId { get; set; }
-        public int? MedicalSupplyId { get; set; }
+        public int MedicalSupplyId { get; set; }
         public string? CertificateNumber { get; set; }
         public bool? TransactionType { get; set; }
         public double? Quantity { get; set; }
