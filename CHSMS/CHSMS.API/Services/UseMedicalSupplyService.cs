@@ -103,7 +103,12 @@ public class UseMedicalSupplyService
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            throw new Exception($"Lỗi khi tạo đơn vật tư: {ex.Message}");
+            Console.WriteLine("Chi tiết lỗi Entity Framework: " + ex.ToString());
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine("INNER: " + ex.InnerException.Message);
+            }
+            throw new Exception($"Lỗi khi tạo đơn vật tư: {ex.InnerException?.Message ?? ex.Message}");
         }
     }
 
@@ -235,10 +240,10 @@ public class UseMedicalSupplyService
 
                 if (statusDto.Status) // Phát vật tư
                 {
-                    if (!consumption.MedicalSupplyInventoryId.HasValue)
+                    if (consumption.MedicalSupplyInventoryId <= 0)
                         throw new Exception($"MedicalSupplyInventoryId không được để trống trong MedicalSupplyConsumption với ID: {consumption.MsconsumptionId}");
 
-                    var inventory = await _repository.GetMedicalSupplyInventoryByIdAsync(consumption.MedicalSupplyInventoryId.Value);
+                    var inventory = await _repository.GetMedicalSupplyInventoryByIdAsync(consumption.MedicalSupplyInventoryId);
                     if (inventory == null)
                         throw new Exception($"Không tìm thấy kho vật tư với ID: {consumption.MedicalSupplyInventoryId}");
 
@@ -261,10 +266,10 @@ public class UseMedicalSupplyService
                 }
                 else // Rollback (Status = false)
                 {
-                    if (!consumption.MedicalSupplyInventoryId.HasValue)
+                    if (consumption.MedicalSupplyInventoryId <= 0)
                         throw new Exception($"MedicalSupplyInventoryId không được để trống trong MedicalSupplyConsumption với ID: {consumption.MsconsumptionId}");
 
-                    var inventory = await _repository.GetMedicalSupplyInventoryByIdAsync(consumption.MedicalSupplyInventoryId.Value);
+                    var inventory = await _repository.GetMedicalSupplyInventoryByIdAsync(consumption.MedicalSupplyInventoryId);
                     if (inventory == null)
                         throw new Exception($"Không tìm thấy kho vật tư với ID: {consumption.MedicalSupplyInventoryId}");
 
@@ -353,7 +358,7 @@ public class UseMedicalSupplyService
         var useMedicalSuppliesConsumptions = await _context.UseMedicalSuppliesMedicalSupplyConsumptions
             .Where(umsmsc => umsmsc.UseMedicalSupplieId == useMedicalSupplyId)
             .Include(umsmsc => umsmsc.Msconsumption)
-            .ThenInclude(msc => msc.Msconsumption)
+            .ThenInclude(msc => msc.MedicalSupplyInventory)
             .ThenInclude(msi => msi.MedicalSupply)
             .ToListAsync();
 
@@ -381,11 +386,11 @@ public class UseMedicalSupplyService
                 ConsumptionDate = umsmsc.Msconsumption.ConsumptionDate ?? DateTime.MinValue,
                 Note = umsmsc.Msconsumption.Note ?? string.Empty,
                 Status = umsmsc.Msconsumption.Status ?? false,
-                MedicalSupplyName = umsmsc.Msconsumption.Msconsumption?.MedicalSupply?.MedicalSupplyName ?? string.Empty,
-                BatchNumber = umsmsc.Msconsumption.Msconsumption?.BatchNumber ?? string.Empty,
-                TransactionDate = umsmsc.Msconsumption.Msconsumption?.TransactionDate ?? DateTime.MinValue,
-                ExpiryDate = umsmsc.Msconsumption.Msconsumption?.ExpiryDate ?? DateTime.MinValue,
-                Quantity = umsmsc.Msconsumption.Msconsumption?.Quantity ?? 0,
+                MedicalSupplyName = umsmsc.Msconsumption.MedicalSupplyInventory?.MedicalSupply?.MedicalSupplyName ?? string.Empty,
+                BatchNumber = umsmsc.Msconsumption.MedicalSupplyInventory?.BatchNumber ?? string.Empty,
+                TransactionDate = umsmsc.Msconsumption.MedicalSupplyInventory?.TransactionDate ?? DateTime.MinValue,
+                ExpiryDate = umsmsc.Msconsumption.MedicalSupplyInventory?.ExpiryDate ?? DateTime.MinValue,
+                Quantity = umsmsc.Msconsumption.MedicalSupplyInventory?.Quantity ?? 0,
                 TotalPrice = umsmsc.TotalPrice.HasValue ? Convert.ToDecimal(umsmsc.TotalPrice.Value) : 0m
             }).ToList(),
             TotalPrice = totalPrice

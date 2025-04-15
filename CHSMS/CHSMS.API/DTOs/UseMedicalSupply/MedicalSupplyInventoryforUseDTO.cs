@@ -7,5 +7,7 @@
         public int MedicalSupplyInventoryId { get; set; }
         public double Quantity { get; set; }
         public DateTime ExpiryDate { get; set; }
+        
+
     }
 }

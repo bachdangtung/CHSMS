@@ -94,12 +94,13 @@ public class UseMedicalSupplyRepository
             .ThenInclude(ums => ums.MedicalRecordHistory)
             .ThenInclude(mrh => mrh.MedicalRecord)
             .Include(umsmsc => umsmsc.Msconsumption)
-            .ThenInclude(msc => msc.Msconsumption)
+            .ThenInclude(msc => msc.MedicalSupplyInventory)
             .ThenInclude(msi => msi.MedicalSupply)
             .Select(umsmsc => umsmsc.UseMedicalSupplie)
             .FirstOrDefaultAsync();
         return useMedicalSupplyDetail;
     }
+
 
     public async Task<UseMedicalSupply> GetUseMedicalSupplyByIdAsync(int useMedicalSupplyId)
     {

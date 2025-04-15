@@ -42,7 +42,7 @@ public class UseMedicalSupplyController : ControllerBase
         }
     }
 
-    [HttpGet("all")]
+    [HttpGet("get-all-medical-supplies")]
     public async Task<IActionResult> GetAllUseMedicalSupplies()
     {
         try
@@ -85,7 +85,7 @@ public class UseMedicalSupplyController : ControllerBase
         }
     }
 
-    [HttpPut("edit-for-doctor/{useMedicalSupplyId}/{medicalRecordHistoryId}")]
+    [HttpPut("edit-use-medical-supply-for-doctor/{useMedicalSupplyId}/{medicalRecordHistoryId}")]
     public async Task<IActionResult> EditUseMedicalSupplyForDoctor(int useMedicalSupplyId, int medicalRecordHistoryId, [FromBody] EditUseMedicalSupplyForDoctorDTO dto)
     {
         try
@@ -107,7 +107,7 @@ public class UseMedicalSupplyController : ControllerBase
         }
     }
 
-    [HttpPut("edit-for-pharmacist/{useMedicalSupplyId}")]
+    [HttpPut("edit-use-medical-supply-for-pharmacist/{useMedicalSupplyId}")]
     public async Task<IActionResult> EditUseMedicalSupplyForPharmacist(int useMedicalSupplyId, [FromBody] EditUseMedicalSupplyForPharmacistDTO dto)
     {
         try
