@@ -57,7 +57,7 @@ namespace CHSMS.API.Services
         {
             var medicalSupply = new MedicalSupplyInventory
             {
-                MedicalSupplyId = medicalSupplyInventoryDTO.MedicalSupplyId,
+                MedicalSupplyId = (int)medicalSupplyInventoryDTO.MedicalSupplyId,
                 Quantity = medicalSupplyInventoryDTO.Quantity,
                 CertificateNumber = medicalSupplyInventoryDTO.CertificateNumber,
                 ManufactureDate = medicalSupplyInventoryDTO.ManufactureDate,
@@ -78,7 +78,7 @@ namespace CHSMS.API.Services
             var MedicalSupplyInventory = new MedicalSupplyInventory
             {
                 SupplyInventoryId = medicalSupplyInventoryDTO.SupplyInventoryId,
-                MedicalSupplyId = medicalSupplyInventoryDTO.MedicalSupplyId,
+                MedicalSupplyId = (int)medicalSupplyInventoryDTO.MedicalSupplyId,
                 Quantity = medicalSupplyInventoryDTO.Quantity,
                 CertificateNumber = medicalSupplyInventoryDTO.CertificateNumber,
                 ManufactureDate = medicalSupplyInventoryDTO.ManufactureDate,
