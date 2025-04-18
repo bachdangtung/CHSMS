@@ -301,7 +301,8 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<MedicinePrescription>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => new { e.MedicineId, e.ExternalPrescriptionId });
+
 
                 entity.ToTable("Medicine_Prescription");
 
@@ -349,7 +350,8 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<PrescriptionMedicineConsumption>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => new { e.PrescriptionId, e.MedicineConsumtionId });
+
 
                 entity.ToTable("Prescription_MedicineConsumption");
 

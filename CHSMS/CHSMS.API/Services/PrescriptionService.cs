@@ -22,7 +22,7 @@ public class PrescriptionService
 
     }
 
-    public async Task<int> CreatePrescriptionAsync(int userId, int medicalRecordHistoryId,CreatePrescriptionDTO dto)
+    public async Task<int> CreatePrescriptionAsync(int userId, int medicalRecordHistoryId, CreatePrescriptionDTO dto)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -49,13 +49,13 @@ public class PrescriptionService
             if (medicineInventoryIds.Distinct().Count() != medicineInventoryIds.Count)
                 throw new Exception("Có thuốc bị trùng trong đơn thuốc. Vui lòng kiểm tra lại!");
 
-            // Tạo Prescription với Status mặc định là true
+            // Tạo Prescription với Status mặc định là false
             var prescription = new Prescription
             {
                 MedicalRecordHistoryId = medicalRecordHistoryId,
                 UserId = userId,
                 IssueDate = dto.IssueDate,
-                Status = true, // Mặc định là true
+                Status = false, // Mặc định là false cho bác sĩ
                 Note = dto.Note,
                 IsBhyt = dto.IsBhyt
             };
@@ -222,6 +222,8 @@ public class PrescriptionService
             if (!prescription.IssueDate.HasValue || prescription.IssueDate.Value.Date != DateTime.Now.Date)
                 throw new Exception("Chỉ được chỉnh sửa trạng thái đơn thuốc trong ngày phát hành đơn thuốc!");
 
+            bool hasAnyConsumptionDispensed = false; // Biến để kiểm tra xem có MedicineConsumption nào được cấp phát không
+
             foreach (var statusDto in dto.MedicineConsumptionStatuses)
             {
                 var consumption = await _repository.GetMedicineConsumptionByIdAsync(statusDto.MedicineConsumptionId);
@@ -241,6 +243,8 @@ public class PrescriptionService
 
                 if (statusDto.Status) // Phát thuốc
                 {
+                    hasAnyConsumptionDispensed = true; // Đánh dấu có ít nhất một MedicineConsumption được cấp phát
+
                     if (!consumption.MedicineInventoryId.HasValue)
                         throw new Exception($"MedicineInventoryId không được để trống trong MedicineConsumption với ID: {consumption.MedicineConsumptionId}");
 
@@ -284,6 +288,10 @@ public class PrescriptionService
                     await _repository.UpdatePrescriptionMedicineConsumptionAsync(pmc);
                 }
             }
+
+            // Cập nhật trạng thái Prescription: true nếu có ít nhất một MedicineConsumption được cấp phát, false nếu không
+            prescription.Status = hasAnyConsumptionDispensed;
+            await _repository.UpdatePrescriptionAsync(prescription);
 
             await transaction.CommitAsync();
         }
