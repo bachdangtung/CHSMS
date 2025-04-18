@@ -59,47 +59,40 @@ namespace CHSMS.API.Repositories
         //Update medical supply inventory
         public bool UpdateMedicalSupplyInventory(MedicalSupplyInventory medicalSupplyInventory)
         {
+
             _context.MedicalSupplyInventories.Update(medicalSupplyInventory);
             return (_context.SaveChanges() > 0);
         }
 
         //Consume medical supply inventory
-        public int ConsumeMedicalSupplyByMSID(int msid, double Quantity, string? Note)
+        public int ConsumeMedicalSupplyByMSID(ConsumpMSDTO consump)
         {
-            var supplyInventory = GetAvailableMedicalSupplyInventory(msid);
-            var medicalSupplyConsumption = new List<MedicalSupplyConsumption>();
-            foreach (var item in supplyInventory)
+            var supplyInventory = _context.MedicalSupplyInventories
+                .Where(x => x.SupplyInventoryId == consump.MedicalSupplyInventoryId)
+                .FirstOrDefault();
+            if (supplyInventory == null)
             {
-                if (item.Quantity < Quantity)
-                {
-                    item.Quantity = 0;
-                    Quantity -= item.Quantity.Value;
-                    medicalSupplyConsumption.Add(new MedicalSupplyConsumption
-                    {
-                        MedicalSupplyInventoryId = item.SupplyInventoryId,
-                        Amount = item.Quantity.Value,
-                        ConsumptionDate = DateTime.Now,
-                        Note = Note
-                    });
-                }
-                else
-                {
-                    medicalSupplyConsumption.Add(new MedicalSupplyConsumption
-                    {
-                        MsconsumptionId = 0,
-                        MedicalSupplyInventoryId = item.SupplyInventoryId,
-                        Amount = Quantity,
-                        ConsumptionDate = DateTime.Now,
-                        Note = Note
-                    });
-                    item.Quantity -= Quantity;
-                    Quantity = 0;
-                }
-                if (Quantity == 0)
-                    break;
+                return -1; //Id not found
             }
+            if (supplyInventory.Quantity < consump.Quantity)
+            {
+                return -3;
+            } //Not enough quantity
+            if (consump.Quantity <= 0)
+            {
+                return -2; //Invalid quantity
+            }
+            supplyInventory.Quantity -= consump.Quantity;
+            MedicalSupplyConsumption medicalSupplyConsumption = new MedicalSupplyConsumption
+            {
+                MedicalSupplyInventoryId = consump.MedicalSupplyInventoryId.Value,
+                Amount = consump.Quantity,
+                ConsumptionDate = DateTime.Now,
+                Status = consump.Status,
+                Note = consump.Note
+            };
             _context.MedicalSupplyInventories.UpdateRange(supplyInventory);
-            _context.MedicalSupplyConsumptions.AddRange(medicalSupplyConsumption);
+            _context.MedicalSupplyConsumptions.Add(medicalSupplyConsumption);
             if (!(_context.SaveChanges() > 0))
                 return 0;
             return 1;
@@ -160,7 +153,7 @@ namespace CHSMS.API.Repositories
         public List<MedicalSupplyConsumption> GetAllMedicalSupplyConsumptionByDate(DateTime? from, DateTime? to)
         {
             return _context.MedicalSupplyConsumptions
-                .Where(x => x.ConsumptionDate >= from && x.ConsumptionDate <= to)
+                .Where(x => x.ConsumptionDate >= from && x.ConsumptionDate <= to && x.Status == true)
                 .ToList();
         }
 
@@ -196,7 +189,7 @@ namespace CHSMS.API.Repositories
         public List<MedicalSupplyConsumption> MSConsumptionDetail(int id, DateTime? from, DateTime? to)
         {
             var result = _context.MedicalSupplyConsumptions
-                .Where(x => x.MedicalSupplyInventoryId == id && x.ConsumptionDate >= from && x.ConsumptionDate <= to)
+                .Where(x => x.MedicalSupplyInventoryId == id && x.ConsumptionDate >= from && x.ConsumptionDate <= to && x.Status == true)
                 .ToList();
             return result;
         }
@@ -212,7 +205,7 @@ namespace CHSMS.API.Repositories
         public List<MedicalSupplyConsumption> ConsumptionHistory(DateTime? from, DateTime? to)
         {
             return _context.MedicalSupplyConsumptions
-                 .Where(x => x.ConsumptionDate >= from && x.ConsumptionDate <= to)
+                 .Where(x => x.ConsumptionDate >= from && x.ConsumptionDate <= to && x.Status == true)
                  .ToList();
         }
 

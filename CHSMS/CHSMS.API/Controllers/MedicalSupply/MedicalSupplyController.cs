@@ -4,6 +4,7 @@ using CHSMS.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 using Microsoft.VisualBasic;
+using System.Transactions;
 namespace CHSMS.API.Controllers.MedicalSupply
 {
     [Route("api/[controller]")]
@@ -72,7 +73,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
         [HttpPost("ConsumeInventory")]
         public IActionResult ConsumeMedicalSupply([FromBody] ConsumpMSDTO consumpMSDTO)
         {
-            var result = _medicalSupplyService.ConsumeMedicalSupply(consumpMSDTO.MedicalSupplyInventoryId.Value, consumpMSDTO.Quantity.Value, consumpMSDTO.Note);
+            var result = _medicalSupplyService.ConsumeMedicalSupply(consumpMSDTO);
             if (result == -3)
                 return Problem("Not enough quantity");
             else if (result == -2)
@@ -140,13 +141,14 @@ namespace CHSMS.API.Controllers.MedicalSupply
             }
             return Ok(result);
         }
-        [HttpPut("UpdateConsumtion")]
+        [HttpPut("UpdateConsumption")]
         public IActionResult UpdateConsumtion([FromBody] ConsumpMSDTO medicalSupplyConsumption)
         {
             var result = _medicalSupplyService.UpdateMedicalSupplyConsumption(medicalSupplyConsumption);
-            if (result == null)
-                return NotFound();
-            return Ok(result);
+            if (result == true)
+                return Ok(); 
+            return NotFound();
+
         }
 
         //Get all medical supply inventory
@@ -167,6 +169,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
                     result.Add(new
                     {
                         MSID = item.MedicalSupplyId,
+                        MSIventoryID = item2.SupplyInventoryId,
                         MSName = item.MedicalSupplyName,
                         MSType = item.SupplyType,
                         BatchNumber = "" + item2.BatchNumber,
@@ -174,6 +177,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
                         UnitOfMeasure = item.UnitOfMeasure.ToString(),
                         ExpiryDate = item2.ExpiryDate.Value,
                         BidNumber = item.BidNumber.Value,
+                        TransactionDate = item2.TransactionDate.Value,
                     });
                 }
             }
@@ -187,7 +191,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
             if (msi == null)
                 return NotFound();
             var result = new List<object>();
-            foreach(var item in msi)
+            foreach (var item in msi)
             {
                 var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyId.Value);
                 result.Add(new
