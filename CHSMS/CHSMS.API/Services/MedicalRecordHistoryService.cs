@@ -232,33 +232,33 @@ namespace CHSMS.API.Services
 
         public bool UpdateMedicalRecordHistory(MedicalRecordHistoryDTO medicalRecordDTO)
         {
-            var record = new MedicalRecordHistory
-            {
-                MedicalRecordHistoryId = medicalRecordDTO.MedicalRecordHistoryId,
-                UserId = medicalRecordDTO.UserId,
-                Address = medicalRecordDTO.Address,
-                MedicalRecordId = medicalRecordDTO.PatientId,
-                DiagnoseConclusion = medicalRecordDTO.DiagnoseConclusion,
-                TreatmentMethod = medicalRecordDTO.TreatmentMethod,
-                Symptom = medicalRecordDTO.Symptom,
-                Date = medicalRecordDTO.RecordDate,
-                Pulse = medicalRecordDTO.Pulse,
-                BloodPressure = medicalRecordDTO.BloodPressure,
-                RespiratoryRate = medicalRecordDTO.RespiratoryRate,
-                Temperature = medicalRecordDTO.Temperature,
-                Height = medicalRecordDTO.Height,
-                Weight = medicalRecordDTO.Weight,
-                Note = medicalRecordDTO.Note,
-                MedicalRecordHistoryCode = medicalRecordDTO.MedicalRecordHistoryCode,
-                InsuranceExemption = medicalRecordDTO.InsuranceExemption,
-                PatientCategory = medicalRecordDTO.PatientCategory,
-                DiseaseProgress = medicalRecordDTO.DiseaseProgress,
-                DiseaseStage = medicalRecordDTO.DiseaseStage,
-                Icd = medicalRecordDTO.ICD,
-                MedicalOrder = medicalRecordDTO.MedicalOrder,
-                TreatmentBed = medicalRecordDTO.TreatmentBed
-            };
-            return _medicalRecordHistoryRepository.UpdateMedicalRecordHistory(record);
+            var existingRecord = _medicalRecordHistoryRepository.GetMedicalRecordHistory(medicalRecordDTO.MedicalRecordHistoryId);
+            if (existingRecord == null) return false;
+
+            // Gán các trường có thể được cập nhật (nếu muốn, có thể check null để chỉ update khi có giá trị)
+            existingRecord.Address = medicalRecordDTO.Address;
+            existingRecord.MedicalRecordId = medicalRecordDTO.PatientId;
+            existingRecord.DiagnoseConclusion = medicalRecordDTO.DiagnoseConclusion;
+            existingRecord.TreatmentMethod = medicalRecordDTO.TreatmentMethod;
+            existingRecord.Symptom = medicalRecordDTO.Symptom;
+            existingRecord.Date = medicalRecordDTO.RecordDate;
+            existingRecord.Pulse = medicalRecordDTO.Pulse;
+            existingRecord.BloodPressure = medicalRecordDTO.BloodPressure;
+            existingRecord.RespiratoryRate = medicalRecordDTO.RespiratoryRate;
+            existingRecord.Temperature = medicalRecordDTO.Temperature;
+            existingRecord.Height = medicalRecordDTO.Height;
+            existingRecord.Weight = medicalRecordDTO.Weight;
+            existingRecord.Note = medicalRecordDTO.Note;
+            existingRecord.MedicalRecordHistoryCode = medicalRecordDTO.MedicalRecordHistoryCode;
+            existingRecord.InsuranceExemption = medicalRecordDTO.InsuranceExemption;
+            existingRecord.PatientCategory = medicalRecordDTO.PatientCategory;
+            existingRecord.DiseaseProgress = medicalRecordDTO.DiseaseProgress;
+            existingRecord.DiseaseStage = medicalRecordDTO.DiseaseStage;
+            existingRecord.Icd = medicalRecordDTO.ICD;
+            existingRecord.MedicalOrder = medicalRecordDTO.MedicalOrder;
+            existingRecord.TreatmentBed = medicalRecordDTO.TreatmentBed;
+
+            return _medicalRecordHistoryRepository.UpdateMedicalRecordHistory(existingRecord);
         }
 
 
