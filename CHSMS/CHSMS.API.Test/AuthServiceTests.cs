@@ -134,6 +134,19 @@ namespace CHSMS.API.Tests.Services
 
         // Tests for RefreshTokenAsync
         [Fact]
+        public async Task RefreshTokenAsync_InvalidTokenFormat_ReturnsNull()
+        {
+            // Arrange
+            var invalidToken = "invalidToken";
+
+            // Act
+            var result = await _authService.RefreshTokenAsync(invalidToken, "refreshtoken");
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
         public async Task RefreshTokenAsync_InvalidToken_ThrowsSecurityTokenException()
         {
             // Arrange
@@ -151,6 +164,27 @@ namespace CHSMS.API.Tests.Services
             var token = GenerateJwtTokenForTest(1);
             _unitOfWorkMock.Setup(u => u.Users.GetByIdAsync(1))
                 .ReturnsAsync((User)null);
+
+            // Act
+            var result = await _authService.RefreshTokenAsync(token, "refreshtoken");
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task RefreshTokenAsync_InactiveUser_ReturnsNull()
+        {
+            // Arrange
+            var user = CreateTestUser();
+            user.RefreshToken = "refreshtoken";
+            user.Status = false;
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(1);
+            var token = GenerateJwtTokenForTest(1);
+            _unitOfWorkMock.Setup(u => u.Users.GetByIdAsync(1))
+                .ReturnsAsync(user);
+            _unitOfWorkMock.Setup(u => u.Users.Update(It.IsAny<User>()));
+            _unitOfWorkMock.Setup(u => u.CommitAsync()).ReturnsAsync(1);
 
             // Act
             var result = await _authService.RefreshTokenAsync(token, "refreshtoken");
@@ -260,7 +294,7 @@ namespace CHSMS.API.Tests.Services
 
         // Tests for GenerateJwtToken
         [Fact]
-        public void GenerateJwtToken_WithRole_GeneratesValidToken()
+        public void GenerateJwtToken_VailUser_GeneratesValidToken()
         {
             // Arrange
             var user = CreateTestUser();
@@ -386,6 +420,27 @@ namespace CHSMS.API.Tests.Services
             Assert.False(result);
         }
 
+        // Tests for RequestResetPasswordAsync
+        [Fact]
+        public async Task RequestResetPasswordAsync_UserInactive_ReturnsFalse()
+        {
+            // Arrange
+            var user = CreateTestUser();
+            user.Status = false;
+            _unitOfWorkMock.Setup(u => u.Users.GetByEmailAsync("test@example.com"))
+                .ReturnsAsync(user);
+            _unitOfWorkMock.Setup(u => u.Users.Update(It.IsAny<User>()));
+            _unitOfWorkMock.Setup(u => u.CommitAsync()).ReturnsAsync(1);
+            _emailServiceMock.Setup(e => e.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), null))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _authService.RequestResetPasswordAsync("test@example.com");
+
+            // Assert
+            Assert.False(result);
+        }
+
         [Fact]
         public async Task RequestResetPasswordAsync_ValidEmail_SendsEmailAndReturnsTrue()
         {
@@ -436,6 +491,45 @@ namespace CHSMS.API.Tests.Services
             var dto = new ResetPasswordDto { Token = "token", UserId = 1, NewPassword = "newpassword" };
             _unitOfWorkMock.Setup(u => u.Users.GetByResetTokenAsync(dto))
                 .ReturnsAsync(user);
+
+            // Act
+            var result = await _authService.ResetPasswordAsync(dto);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task ResetPasswordAsync_UserNotExist_ReturnsFalse()
+        {
+            // Arrange
+            var user = CreateTestUser();
+            user.ResetToken = "token";
+            user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+            var dto = new ResetPasswordDto { Token = "token", UserId = -1, NewPassword = "newpassword" };
+            _unitOfWorkMock.Setup(u => u.Users.GetByResetTokenAsync(dto))
+                .ReturnsAsync((User)null);
+
+            // Act
+            var result = await _authService.ResetPasswordAsync(dto);
+
+            // Assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public async Task ResetPasswordAsync_InactiveUser_ReturnsFalse()
+        {
+            // Arrange
+            var user = CreateTestUser();
+            user.Status = false;
+            user.ResetToken = "token";
+            user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+            var dto = new ResetPasswordDto { Token = "token", UserId = 1, NewPassword = "newpassword" };
+            _unitOfWorkMock.Setup(u => u.Users.GetByResetTokenAsync(dto))
+                .ReturnsAsync(user);
+            _unitOfWorkMock.Setup(u => u.Users.Update(It.IsAny<User>()));
+            _unitOfWorkMock.Setup(u => u.CommitAsync()).ReturnsAsync(1);
 
             // Act
             var result = await _authService.ResetPasswordAsync(dto);
@@ -560,11 +654,11 @@ namespace CHSMS.API.Tests.Services
         public async Task ChangeStatusAsync_UserNotFound_ThrowsException()
         {
             // Arrange
-            _unitOfWorkMock.Setup(u => u.Users.GetByIdAsync(1))
+            _unitOfWorkMock.Setup(u => u.Users.GetByIdAsync(-1))
                 .ReturnsAsync((User)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<Exception>(() => _authService.ChangeStatusAsync(1));
+            await Assert.ThrowsAsync<Exception>(() => _authService.ChangeStatusAsync(-1));
         }
 
         [Fact]

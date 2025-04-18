@@ -91,21 +91,9 @@ namespace CHSMS.API.Services
             return true;
         }
 
-        public int ConsumeMedicalSupply(int id, double Quantity, string? Note)
+        public int ConsumeMedicalSupply(ConsumpMSDTO consumpMSDTO)
         {
-            if (Quantity <= 0)
-            {
-                return -1;
-            }
-            if (_medicalSupplyReposotory.GetMedicalSupplyByID(id) == null)
-            {
-                return -2;
-            }
-            if (_medicalSupplyReposotory.GetMSQantityByID(id) < Quantity)
-            {
-                return -3;
-            }
-            return _medicalSupplyReposotory.ConsumeMedicalSupplyByMSID(id, Quantity, Note);
+            return _medicalSupplyReposotory.ConsumeMedicalSupplyByMSID(consumpMSDTO);
         }
 
         public Dictionary<MedicalSupplyDTO, double> ConsumeReport(DateTime? from, DateTime? to)
@@ -208,11 +196,7 @@ namespace CHSMS.API.Services
             if (MSC == null)
             {
                 return false;
-            }
-            if (medicalSupplyConsumption.Quantity <= 0)
-            {
-                return false;
-            }
+            }            
             var medicalSupplyInventory = _medicalSupplyReposotory.GetMedicalSupplyInventoryById(medicalSupplyConsumption.MedicalSupplyInventoryId.Value);
             if (medicalSupplyInventory == null)
             {
@@ -226,6 +210,8 @@ namespace CHSMS.API.Services
             }
             var result1 = _medicalSupplyReposotory.UpdateMedicalSupplyInventory(medicalSupplyInventory);
             MSC.Amount = medicalSupplyConsumption.Quantity;
+            MSC.Status = medicalSupplyConsumption.Status;
+            MSC.Note = medicalSupplyConsumption.Note;
             var result = _medicalSupplyReposotory.UpdateMedicalSupplyConsumption(MSC);
 
             if (result1 && result)
