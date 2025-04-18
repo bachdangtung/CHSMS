@@ -47,13 +47,13 @@ public class UseMedicalSupplyService
             if (medicalSupplyInventoryIds.Distinct().Count() != medicalSupplyInventoryIds.Count)
                 throw new Exception("Có vật tư bị trùng trong đơn vật tư. Vui lòng kiểm tra lại!");
 
-            // Tạo UseMedicalSupply với Status mặc định là true
+            // Tạo UseMedicalSupply với Status mặc định là false
             var useMedicalSupply = new UseMedicalSupply
             {
                 MedicalRecordHistoryId = medicalRecordHistoryId,
                 UserId = userId,
                 IssueDate = dto.IssueDate,
-                Status = true, // Mặc định là true
+                Status = false, // Mặc định là false
                 Note = dto.Note
             };
             var createdUseMedicalSupply = await _repository.CreateUseMedicalSupplyAsync(useMedicalSupply);
@@ -218,8 +218,10 @@ public class UseMedicalSupplyService
                 throw new Exception($"Không tìm thấy đơn vật tư với ID: {dto.UseMedicalSupplyId}");
 
             // Business Rule: Chỉ cho phép chỉnh sửa trong cùng ngày với IssueDate
-            if (!useMedicalSupply.IssueDate.HasValue || useMedicalSupply.IssueDate.Value.Date != DateTime.Now.Date)
+            if (!useMedicalSupply.IssueDate.HasValue || useMedicalSupply.IssueDate.Value.Date != DateTime.UtcNow.Date)
                 throw new Exception("Chỉ được chỉnh sửa trạng thái đơn vật tư trong ngày phát hành đơn vật tư!");
+
+            bool hasAnyConsumptionDispensed = false; // Biến để kiểm tra xem có MedicalSupplyConsumption nào được cấp phát không
 
             foreach (var statusDto in dto.MedicalSupplyConsumptionStatuses)
             {
@@ -240,8 +242,10 @@ public class UseMedicalSupplyService
 
                 if (statusDto.Status) // Phát vật tư
                 {
+                    hasAnyConsumptionDispensed = true; // Đánh dấu có ít nhất một MedicalSupplyConsumption được cấp phát
+
                     if (consumption.MedicalSupplyInventoryId <= 0)
-                        throw new Exception($"MedicalSupplyInventoryId không được để trống trong MedicalSupplyConsumption với ID: {consumption.MsconsumptionId}");
+                        throw new Exception($"MedicalSupplyInventoryId không được để trống trong MedicalSupplyConsumption với ID: {statusDto.MedicalSupplyConsumptionId}");
 
                     var inventory = await _repository.GetMedicalSupplyInventoryByIdAsync(consumption.MedicalSupplyInventoryId);
                     if (inventory == null)
@@ -267,7 +271,7 @@ public class UseMedicalSupplyService
                 else // Rollback (Status = false)
                 {
                     if (consumption.MedicalSupplyInventoryId <= 0)
-                        throw new Exception($"MedicalSupplyInventoryId không được để trống trong MedicalSupplyConsumption với ID: {consumption.MsconsumptionId}");
+                        throw new Exception($"MedicalSupplyInventoryId không được để trống trong MedicalSupplyConsumption với ID: {statusDto.MedicalSupplyConsumptionId}");
 
                     var inventory = await _repository.GetMedicalSupplyInventoryByIdAsync(consumption.MedicalSupplyInventoryId);
                     if (inventory == null)
@@ -284,12 +288,22 @@ public class UseMedicalSupplyService
                 }
             }
 
+            // Cập nhật trạng thái UseMedicalSupply: true nếu có ít nhất một MedicalSupplyConsumption được cấp phát, false nếu không
+            useMedicalSupply.Status = hasAnyConsumptionDispensed;
+            await _repository.UpdateUseMedicalSupplyAsync(useMedicalSupply);
+
             await transaction.CommitAsync();
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            throw new Exception($"Lỗi khi chỉnh sửa trạng thái đơn vật tư: {ex.Message}");
+            // Ghi log lỗi
+            Console.WriteLine("Chi tiết lỗi: " + ex.ToString());
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine("INNER: " + ex.InnerException.Message);
+            }
+            throw new InvalidOperationException($"Lỗi khi chỉnh sửa trạng thái đơn vật tư: {ex.InnerException?.Message ?? ex.Message}", ex);
         }
     }
 
