@@ -125,7 +125,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
             List<object> result = new List<object>();
             foreach (var item in list)
             {
-                var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyInventoryId.Value);
+                var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyInventoryId);
                 var medicalSupplyInventory = _medicalSupplyService.GetMedicalSupplyInventoryById(item.MedicalSupplyInventoryId);
                 result.Add(new
                 {
@@ -189,7 +189,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
             var result = new List<object>();
             foreach(var item in msi)
             {
-                var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyId.Value);
+                var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyId);
                 result.Add(new
                 {
                     MSID = medicalSupply.MedicalSupplyId,

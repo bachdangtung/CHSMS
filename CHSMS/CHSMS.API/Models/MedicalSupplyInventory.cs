@@ -5,8 +5,13 @@ namespace CHSMS.API.Models
 {
     public partial class MedicalSupplyInventory
     {
+        public MedicalSupplyInventory()
+        {
+            MedicalSupplyConsumptions = new HashSet<MedicalSupplyConsumption>();
+        }
+
         public int SupplyInventoryId { get; set; }
-        public int? MedicalSupplyId { get; set; }
+        public int MedicalSupplyId { get; set; }
         public string? CertificateNumber { get; set; }
         public bool? TransactionType { get; set; }
         public double? Quantity { get; set; }
@@ -18,8 +23,8 @@ namespace CHSMS.API.Models
         public string? BatchNumber { get; set; }
         public double? ImportQuantity { get; set; }
 
-        public virtual MedicalSupply? MedicalSupply { get; set; }
+        public virtual MedicalSupply MedicalSupply { get; set; } = null!;
         public virtual User? Receiver { get; set; }
-        public virtual MedicalSupplyConsumption? MedicalSupplyConsumption { get; set; }
+        public virtual ICollection<MedicalSupplyConsumption> MedicalSupplyConsumptions { get; set; }
     }
 }

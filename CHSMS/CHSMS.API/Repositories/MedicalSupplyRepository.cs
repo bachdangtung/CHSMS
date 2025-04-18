@@ -2,10 +2,10 @@
 using CHSMS.API.Models;
 namespace CHSMS.API.Repositories
 {
-    public class MedicalSupplyReposotory
+    public class MedicalSupplyRepository
     {
         private readonly SEP_TestContext _context;
-        public MedicalSupplyReposotory(SEP_TestContext context)
+        public MedicalSupplyRepository(SEP_TestContext context)
         {
             _context = context;
         }

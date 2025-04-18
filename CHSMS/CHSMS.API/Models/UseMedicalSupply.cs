@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace CHSMS.API.Models
+{
+    public partial class UseMedicalSupply
+    {
+        public int UseMedicalSupplieId { get; set; }
+        public int MedicalRecordHistoryId { get; set; }
+        public int UserId { get; set; }
+        public DateTime? IssueDate { get; set; }
+        public bool? Status { get; set; }
+        public string? Note { get; set; }
+
+        public virtual MedicalRecordHistory MedicalRecordHistory { get; set; } = null!;
+        public virtual User User { get; set; } = null!;
+    }
+}

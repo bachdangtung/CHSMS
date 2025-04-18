@@ -30,6 +30,8 @@ namespace CHSMS.API.Models
         public virtual DbSet<PrescriptionMedicineConsumption> PrescriptionMedicineConsumptions { get; set; } = null!;
         public virtual DbSet<Role> Roles { get; set; } = null!;
         public virtual DbSet<Supplier> Suppliers { get; set; } = null!;
+        public virtual DbSet<UseMedicalSuppliesMedicalSupplyConsumption> UseMedicalSuppliesMedicalSupplyConsumptions { get; set; } = null!;
+        public virtual DbSet<UseMedicalSupply> UseMedicalSupplies { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -165,9 +167,7 @@ namespace CHSMS.API.Models
 
                 entity.ToTable("MedicalSupplyConsumption");
 
-                entity.Property(e => e.MsconsumptionId)
-                    .ValueGeneratedOnAdd()
-                    .HasColumnName("MSConsumptionId");
+                entity.Property(e => e.MsconsumptionId).HasColumnName("MSConsumptionId");
 
                 entity.Property(e => e.ConsumptionDate).HasColumnType("date");
 
@@ -175,11 +175,11 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.Note).HasMaxLength(255);
 
-                entity.HasOne(d => d.Msconsumption)
-                    .WithOne(p => p.MedicalSupplyConsumption)
-                    .HasForeignKey<MedicalSupplyConsumption>(d => d.MsconsumptionId)
+                entity.HasOne(d => d.MedicalSupplyInventory)
+                    .WithMany(p => p.MedicalSupplyConsumptions)
+                    .HasForeignKey(d => d.MedicalSupplyInventoryId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_MedicalSupplyConsumption_MedicalSupplyInventory");
+                    .HasConstraintName("FK_MedicalSupplyConsumption_MedicalSupplyInventory1");
             });
 
             modelBuilder.Entity<MedicalSupplyInventory>(entity =>
@@ -210,6 +210,7 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.MedicalSupply)
                     .WithMany(p => p.MedicalSupplyInventories)
                     .HasForeignKey(d => d.MedicalSupplyId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__MedicalSu__Medic__4CA06362");
 
                 entity.HasOne(d => d.Receiver)
@@ -249,9 +250,7 @@ namespace CHSMS.API.Models
 
                 entity.Property(e => e.MedicineInventoryId).HasColumnName("MedicineInventoryID");
 
-                entity.Property(e => e.Note)
-                    .HasMaxLength(255)
-                    .IsFixedLength();
+                entity.Property(e => e.Note).HasMaxLength(255);
 
                 entity.HasOne(d => d.MedicineInventory)
                     .WithMany(p => p.MedicineConsumptions)
@@ -391,6 +390,57 @@ namespace CHSMS.API.Models
                 entity.Property(e => e.Name).HasMaxLength(255);
 
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+            });
+
+            modelBuilder.Entity<UseMedicalSuppliesMedicalSupplyConsumption>(entity =>
+            {
+                entity.HasKey(e => new { e.MsconsumptionId, e.UseMedicalSupplieId });
+
+
+                entity.ToTable("UseMedicalSupplies_MedicalSupplyConsumption");
+
+                entity.Property(e => e.MsconsumptionId).HasColumnName("MSConsumptionId");
+
+                entity.Property(e => e.UseMedicalSupplieId).HasColumnName("UseMedicalSupplieID");
+
+                entity.HasOne(d => d.Msconsumption)
+                    .WithMany()
+                    .HasForeignKey(d => d.MsconsumptionId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UseMedicalSupplies_MedicalSupplyConsumption_MedicalSupplyConsumption");
+
+                entity.HasOne(d => d.UseMedicalSupplie)
+                    .WithMany()
+                    .HasForeignKey(d => d.UseMedicalSupplieId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UseMedicalSupplies_MedicalSupplyConsumption_UseMedicalSupplies");
+            });
+
+            modelBuilder.Entity<UseMedicalSupply>(entity =>
+            {
+                entity.HasKey(e => e.UseMedicalSupplieId);
+
+                entity.Property(e => e.UseMedicalSupplieId).HasColumnName("UseMedicalSupplieID");
+
+                entity.Property(e => e.IssueDate).HasColumnType("date");
+
+                entity.Property(e => e.MedicalRecordHistoryId).HasColumnName("MedicalRecordHistoryID");
+
+                entity.Property(e => e.Note).HasMaxLength(255);
+
+                entity.Property(e => e.UserId).HasColumnName("UserID");
+
+                entity.HasOne(d => d.MedicalRecordHistory)
+                    .WithMany(p => p.UseMedicalSupplies)
+                    .HasForeignKey(d => d.MedicalRecordHistoryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UseMedicalSupplies_MedicalRecordHistory");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.UseMedicalSupplies)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_UseMedicalSupplies_Users");
             });
 
             modelBuilder.Entity<User>(entity =>

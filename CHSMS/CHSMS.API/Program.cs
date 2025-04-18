@@ -49,11 +49,15 @@ builder.Services.AddScoped<PrescriptionRepository>();
 builder.Services.AddScoped<PrescriptionService>();
 builder.Services.AddScoped<ExternalPrescriptionRepository>();
 builder.Services.AddScoped<ExternalPrescriptionService>();
+builder.Services.AddScoped<UseMedicalSupplyRepository>();
+builder.Services.AddScoped<UseMedicalSupplyService>();
 builder.Services.AddScoped<MedicalRecordHistoryService>();
 builder.Services.AddScoped<MedicalRecordService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<MedicineRepository>();
 builder.Services.AddScoped<MedicineService>();
+builder.Services.AddScoped<MedicalSupplyRepository>();
+builder.Services.AddScoped<MedicalSupplyService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
