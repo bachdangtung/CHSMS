@@ -53,23 +53,32 @@ namespace CHSMS.API.Services
             return supplyInventoryDTOs;
         }
 
-        public bool AddMedicalSupplyInventory(MedicalSupplyInventoryDTO medicalSupplyInventoryDTO)
+        public bool AddMedicalSupplyInventory(List<MedicalSupplyInventoryDTO> medicalSupplyInventoryDTO)
         {
-            var medicalSupply = new MedicalSupplyInventory
+            if (medicalSupplyInventoryDTO == null || medicalSupplyInventoryDTO.Count == 0)
             {
-                MedicalSupplyId = medicalSupplyInventoryDTO.MedicalSupplyId,
-                Quantity = medicalSupplyInventoryDTO.Quantity,
-                CertificateNumber = medicalSupplyInventoryDTO.CertificateNumber,
-                ManufactureDate = medicalSupplyInventoryDTO.ManufactureDate,
-                TransactionDate = medicalSupplyInventoryDTO.TransactionDate,
-                ExpiryDate = medicalSupplyInventoryDTO.ExpiryDate,
-                Note = medicalSupplyInventoryDTO.Note,
-                ReceiverId = medicalSupplyInventoryDTO.ReceiverId,
-                TransactionType = medicalSupplyInventoryDTO.TransactionType,
-                BatchNumber = medicalSupplyInventoryDTO.BatchNumber,
-                ImportQuantity = medicalSupplyInventoryDTO.Quantity,
-            };
-            if (!_medicalSupplyReposotory.AddMedicalSupplyInventory(medicalSupply)) return false;
+                return false;
+            }
+            List<MedicalSupplyInventory> medicalSupplyInventories = new List<MedicalSupplyInventory>();
+            foreach (var item in medicalSupplyInventoryDTO)
+            {
+                var medicalSupply = new MedicalSupplyInventory
+                {
+                    MedicalSupplyId = (int)item.MedicalSupplyId,
+                    Quantity = item.Quantity,
+                    CertificateNumber = item.CertificateNumber,
+                    ManufactureDate = item.ManufactureDate,
+                    TransactionDate = item.TransactionDate,
+                    ExpiryDate = item.ExpiryDate,
+                    Note = item.Note,
+                    ReceiverId = item.ReceiverId,
+                    TransactionType = item.TransactionType,
+                    BatchNumber = item.BatchNumber,
+                    ImportQuantity = item.Quantity,
+                };
+                medicalSupplyInventories.Add(medicalSupply);
+            }
+            if (!_medicalSupplyReposotory.AddMedicalSupplyInventory(medicalSupplyInventories)) return false;
             return true;
         }
 
@@ -78,7 +87,7 @@ namespace CHSMS.API.Services
             var MedicalSupplyInventory = new MedicalSupplyInventory
             {
                 SupplyInventoryId = medicalSupplyInventoryDTO.SupplyInventoryId,
-                MedicalSupplyId = medicalSupplyInventoryDTO.MedicalSupplyId,
+                MedicalSupplyId = medicalSupplyInventoryDTO.MedicalSupplyId.Value,
                 Quantity = medicalSupplyInventoryDTO.Quantity,
                 CertificateNumber = medicalSupplyInventoryDTO.CertificateNumber,
                 ManufactureDate = medicalSupplyInventoryDTO.ManufactureDate,
@@ -196,7 +205,7 @@ namespace CHSMS.API.Services
             if (MSC == null)
             {
                 return false;
-            }            
+            }
             var medicalSupplyInventory = _medicalSupplyReposotory.GetMedicalSupplyInventoryById(medicalSupplyConsumption.MedicalSupplyInventoryId.Value);
             if (medicalSupplyInventory == null)
             {
@@ -231,17 +240,51 @@ namespace CHSMS.API.Services
             return _medicalSupplyReposotory.GetMedicalSupplyInventoryById(medicalSupplyInventoryId.Value);
         }
 
-        public List<MedicalSupplyInventory> GetMedicalSupplyImportHistory(DateTime fromDate, DateTime toDate)
+        public List<MedicalSupplyInventory>? GetMedicalSupplyImportHistory(DateTime fromDate, DateTime toDate)
         {
-            if (fromDate == null || toDate == null)
-            {
-                return null;
-            }
             if (fromDate > toDate || fromDate > DateTime.Now)
             {
                 return null;
             }
             return _medicalSupplyReposotory.GetMedicalSupplyImportHistory(fromDate, toDate);
+        }
+        public List<MedicalSupplyInventoryStatistic>? GetAllMedicalSupplyInventoryStatistics()
+        {
+            return _medicalSupplyReposotory.GetAllMedicalSupplyInventoryStatistics();
+        }
+
+        public MedicalSupplyInventoryStatistic? GetMedicalSupplyInventoryStatisticsById(int medicalSupplyId)
+        {
+            return _medicalSupplyReposotory.GetMedicalSupplyInventoryStatisticById(medicalSupplyId);
+        }
+
+        public bool AddMedicalSupplyInventoryStatistic(List<MSIStatisticDTO> mSIStatisticDTOs)
+        {
+            List<MedicalSupplyInventoryStatistic> medicalSupplyInventoryStatistics = new List<MedicalSupplyInventoryStatistic>();
+            //foreach (var item in mSIStatisticDTOs)
+            //{
+
+            //    };
+
+            return false;
+
+        }
+
+        public MedicalSupplyInventoryStatistic ConvertMedicalSupplyInventoryStatisticFromDTO(MSIStatisticDTO mSIStatisticDTO)
+        {
+            return new MedicalSupplyInventoryStatistic
+            {
+                Msisid = mSIStatisticDTO.Msisid.Value,
+                MsinventoryId = mSIStatisticDTO.MsinventoryId.Value,
+                Quantity = mSIStatisticDTO.Quantity.Value,
+                ActualQuantity = mSIStatisticDTO.ActualQuantity,
+                StatisticPerson = mSIStatisticDTO.StatisticPerson.Value,
+                ConfirmPerson = mSIStatisticDTO.ConfirmPerson,
+                StatisticDate = mSIStatisticDTO.StatisticDate.Value,
+                ConfirmDate = mSIStatisticDTO.ConfirmDate,
+                IsUpdate = mSIStatisticDTO.IsUpdate.Value,
+                Note = mSIStatisticDTO.Note,
+            };
         }
     }
 }

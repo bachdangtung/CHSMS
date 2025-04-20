@@ -50,8 +50,8 @@ namespace CHSMS.API.Controllers.MedicalSupply
         }
 
         //Add more medical supplyinventory
-        [HttpPost("AddInventory")]
-        public IActionResult AddMedicalSupply([FromBody] MedicalSupplyInventoryDTO medicalSupplyInventoryDTO)
+        [HttpPost("AddInventoryList")]
+        public IActionResult AddMedicalSupply([FromBody] List<MedicalSupplyInventoryDTO> medicalSupplyInventoryDTO)
         {
             var result = _medicalSupplyService.AddMedicalSupplyInventory(medicalSupplyInventoryDTO);
             if (!result)
@@ -126,7 +126,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
             List<object> result = new List<object>();
             foreach (var item in list)
             {
-                var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyInventoryId.Value);
+                var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyInventoryId);
                 var medicalSupplyInventory = _medicalSupplyService.GetMedicalSupplyInventoryById(item.MedicalSupplyInventoryId);
                 result.Add(new
                 {
@@ -146,7 +146,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
         {
             var result = _medicalSupplyService.UpdateMedicalSupplyConsumption(medicalSupplyConsumption);
             if (result == true)
-                return Ok(); 
+                return Ok();
             return NotFound();
 
         }
@@ -193,7 +193,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
             var result = new List<object>();
             foreach (var item in msi)
             {
-                var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyId.Value);
+                var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyId);
                 result.Add(new
                 {
                     MSID = medicalSupply.MedicalSupplyId,
@@ -212,6 +212,14 @@ namespace CHSMS.API.Controllers.MedicalSupply
             if (result == null)
                 return NotFound();
             return Ok(result);
+        }
+        [HttpGet("ImportHistory")]
+        public IActionResult ImportHistory(DateTime from, DateTime to)
+        {
+            var list = _medicalSupplyService.GetMedicalSupplyImportHistory(from, to);
+            if(list == null)
+                return NotFound();            
+            return Ok(list);
         }
     }
 }

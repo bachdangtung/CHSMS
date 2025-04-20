@@ -50,9 +50,9 @@ namespace CHSMS.API.Repositories
             return sum;
         }
         //Add medical supply inventory      
-        public bool AddMedicalSupplyInventory(MedicalSupplyInventory medicalSupply)
+        public bool AddMedicalSupplyInventory(List<MedicalSupplyInventory> medicalSupply)
         {
-            _context.MedicalSupplyInventories.Add(medicalSupply);
+            _context.MedicalSupplyInventories.AddRange(medicalSupply);
             return _context.SaveChanges() > 0;
         }
 
@@ -251,5 +251,46 @@ namespace CHSMS.API.Repositories
                 .Where(x => x.TransactionDate >= fromDate && x.TransactionDate <= toDate)
                 .ToList();
         }
+        public List<MedicalSupplyInventoryStatistic> GetAllMedicalSupplyInventoryStatistics()
+        {
+            return _context.MedicalSupplyInventoryStatistics.ToList();
+        }
+
+        public MedicalSupplyInventoryStatistic? GetMedicalSupplyInventoryStatisticById(int id)
+        {
+            return _context.MedicalSupplyInventoryStatistics
+                .Where(x => x.Msisid == id)
+                .FirstOrDefault();
+        }
+        public List<MedicalSupplyInventoryStatistic> GetMedicalSupplyInventoryStatisticsByMSIId(int id)
+        {
+            return _context.MedicalSupplyInventoryStatistics
+                .Where(x => x.MsinventoryId == id)
+                .ToList();
+        }
+        public bool AddMedicalSupplyInventoryStatistic(List<MedicalSupplyInventoryStatistic> medicalSupplyInventoryStatistic)
+        {
+            _context.MedicalSupplyInventoryStatistics.AddRange(medicalSupplyInventoryStatistic);
+            return _context.SaveChanges() > 0;
+        }
+        public bool UpdateMedicalSupplyInventoryStatistic(MedicalSupplyInventoryStatistic medicalSupplyInventoryStatistic)
+        {
+            _context.MedicalSupplyInventoryStatistics.Update(medicalSupplyInventoryStatistic);
+            return _context.SaveChanges() > 0;
+        }
+        public List<MedicalSupplyInventoryStatistic>? GetMedicalSupplyInventoryStatisticsByStatisticDate(DateTime from, DateTime to)
+        {
+            return _context.MedicalSupplyInventoryStatistics
+                .Where(x => x.StatisticDate >= from && x.StatisticDate <= to)
+                .ToList();
+        }
+        public List<MedicalSupplyInventoryStatistic>? GetMedicalSupplyInventoryStatisticsByConfirmDate(DateTime from, DateTime to)
+        {
+            return _context.MedicalSupplyInventoryStatistics
+                .Where(x => x.ConfirmDate >= from && x.ConfirmDate <= to)
+                .ToList();
+        }
+
+
     }
 }
