@@ -151,10 +151,10 @@ namespace CHSMS.API.Services
             return medicalRecordDTOs;
         }
 
-        public List<MedicalRecordHistoryDTO> GetMedicalRecordHistoriesByFilter(DateTime? startDate, DateTime? endDate, string? doctorName, string? patientName)
+        public List<MedicalRecordHistoryDTO> GetMedicalRecordHistoriesByFilter(string? doctorName, string? patientName)
         {
             List<MedicalRecordHistoryDTO> medicalRecordDTOs = new List<MedicalRecordHistoryDTO>();
-            var records = _medicalRecordHistoryRepository.GetMedicalRecordHistoriesByFilter(startDate, endDate, doctorName, patientName);
+            var records = _medicalRecordHistoryRepository.GetMedicalRecordHistoriesByFilter(doctorName, patientName);
             foreach (var record in records)
             {
                 medicalRecordDTOs.Add(new MedicalRecordHistoryDTO

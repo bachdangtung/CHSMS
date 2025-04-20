@@ -72,7 +72,7 @@ namespace CHSMS.API.Repositories
 
             if (!string.IsNullOrEmpty(doctorName))
             {
-                query = query.Where(x => x.User != null && x.User.UserName.Contains(doctorName));
+                query = query.Where(x => x.User != null && x.User.Fullname.Contains(doctorName));
             }
 
             return query.ToList();
@@ -80,22 +80,21 @@ namespace CHSMS.API.Repositories
         }
 
 
-        public List<MedicalRecordHistory> GetMedicalRecordHistoriesByFilter(DateTime? startDate, DateTime? endDate, string? doctorName, string? patientName)
+        public List<MedicalRecordHistory> GetMedicalRecordHistoriesByFilter(string? doctorName, string? patientName)
         {
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+
             var query = _context.MedicalRecordHistories
                 .Include(m => m.MedicalRecord)
                 .Include(m => m.User)
+                .Where(m => m.Date >= today && m.Date < tomorrow) 
                 .OrderByDescending(m => m.Date)
                 .AsQueryable();
 
-            if (startDate.HasValue && endDate.HasValue)
-            {
-                query = query.Where(x => x.Date >= startDate && x.Date <= endDate);
-            }
-
             if (!string.IsNullOrEmpty(doctorName))
             {
-                query = query.Where(x => x.User != null && x.User.UserName.Contains(doctorName));
+                query = query.Where(x => x.User != null && x.User.Fullname.Contains(doctorName));
             }
 
             if (!string.IsNullOrEmpty(patientName))
