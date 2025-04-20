@@ -245,10 +245,10 @@ public class PrescriptionService
                 {
                     hasAnyConsumptionDispensed = true; // Đánh dấu có ít nhất một MedicineConsumption được cấp phát
 
-                    if (!consumption.MedicineInventoryId.HasValue)
+                    if (consumption.MedicineInventoryId == 0)
                         throw new Exception($"MedicineInventoryId không được để trống trong MedicineConsumption với ID: {consumption.MedicineConsumptionId}");
 
-                    var inventory = await _repository.GetMedicineInventoryByIdAsync(consumption.MedicineInventoryId.Value);
+                    var inventory = await _repository.GetMedicineInventoryByIdAsync(consumption.MedicineInventoryId);
                     if (inventory == null)
                         throw new Exception($"Không tìm thấy kho thuốc với ID: {consumption.MedicineInventoryId}");
 
@@ -271,10 +271,10 @@ public class PrescriptionService
                 }
                 else // Rollback (Status = false)
                 {
-                    if (!consumption.MedicineInventoryId.HasValue)
+                    if (consumption.MedicineInventoryId == 0)
                         throw new Exception($"MedicineInventoryId không được để trống trong MedicineConsumption với ID: {consumption.MedicineConsumptionId}");
 
-                    var inventory = await _repository.GetMedicineInventoryByIdAsync(consumption.MedicineInventoryId.Value);
+                    var inventory = await _repository.GetMedicineInventoryByIdAsync(consumption.MedicineInventoryId);
                     if (inventory == null)
                         throw new Exception($"Không tìm thấy kho thuốc với ID: {consumption.MedicineInventoryId}");
 

@@ -39,7 +39,7 @@ namespace CHSMS.API.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=.;Database=SEP_Test;TrustServerCertificate=True;Integrated Security=true;");
+                optionsBuilder.UseSqlServer("server=localhost; database=SEP_Test;user=sa;password=123;Integrated Security=true;TrustServerCertificate=Yes");
             }
         }
 
@@ -64,11 +64,13 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.MedicalRecordHistory)
                     .WithMany(p => p.ExternalPrescriptions)
                     .HasForeignKey(d => d.MedicalRecordHistoryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ExternalPrescription_MedicalRecordHistory");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.ExternalPrescriptions)
                     .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ExternalPrescription_Users");
             });
 
@@ -255,6 +257,7 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.MedicineInventory)
                     .WithMany(p => p.MedicineConsumptions)
                     .HasForeignKey(d => d.MedicineInventoryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_MedicineConsumption_MedicineInventory");
             });
 
@@ -301,8 +304,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<MedicinePrescription>(entity =>
             {
-                entity.HasKey(e => new { e.MedicineId, e.ExternalPrescriptionId });
-
+                entity.HasNoKey();
 
                 entity.ToTable("Medicine_Prescription");
 
@@ -340,28 +342,32 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.MedicalRecordHistory)
                     .WithMany(p => p.Prescriptions)
                     .HasForeignKey(d => d.MedicalRecordHistoryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Prescriptions_MedicalRecordHistory");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Prescriptions)
                     .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Prescript__UserI__5535A963");
             });
 
             modelBuilder.Entity<PrescriptionMedicineConsumption>(entity =>
             {
-                entity.HasKey(e => new { e.PrescriptionId, e.MedicineConsumtionId });
-
+                entity.HasNoKey();
 
                 entity.ToTable("Prescription_MedicineConsumption");
+
+                entity.HasIndex(e => e.MedicineConsumtionId, "IX_Prescription_MedicineConsumption")
+                    .IsUnique();
 
                 entity.Property(e => e.MedicineConsumtionId).HasColumnName("MedicineConsumtionID");
 
                 entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
 
                 entity.HasOne(d => d.MedicineConsumtion)
-                    .WithMany()
-                    .HasForeignKey(d => d.MedicineConsumtionId)
+                    .WithOne()
+                    .HasForeignKey<PrescriptionMedicineConsumption>(d => d.MedicineConsumtionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Prescription_MedicineConsumption_MedicineConsumption");
 
@@ -396,8 +402,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<UseMedicalSuppliesMedicalSupplyConsumption>(entity =>
             {
-                entity.HasKey(e => new { e.MsconsumptionId, e.UseMedicalSupplieId });
-
+                entity.HasNoKey();
 
                 entity.ToTable("UseMedicalSupplies_MedicalSupplyConsumption");
 
