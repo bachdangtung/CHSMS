@@ -13,6 +13,6 @@ namespace CHSMS.API.Models
         public string? Note { get; set; }
         public bool? Status { get; set; }
 
-        public virtual MedicineInventory? MedicineInventory { get; set; }
+        public virtual MedicineInventory MedicineInventory { get; set; } = null!;
     }
 }

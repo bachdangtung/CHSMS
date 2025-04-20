@@ -64,11 +64,13 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.MedicalRecordHistory)
                     .WithMany(p => p.ExternalPrescriptions)
                     .HasForeignKey(d => d.MedicalRecordHistoryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ExternalPrescription_MedicalRecordHistory");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.ExternalPrescriptions)
                     .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ExternalPrescription_Users");
             });
 
@@ -255,6 +257,7 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.MedicineInventory)
                     .WithMany(p => p.MedicineConsumptions)
                     .HasForeignKey(d => d.MedicineInventoryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_MedicineConsumption_MedicineInventory");
             });
 
@@ -301,8 +304,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<MedicinePrescription>(entity =>
             {
-                entity.HasKey(e => new { e.MedicineId, e.ExternalPrescriptionId });
-
+                entity.HasNoKey();
 
                 entity.ToTable("Medicine_Prescription");
 
@@ -340,18 +342,19 @@ namespace CHSMS.API.Models
                 entity.HasOne(d => d.MedicalRecordHistory)
                     .WithMany(p => p.Prescriptions)
                     .HasForeignKey(d => d.MedicalRecordHistoryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Prescriptions_MedicalRecordHistory");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Prescriptions)
                     .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK__Prescript__UserI__5535A963");
             });
 
             modelBuilder.Entity<PrescriptionMedicineConsumption>(entity =>
             {
-                entity.HasKey(e => new { e.PrescriptionId, e.MedicineConsumtionId });
-
+                entity.HasNoKey();
 
                 entity.ToTable("Prescription_MedicineConsumption");
 
@@ -396,8 +399,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<UseMedicalSuppliesMedicalSupplyConsumption>(entity =>
             {
-                entity.HasKey(e => new { e.MsconsumptionId, e.UseMedicalSupplieId });
-
+                entity.HasNoKey();
 
                 entity.ToTable("UseMedicalSupplies_MedicalSupplyConsumption");
 
