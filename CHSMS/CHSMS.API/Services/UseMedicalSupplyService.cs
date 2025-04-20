@@ -396,6 +396,7 @@ public class UseMedicalSupplyService
             MedicalSupplyConsumptions = useMedicalSuppliesConsumptions.Select(umsmsc => new MedicalSupplyConsumptionDetailDTO
             {
                 MedicalSupplyConsumptionId = umsmsc.Msconsumption.MsconsumptionId,
+                MedicalSupplyId = umsmsc.Msconsumption.MedicalSupplyInventory.MedicalSupplyId,
                 Amount = (int)(umsmsc.Msconsumption.Amount ?? 0),
                 ConsumptionDate = umsmsc.Msconsumption.ConsumptionDate ?? DateTime.MinValue,
                 Note = umsmsc.Msconsumption.Note ?? string.Empty,

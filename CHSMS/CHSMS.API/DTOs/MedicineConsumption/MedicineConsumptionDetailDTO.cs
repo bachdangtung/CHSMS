@@ -3,6 +3,8 @@
     public class MedicineConsumptionDetailDTO
     {
         public int MedicineConsumptionId { get; set; }
+
+        public int MedicineId { get; set; }
         public int Amount { get; set; }
         public DateTime ConsumptionDate { get; set; }
         public string Note { get; set; }

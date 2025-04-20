@@ -420,7 +420,8 @@ public class PrescriptionService
             IsBhyt = prescription.IsBhyt ?? false,
             MedicineConsumptions = prescriptionMedicineConsumptions.Select(pmc => new MedicineConsumptionDetailDTO
             {
-                MedicineConsumptionId = pmc.MedicineConsumtion.MedicineConsumptionId, // Thêm ánh xạ này
+                MedicineConsumptionId = pmc.MedicineConsumtion.MedicineConsumptionId,
+                MedicineId = pmc.MedicineConsumtion.MedicineInventory.Medicine.MedicineId,
                 Amount = (int)(pmc.MedicineConsumtion.Amount ?? 0),
                 ConsumptionDate = pmc.MedicineConsumtion.ConsumptionDate ?? DateTime.MinValue,
                 Note = pmc.MedicineConsumtion.Note ?? string.Empty,
