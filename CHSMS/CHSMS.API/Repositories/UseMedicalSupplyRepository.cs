@@ -169,4 +169,16 @@ public class UseMedicalSupplyRepository
         _context.UseMedicalSuppliesMedicalSupplyConsumptions.Update(umsmsc);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<List<UseMedicalSuppliesMedicalSupplyConsumption>> GetAllMedicalSupplyConsumptionsAsync()
+    {
+        return await _context.UseMedicalSuppliesMedicalSupplyConsumptions
+            .Include(umsmsc => umsmsc.Msconsumption)
+                .ThenInclude(msc => msc.MedicalSupplyInventory)
+                    .ThenInclude(msi => msi.MedicalSupply)
+            .Include(umsmsc => umsmsc.UseMedicalSupplie)
+            .Where(umsmsc => umsmsc.Msconsumption.Status == true) 
+            .OrderByDescending(umsmsc => umsmsc.Msconsumption.ConsumptionDate) 
+            .ToListAsync();
+    }
 }

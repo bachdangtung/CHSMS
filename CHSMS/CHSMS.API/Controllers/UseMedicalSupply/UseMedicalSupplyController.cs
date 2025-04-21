@@ -55,6 +55,21 @@ public class UseMedicalSupplyController : ControllerBase
             return BadRequest(new { Message = ex.Message });
         }
     }
+    [HttpGet("get-today-medical-supplies")]
+    public async Task<IActionResult> GetTodayUseMedicalSupplies()
+    {
+        try
+        {
+            var useMedicalSupplies = await _useMedicalSupplyService.GetTodayUseMedicalSuppliesAsync();
+            return Ok(useMedicalSupplies);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+
 
     [HttpGet("detail/{useMedicalSupplyId}")]
     public async Task<IActionResult> GetUseMedicalSupplyDetail(int useMedicalSupplyId)
@@ -129,4 +144,19 @@ public class UseMedicalSupplyController : ControllerBase
             return BadRequest(new { Message = ex.Message });
         }
     }
+
+    [HttpGet("statistics-medicalsupply-consumption")]
+    public async Task<IActionResult> GetAllMedicalSupplyConsumptions()
+    {
+        try
+        {
+            var medicalSupplyConsumptions = await _useMedicalSupplyService.GetAllMedicalSupplyConsumptionsAsync();
+            return Ok(medicalSupplyConsumptions);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
 }

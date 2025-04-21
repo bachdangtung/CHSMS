@@ -57,6 +57,24 @@ public class PrescriptionController : ControllerBase
             return BadRequest(new { Message = ex.Message });
         }
     }
+
+    [HttpGet("all-today")]
+    public async Task<IActionResult> GetTodayPrescriptions()
+    {
+        try
+        {
+            var prescriptions = await _prescriptionService.GetTodayPrescriptionsAsync();
+            return Ok(prescriptions);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+
+
+
     [HttpGet("all-nobhyt")]
     public async Task<IActionResult> GetAllPrescriptionsNoBhyt()
     {
@@ -71,7 +89,21 @@ public class PrescriptionController : ControllerBase
         }
     }
 
-    
+    [HttpGet("all-today-nobhyt")]
+    public async Task<IActionResult> GetTodayPrescriptionsNoBhyt()
+    {
+        try
+        {
+            var prescriptions = await _prescriptionService.GetTodayPrescriptionsNoBHYTAsync();
+            return Ok(prescriptions);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+
 
     [HttpGet("detail/{prescriptionId}")]
     public async Task<IActionResult> GetPrescriptionDetail(int prescriptionId)
@@ -158,6 +190,20 @@ public class PrescriptionController : ControllerBase
     {
         var count = _prescriptionService.GetTodayPrescriptionCount();
         return Ok(count);
+    }
+
+    [HttpGet("statistics-medicine-consumption")]
+    public async Task<IActionResult> GetAllMedicineConsumptions()
+    {
+        try
+        {
+            var medicineConsumptions = await _prescriptionService.GetAllMedicineConsumptionsAsync();
+            return Ok(medicineConsumptions);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 
 

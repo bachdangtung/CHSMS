@@ -194,6 +194,18 @@ public class PrescriptionRepository
 
         return _context.Prescriptions
             .Count(m => m.IssueDate >= today && m.IssueDate < tomorrow);
-    }    
+    }
+
+    public async Task<List<PrescriptionMedicineConsumption>> GetAllMedicineConsumptionsAsync()
+    {
+        return await _context.PrescriptionMedicineConsumptions
+            .Include(pmc => pmc.MedicineConsumtion)
+                .ThenInclude(mc => mc.MedicineInventory)
+                    .ThenInclude(mi => mi.Medicine)
+            .Include(pmc => pmc.Prescription)
+            .Where(pmc => pmc.MedicineConsumtion.Status == true)
+            .OrderByDescending(pmc => pmc.MedicineConsumtion.ConsumptionDate)
+            .ToListAsync();
+    }
 
 }
