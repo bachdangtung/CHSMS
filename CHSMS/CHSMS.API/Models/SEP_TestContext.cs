@@ -224,22 +224,20 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<MedicalSupplyInventoryStatistic>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(e => e.Msisid);
+
+                entity.Property(e => e.Msisid).HasColumnName("MSISID");
 
                 entity.Property(e => e.ConfirmDate).HasColumnType("datetime");
 
                 entity.Property(e => e.MsinventoryId).HasColumnName("MSInventoryID");
-
-                entity.Property(e => e.Msisid)
-                    .ValueGeneratedOnAdd()
-                    .HasColumnName("MSISID");
 
                 entity.Property(e => e.StatisticDate).HasColumnType("datetime");
 
                 entity.Property(e => e.UpdateDate).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Msinventory)
-                    .WithMany()
+                    .WithMany(p => p.MedicalSupplyInventoryStatistics)
                     .HasForeignKey(d => d.MsinventoryId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_MedicalSupplyInventoryStatistics_MedicalSupplyInventory");

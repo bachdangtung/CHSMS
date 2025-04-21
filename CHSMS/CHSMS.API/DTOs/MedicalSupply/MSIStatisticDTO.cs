@@ -11,6 +11,7 @@
         public DateTime? StatisticDate { get; set; }
         public DateTime? ConfirmDate { get; set; }
         public bool? IsUpdate { get; set; }
+        public DateTime? UpdateTime { get; set; }
         public string? Note { get; set; }
     }
 }

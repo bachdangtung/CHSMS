@@ -290,7 +290,11 @@ namespace CHSMS.API.Repositories
                 .Where(x => x.ConfirmDate >= from && x.ConfirmDate <= to)
                 .ToList();
         }
-
+        public bool UpdateMedicalSupplyInventoryStatistic(List<MedicalSupplyInventoryStatistic> medicalSupplyInventoryStatistics)
+        {
+            _context.MedicalSupplyInventoryStatistics.UpdateRange(medicalSupplyInventoryStatistics);
+            return _context.SaveChanges() > 0;
+        }
 
     }
 }

@@ -261,13 +261,49 @@ namespace CHSMS.API.Services
         public bool AddMedicalSupplyInventoryStatistic(List<MSIStatisticDTO> mSIStatisticDTOs)
         {
             List<MedicalSupplyInventoryStatistic> medicalSupplyInventoryStatistics = new List<MedicalSupplyInventoryStatistic>();
-            //foreach (var item in mSIStatisticDTOs)
-            //{
-
-            //    };
-
-            return false;
-
+            if (mSIStatisticDTOs == null || mSIStatisticDTOs.Count == 0)
+            {
+                return false;
+            }
+            var adds = new List<MedicalSupplyInventoryStatistic>();
+            foreach (var item in mSIStatisticDTOs)
+            {
+                var medicalSupplyInventoryStatistic = ConvertMedicalSupplyInventoryStatisticFromDTO(item);
+                adds.Add(medicalSupplyInventoryStatistic);
+            }
+            return _medicalSupplyReposotory.AddMedicalSupplyInventoryStatistic(adds);
+        }
+        public bool UpdateMedicalSupplyInventoryStatistic(MSIStatisticDTO mSIStatisticDTO)
+        {
+            var medicalSupplyInventoryStatistic = ConvertMedicalSupplyInventoryStatisticFromDTO(mSIStatisticDTO);
+            if (medicalSupplyInventoryStatistic == null)
+            {
+                return false;
+            }
+            return _medicalSupplyReposotory.UpdateMedicalSupplyInventoryStatistic(medicalSupplyInventoryStatistic);
+        }
+        public bool UpdateMedicalSupplyInventoryStatistic(List<MSIStatisticDTO> mSIStatisticDTOs)
+        {
+            List<MedicalSupplyInventoryStatistic> medicalSupplyInventoryStatistics = new List<MedicalSupplyInventoryStatistic>();
+            if (mSIStatisticDTOs == null || mSIStatisticDTOs.Count == 0)
+            {
+                return false;
+            }
+            foreach (var item in mSIStatisticDTOs)
+            {
+                var medicalSupplyInventoryStatistic = ConvertMedicalSupplyInventoryStatisticFromDTO(item);
+                medicalSupplyInventoryStatistics.Add(medicalSupplyInventoryStatistic);
+            }
+            return _medicalSupplyReposotory.UpdateMedicalSupplyInventoryStatistic(medicalSupplyInventoryStatistics);
+        }
+        public List<MedicalSupplyInventoryStatistic>? GetMedicalSupplyInventoryStatisticsByStatisticDate(DateTime from, DateTime to)
+        {
+            if (from > to || from > DateTime.Now)
+            {
+                return null;
+            }
+            var medicalSupplyInventoryStatistic = _medicalSupplyReposotory.GetMedicalSupplyInventoryStatisticsByStatisticDate(from, to);
+            return medicalSupplyInventoryStatistic;
         }
 
         public MedicalSupplyInventoryStatistic ConvertMedicalSupplyInventoryStatisticFromDTO(MSIStatisticDTO mSIStatisticDTO)
@@ -277,7 +313,7 @@ namespace CHSMS.API.Services
                 Msisid = mSIStatisticDTO.Msisid.Value,
                 MsinventoryId = mSIStatisticDTO.MsinventoryId.Value,
                 Quantity = mSIStatisticDTO.Quantity.Value,
-                ActualQuantity = mSIStatisticDTO.ActualQuantity,
+                ActualQuantity = mSIStatisticDTO.ActualQuantity.Value,
                 StatisticPerson = mSIStatisticDTO.StatisticPerson.Value,
                 ConfirmPerson = mSIStatisticDTO.ConfirmPerson,
                 StatisticDate = mSIStatisticDTO.StatisticDate.Value,

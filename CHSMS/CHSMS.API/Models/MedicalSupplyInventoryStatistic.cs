@@ -8,7 +8,7 @@ namespace CHSMS.API.Models
         public int Msisid { get; set; }
         public int MsinventoryId { get; set; }
         public double Quantity { get; set; }
-        public double? ActualQuantity { get; set; }
+        public double ActualQuantity { get; set; }
         public int StatisticPerson { get; set; }
         public int? ConfirmPerson { get; set; }
         public DateTime StatisticDate { get; set; }

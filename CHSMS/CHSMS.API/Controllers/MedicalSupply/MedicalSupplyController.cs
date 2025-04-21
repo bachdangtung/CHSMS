@@ -217,9 +217,43 @@ namespace CHSMS.API.Controllers.MedicalSupply
         public IActionResult ImportHistory(DateTime from, DateTime to)
         {
             var list = _medicalSupplyService.GetMedicalSupplyImportHistory(from, to);
-            if(list == null)
-                return NotFound();            
+            if (list == null)
+                return NotFound();
             return Ok(list);
+        }
+        [HttpGet("GetInventoryStatistic")]
+        public IActionResult GetInventoryStatistic(DateTime? from, DateTime? to)
+        {
+            if (from.HasValue == false || to.HasValue == false)
+                return BadRequest("From and To date are required");
+            var list = _medicalSupplyService.GetMedicalSupplyInventoryStatisticsByStatisticDate(from.Value, to.Value);
+            if (list == null)
+                return NotFound();
+            return Ok(list);
+        }
+        [HttpGet("GetInventoryStatisticDetail")]
+        public IActionResult GetInventoryStatisticDetail(int id)
+        {
+            var result = _medicalSupplyService.GetMedicalSupplyInventoryStatisticsById(id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+        [HttpPost("AddInventoryStatistic")]
+        public IActionResult AddInventoryStatistic([FromBody] List<MSIStatisticDTO> mSIStatisticDTO)
+        {
+            var result = _medicalSupplyService.AddMedicalSupplyInventoryStatistic(mSIStatisticDTO);
+            if (result == false)
+                return BadRequest();
+            return Ok("done");
+        }
+        [HttpPut("UpdateInventoryStatistic")]
+        public IActionResult UpdateInventoryStatistic([FromBody] List<MSIStatisticDTO> mSIStatisticDTO)
+        {
+            var result = _medicalSupplyService.UpdateMedicalSupplyInventoryStatistic(mSIStatisticDTO);
+            if (result == false)
+                return BadRequest();
+            return Ok("done");
         }
     }
 }
