@@ -7,8 +7,8 @@ namespace CHSMS.API.Services.Interfaces
     {
         List<MedicineDTO> GetAll();
         MedicineDTO? GetMedicineById(int medicineId);
-        List<MedicineInventoryDTO> MedicineDetail(int medicineId);
+        List<MedicineInventoryDetailDTO> MedicineDetail(int medicineId);
         bool AddMedicineInventory(MedicineInventoryAddDTO medicineInventory);
-        bool UpdateMedicineInventory(MedicineInventoryDTO medicineInventory);
+        bool UpdateMedicineInventory(MedicineInventoryDetailDTO medicineInventory);
     }
 }
