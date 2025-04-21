@@ -1,4 +1,5 @@
 ﻿using CHSMS.API.DTOs.Medicine;
+using CHSMS.API.DTOs.MedicineInventory;
 using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories;
@@ -66,11 +67,11 @@ namespace CHSMS.API.Services
         }
 
         //get all medicine in medicine inventory by medicineId
-        public List<MedicineInventoryDTO> GetMedicineInventoryByMedicineId(int medicineId)
+        public List<MedicineInventoryDetailDTO> GetMedicineInventoryByMedicineId(int medicineId)
         {
             var medicineInventories = _medicineRepository.GetMedicineInventoryByMedicineId(medicineId);
 
-            var medicineInventoryDTOs = medicineInventories.Select(medicineInventory => new MedicineInventoryDTO
+            var medicineInventoryDTOs = medicineInventories.Select(medicineInventory => new MedicineInventoryDetailDTO
             {
                 MedicineInventoryId = medicineInventory.MedicineInventoryId,
                 MedicineId = medicineInventory.MedicineId,
@@ -85,7 +86,7 @@ namespace CHSMS.API.Services
                 ReceiverName = medicineInventory.ReceiverName,
                 TransactionDate = medicineInventory.TransactionDate,
                 SupplierId = medicineInventory.SupplierId,
-                SupplierName = medicineInventory.SupplierName, // Kiểm tra null trước khi lấy giá trị
+                SupplierName = medicineInventory.SupplierName,
                 ManufacturingDate = medicineInventory.ManufacturingDate,
                 BatchNumber = medicineInventory.BatchNumber,
             }).ToList();
@@ -123,13 +124,13 @@ namespace CHSMS.API.Services
         }
 
         //Get medicine supply detail
-        public List<MedicineInventoryDTO> MedicineDetail(int medicineId)
+        public List<MedicineInventoryDetailDTO> MedicineDetail(int medicineId)
         {
-            List<MedicineInventoryDTO> medicineInventoryDTOs = new List<MedicineInventoryDTO>();
+            List<MedicineInventoryDetailDTO> medicineInventoryDTOs = new List<MedicineInventoryDetailDTO>();
             List<MedicineInventory> medicineInventories = _medicineRepository.GetMedicineInventory(medicineId);
             foreach (var medicineInventory in medicineInventories)
             {
-                var medicineInventoryDTO = new MedicineInventoryDTO
+                var medicineInventoryDTO = new MedicineInventoryDetailDTO
                 {
                     MedicineInventoryId = medicineInventory.MedicineInventoryId,
                     MedicineId = medicineInventory.MedicineId,
@@ -346,23 +347,55 @@ namespace CHSMS.API.Services
                 throw new Exception("Bản ghi đã quá 24 giờ, không thể chỉnh sửa.");
 
             // cập nhật các trường được phép
-            existing.MedicineId = dto.MedicineId;
+            /*existing.MedicineId = dto.MedicineId;
             existing.CertificateNumber = dto.CertificateNumber;
             existing.SupplierId = dto.SupplierId;
-            existing.TransactionType = dto.TransactionType;
+            existing.TransactionType = dto.TransactionType;*/
             existing.ImportQuantity = dto.ImportQuantity;
             existing.Quantity = dto.Quantity;
             existing.Note = dto.Note;
-            existing.BatchNumber = dto.BatchNumber;
+            /*existing.BatchNumber = dto.BatchNumber;*/
             existing.ManufacturingDate = dto.ManufacturingDate;
-            existing.TransactionDate = dto.TransactionDate;
-
+/*            existing.TransactionDate = dto.TransactionDate;
+*/
             return _medicineRepository.SaveChanges();
         }
         public List<MedicineInventory> GetRecentInventoryHistory(int userId)
         {
             return _medicineRepository.GetRecentInventoriesByUser(userId);
         }
+        public List<MedicineInventoryUpdateHistoryDTO> GetAllInventoryHistory(int userId)
+        {
+            var inventories = _medicineRepository.GetAllInventoriesByUser(userId);
+            return inventories.Select(x => {
+                bool isWithin24Hours = x.TransactionDate >= DateTime.Now.AddHours(-24);
+
+                return new MedicineInventoryUpdateHistoryDTO
+                {
+                    MedicineInventoryId = x.MedicineInventoryId,
+                    MedicineId = x.MedicineId,
+                    CertificateNumber = x.CertificateNumber,
+                    ManufacturingDate = x.ManufacturingDate,
+                    ExpiryDate = x.ExpiryDate,
+                    TransactionType = x.TransactionType,
+                    BatchNumber = x.BatchNumber,
+                    SupplierId = x.SupplierId,
+                    Note = x.Note,
+                    ImportQuantity = x.ImportQuantity,
+                    Quantity = x.Quantity,
+                    TransactionDate = x.TransactionDate,
+
+                    // Thiết lập quyền chỉnh sửa chung
+                    CanEdit = isWithin24Hours,
+
+                    // Thiết lập quyền chỉnh sửa cho các trường cụ thể
+                    CanEditNote = isWithin24Hours,
+                    CanEditImportQuantity = isWithin24Hours,
+                    CanEditManufacturingDate = isWithin24Hours
+                };
+            }).ToList();
+        }
+
 
         public List<MedicineDTO> FilterMedicineStock(MedicineInventoryFilter filter)
         {

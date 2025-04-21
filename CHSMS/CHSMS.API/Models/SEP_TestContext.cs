@@ -40,7 +40,7 @@ namespace CHSMS.API.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server=.;Database=SEP_Test;TrustServerCertificate=True;Integrated Security=true;");
+                optionsBuilder.UseSqlServer("server=localhost; database=SEP_Test;user=sa;password=123;Integrated Security=true;TrustServerCertificate=Yes");
             }
         }
 
@@ -380,13 +380,16 @@ namespace CHSMS.API.Models
 
                 entity.ToTable("Prescription_MedicineConsumption");
 
+                entity.HasIndex(e => e.MedicineConsumtionId, "IX_Prescription_MedicineConsumption")
+                    .IsUnique();
+
                 entity.Property(e => e.MedicineConsumtionId).HasColumnName("MedicineConsumtionID");
 
                 entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
 
                 entity.HasOne(d => d.MedicineConsumtion)
-                    .WithMany()
-                    .HasForeignKey(d => d.MedicineConsumtionId)
+                    .WithOne()
+                    .HasForeignKey<PrescriptionMedicineConsumption>(d => d.MedicineConsumtionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Prescription_MedicineConsumption_MedicineConsumption");
 

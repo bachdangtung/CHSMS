@@ -29,7 +29,11 @@ namespace CHSMS.API.Services
         public async Task<TokenPairDto?> AuthenticateAsync(string userName, string password)
         {
             var user = await _unitOfWork.Users.GetByUserNameAsync(userName);
-            if (user == null || !VerifyPassword(password, user.Password))
+            if (user == null)
+            {
+                return null;
+            }
+            if (!VerifyPassword(password, user.Password))
             {
                 return null;
             }
@@ -73,12 +77,18 @@ namespace CHSMS.API.Services
 
         public async Task<TokenPairDto?> RefreshTokenAsync(string accessToken, string refreshToken)
         {
+            var tokenParts = accessToken.Split('.');
+            if (tokenParts.Length != 3)
+            {
+                return null;
+            }
+
             var principal = GetPrincipalFromExpiredToken(accessToken);
             var userId = int.Parse(principal.FindFirst("Id")?.Value);
 
             var user = await _unitOfWork.Users.GetByIdAsync(userId);
 
-            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiry <= DateTime.UtcNow)
+            if (user == null || user.RefreshToken != refreshToken || user.Status == false || user.RefreshTokenExpiry <= DateTime.UtcNow)
             {
                 return null;
             }
@@ -107,14 +117,11 @@ namespace CHSMS.API.Services
                 {
                     throw new SecurityTokenException("Invalid token algorithm");
                 }
-
-
                 return principal;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Token validation failed: " + ex.Message);
-                throw;
+                throw new SecurityTokenException("Token validation failed: " + ex.Message); ;
             }
 
         }
@@ -199,6 +206,7 @@ namespace CHSMS.API.Services
         {
             var user = await _unitOfWork.Users.GetByEmailAsync(email);
             if (user == null) return false;
+            if (user.Status == false) return false;
 
             string resetToken = Guid.NewGuid().ToString(); // Generate a unique token
             user.ResetToken = resetToken;
@@ -219,7 +227,7 @@ namespace CHSMS.API.Services
         {
 
             var user = await _unitOfWork.Users.GetByResetTokenAsync(resetPasswordDto);
-            if (user == null || user.ResetTokenExpiry < DateTime.UtcNow)
+            if (user == null || user.ResetTokenExpiry < DateTime.UtcNow || user.Status == false)
                 return false; // Invalid or expired token
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.NewPassword);

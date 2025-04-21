@@ -1,6 +1,7 @@
 ﻿using CHSMS.API.DTOs.Medicine;
 using CHSMS.API.Models;
 using CHSMS.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 
@@ -44,7 +45,7 @@ namespace CHSMS.API.Controllers
 
         //get medicine inventory by medicineId
         [HttpGet("GetInventory/{medicineId}")]
-        public ActionResult<IEnumerable<MedicineInventoryDTO>> GetMedicineInventory(int medicineId)
+        public ActionResult<IEnumerable<MedicineInventoryDetailDTO>> GetMedicineInventory(int medicineId)
         {
             var medicineInventories = _medicineService.GetMedicineInventoryByMedicineId(medicineId);
             if (medicineInventories == null || !medicineInventories.Any())
@@ -203,6 +204,7 @@ namespace CHSMS.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("GetRecentInventoryHistory")]
         public IActionResult GetRecentInventoryHistory()
         {
@@ -214,6 +216,20 @@ namespace CHSMS.API.Controllers
             var result = _medicineService.GetRecentInventoryHistory(userId);
             return Ok(result);
         }
+
+        [Authorize]
+        [HttpGet("GetAllInventoryHistory")]
+        public IActionResult GetAllInventoryHistory()
+        {
+            var userIdClaim = User.FindFirst("Id")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized("Không xác định được người dùng.");
+
+            int userId = int.Parse(userIdClaim);
+            var result = _medicineService.GetAllInventoryHistory(userId);
+            return Ok(result);
+        }
+
 
 
         [HttpPost("filter-inventory")]

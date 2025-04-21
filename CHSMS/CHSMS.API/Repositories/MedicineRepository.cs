@@ -29,14 +29,14 @@ namespace CHSMS.API.Repositories
         }
 
         //Get medicineInventory by medicineId
-        public List<MedicineInventoryDTO> GetMedicineInventoryByMedicineId(int medicineId)
+        public List<MedicineInventoryDetailDTO> GetMedicineInventoryByMedicineId(int medicineId)
         {
             var medicineInventories = _context.MedicineInventories
                 .Include(m => m.Medicine)
                 .Include(m => m.Supplier)
                 .Include(m => m.Receiver)
                 .Where(m => m.MedicineId == medicineId)
-                .Select(m => new MedicineInventoryDTO
+                .Select(m => new MedicineInventoryDetailDTO
                 {
                     MedicineInventoryId = m.MedicineInventoryId,
                     MedicineId = m.MedicineId,
@@ -422,6 +422,14 @@ namespace CHSMS.API.Repositories
         {
             return _context.MedicineInventories
                 .Where(x => x.ReceiverId == userId && x.TransactionDate >= DateTime.Now.AddDays(-1))
+                .ToList();
+        }
+
+        public List<MedicineInventory> GetAllInventoriesByUser(int userId)
+        {
+            return _context.MedicineInventories
+                .Where(x => x.ReceiverId == userId)
+                .OrderByDescending(x => x.TransactionDate)
                 .ToList();
         }
 
