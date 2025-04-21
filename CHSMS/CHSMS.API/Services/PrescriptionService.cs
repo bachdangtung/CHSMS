@@ -3,18 +3,20 @@ using CHSMS.API.DTOs.MedicineConsumption;
 using CHSMS.API.DTOs.MedicineInventory;
 using CHSMS.API.DTOs.Prescription;
 using CHSMS.API.Models;
+using CHSMS.API.Repositories.Interfaces;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 
 
-public class PrescriptionService
+public class PrescriptionService : IPrescriptionService
 {
-    private readonly PrescriptionRepository _repository;
+    private readonly IPrescriptionRepository _repository;
 
     private readonly SEP_TestContext _context;
 
 
-    public PrescriptionService(PrescriptionRepository repository, SEP_TestContext context)
+    public PrescriptionService(IPrescriptionRepository repository, SEP_TestContext context)
 
     {
         _repository = repository;
@@ -447,7 +449,7 @@ public class PrescriptionService
             FullName = prescription.User?.Fullname ?? string.Empty,
             PatientName = prescription.MedicalRecordHistory?.MedicalRecord?.PatientName ?? string.Empty,
             Gender = prescription.MedicalRecordHistory?.MedicalRecord?.Gender ?? string.Empty,
-            Dob = prescription.MedicalRecordHistory?.MedicalRecord?.Dob?? DateTime.MinValue,
+            Dob = prescription.MedicalRecordHistory?.MedicalRecord?.Dob ?? DateTime.MinValue,
             Address = prescription.MedicalRecordHistory?.MedicalRecord.Address ?? string.Empty,
             HealthInsurance = prescription.MedicalRecordHistory?.MedicalRecord?.HealthInsurance ?? string.Empty,
             DiagnoseConclusion = prescription.MedicalRecordHistory?.DiagnoseConclusion ?? string.Empty,
@@ -462,9 +464,9 @@ public class PrescriptionService
                 IsSpecialMedicine = pmc.MedicineConsumtion.IsSpecialMedicine ?? false,
                 Status = pmc.MedicineConsumtion.Status ?? false,
                 MedicineName = pmc.MedicineConsumtion.MedicineInventory?.Medicine?.MedicineName ?? string.Empty,
-                DosageForm = pmc.MedicineConsumtion.MedicineInventory?.Medicine?.DosageForm?? string.Empty,
+                DosageForm = pmc.MedicineConsumtion.MedicineInventory?.Medicine?.DosageForm ?? string.Empty,
                 BatchNumber = pmc.MedicineConsumtion.MedicineInventory?.BatchNumber ?? string.Empty,
-                TransactionDate = pmc.MedicineConsumtion.MedicineInventory?.TransactionDate??DateTime.MinValue,
+                TransactionDate = pmc.MedicineConsumtion.MedicineInventory?.TransactionDate ?? DateTime.MinValue,
                 ExpiryDate = pmc.MedicineConsumtion.MedicineInventory?.ExpiryDate ?? DateTime.MinValue,
                 Quantity = pmc.MedicineConsumtion.MedicineInventory?.Quantity ?? 0,
                 IsBhyt = pmc.MedicineConsumtion.MedicineInventory.Medicine?.IsBhyt ?? false,
@@ -488,9 +490,9 @@ public class PrescriptionService
             MedicineInventoryId = pmc.MedicineConsumtion.MedicineInventoryId,
             MedicineName = pmc.MedicineConsumtion.MedicineInventory.Medicine.MedicineName ?? string.Empty,
             MedicineCode = pmc.MedicineConsumtion.MedicineInventory.Medicine.MedicineCode ?? string.Empty,
-            ActiveIngredient =pmc.MedicineConsumtion.MedicineInventory.Medicine.ActiveIngredient ?? string.Empty,
-            Dosage =pmc.MedicineConsumtion.MedicineInventory.Medicine.Dosage ?? string.Empty,
-            DosageForm=pmc.MedicineConsumtion.MedicineInventory.Medicine.DosageForm ?? string.Empty,
+            ActiveIngredient = pmc.MedicineConsumtion.MedicineInventory.Medicine.ActiveIngredient ?? string.Empty,
+            Dosage = pmc.MedicineConsumtion.MedicineInventory.Medicine.Dosage ?? string.Empty,
+            DosageForm = pmc.MedicineConsumtion.MedicineInventory.Medicine.DosageForm ?? string.Empty,
             BatchNumber = pmc.MedicineConsumtion.MedicineInventory.BatchNumber ?? string.Empty,
             Amount = pmc.MedicineConsumtion.Amount,
             ConsumptionDate = pmc.MedicineConsumtion.ConsumptionDate,

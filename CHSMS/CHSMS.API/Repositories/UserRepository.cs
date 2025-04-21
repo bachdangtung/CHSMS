@@ -44,6 +44,7 @@ namespace CHSMS.API.Repositories
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.ResetToken == resetPasswordDto.Token && u.UserId == resetPasswordDto.UserId);
         }
+
         public async Task<IEnumerable<User>> GetAllAsync()
         {
             return await _context.Users.Include(r => r.Role).ToListAsync();
@@ -60,6 +61,5 @@ namespace CHSMS.API.Repositories
 
             return await query.ToListAsync();
         }
-
     }
 }

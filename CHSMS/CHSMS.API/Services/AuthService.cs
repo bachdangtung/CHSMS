@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
+using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services.Interfaces;
-using CHSMS.API.UnitOfWork;
 using Microsoft.IdentityModel.Tokens;
 using NETCore.MailKit.Core;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,20 +15,31 @@ namespace CHSMS.API.Services
     public class AuthService : IAuthService
     {
         private readonly IConfiguration _configuration;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUserRepository _userRepository;
+        private readonly IRoleRepository _roleRepository;
         private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
+        private readonly SEP_TestContext _context;
 
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, IEmailService emailService, IMapper mapper)
+        public AuthService(
+            IUserRepository userRepository,
+            IRoleRepository roleRepository,
+            IConfiguration configuration,
+            IEmailService emailService,
+            IMapper mapper,
+            SEP_TestContext context)
         {
-            _unitOfWork = unitOfWork;
+            _userRepository = userRepository;
+            _roleRepository = roleRepository;
             _configuration = configuration;
             _emailService = emailService;
             _mapper = mapper;
+            _context = context;
         }
+
         public async Task<TokenPairDto?> AuthenticateAsync(string userName, string password)
         {
-            var user = await _unitOfWork.Users.GetByUserNameAsync(userName);
+            var user = await _userRepository.GetByUserNameAsync(userName);
             if (user == null)
             {
                 return null;
@@ -53,11 +64,10 @@ namespace CHSMS.API.Services
             var refreshTokenExpiryDays = Convert.ToInt32(_configuration["Jwt:RefreshTokenExpiryInDays"]);
             var refreshTokenExpiry = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
 
-            // Store the refresh token in database
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = refreshTokenExpiry;
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.CommitAsync();
+            _userRepository.Update(user);
+            await _context.SaveChangesAsync();
 
             return new TokenPairDto
             {
@@ -86,7 +96,7 @@ namespace CHSMS.API.Services
             var principal = GetPrincipalFromExpiredToken(accessToken);
             var userId = int.Parse(principal.FindFirst("Id")?.Value);
 
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
 
             if (user == null || user.RefreshToken != refreshToken || user.Status == false || user.RefreshTokenExpiry <= DateTime.UtcNow)
             {
@@ -121,21 +131,20 @@ namespace CHSMS.API.Services
             }
             catch (Exception ex)
             {
-                throw new SecurityTokenException("Token validation failed: " + ex.Message); ;
+                throw new SecurityTokenException("Token validation failed: " + ex.Message);
             }
-
         }
 
         public async Task<bool> RevokeRefreshToken(int userId)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null) return false;
 
             user.RefreshToken = null;
             user.RefreshTokenExpiry = null;
 
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.CommitAsync();
+            _userRepository.Update(user);
+            await _context.SaveChangesAsync();
 
             return true;
         }
@@ -150,12 +159,12 @@ namespace CHSMS.API.Services
             var secretKeyByte = Encoding.UTF8.GetBytes(secretKey);
 
             var authClaims = new List<Claim>
-    {
-        new Claim(ClaimTypes.Email, user.Email),
-        new Claim("name", user.Fullname),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        new Claim("Id", user.UserId.ToString()),
-    };
+            {
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim("name", user.Fullname),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("Id", user.UserId.ToString()),
+            };
 
             if (user.Role != null)
             {
@@ -175,46 +184,41 @@ namespace CHSMS.API.Services
             return jwtTokenHandler.WriteToken(token);
         }
 
-        // Hash the password before storing it
         public static string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
         }
 
-        // Verify password during login
         public static bool VerifyPassword(string enteredPassword, string storedHash)
         {
             return BCrypt.Net.BCrypt.Verify(enteredPassword, storedHash);
         }
 
-        // Change Password (Verify Old Password & Update)
         public async Task<bool> ChangePasswordAsync(int userId, string oldPassword, string newPassword)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null || !BCrypt.Net.BCrypt.Verify(oldPassword, user.Password))
                 return false;
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
 
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.CommitAsync();
+            _userRepository.Update(user);
+            await _context.SaveChangesAsync();
             return true;
         }
 
-        // Request Password Reset
         public async Task<bool> RequestResetPasswordAsync(string email)
         {
-            var user = await _unitOfWork.Users.GetByEmailAsync(email);
+            var user = await _userRepository.GetByEmailAsync(email);
             if (user == null) return false;
             if (user.Status == false) return false;
 
-            string resetToken = Guid.NewGuid().ToString(); // Generate a unique token
+            string resetToken = Guid.NewGuid().ToString();
             user.ResetToken = resetToken;
-            user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1); // Token expires in 1 hour
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.CommitAsync();
+            user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+            _userRepository.Update(user);
+            await _context.SaveChangesAsync();
 
-            // Send the reset link via email
             string resetLink = $"http://127.0.0.1:5500/pages/authen/reset-password.html?token={resetToken}&id={user.UserId}";
             await _emailService.SendAsync(email, "Password Reset Request",
                 $"Click the link to reset your password: <a href='{resetLink}'>Reset Password</a>", true);
@@ -222,38 +226,35 @@ namespace CHSMS.API.Services
             return true;
         }
 
-        // Reset Password
         public async Task<bool> ResetPasswordAsync(ResetPasswordDto resetPasswordDto)
         {
-
-            var user = await _unitOfWork.Users.GetByResetTokenAsync(resetPasswordDto);
+            var user = await _userRepository.GetByResetTokenAsync(resetPasswordDto);
             if (user == null || user.ResetTokenExpiry < DateTime.UtcNow || user.Status == false)
-                return false; // Invalid or expired token
+                return false;
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.NewPassword);
             user.ResetToken = null;
             user.ResetTokenExpiry = null;
 
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.CommitAsync();
+            _userRepository.Update(user);
+            await _context.SaveChangesAsync();
 
             return true;
         }
 
-        // Add user
         public async Task<User> CreateUserAsync(CreateUserDto createUserDto)
         {
-            var existedUser = await _unitOfWork.Users.GetByUserNameAsync(createUserDto.UserName);
+            var existedUser = await _userRepository.GetByUserNameAsync(createUserDto.UserName);
             if (existedUser != null)
             {
                 throw new Exception("Tài khoản đã tồn tại");
             }
-            var emailExist = await _unitOfWork.Users.GetByEmailAsync(createUserDto.Email);
+            var emailExist = await _userRepository.GetByEmailAsync(createUserDto.Email);
             if (emailExist != null)
             {
                 throw new Exception("Email đã tồn tại");
             }
-            var isValidRole = await _unitOfWork.Roles.RoleExistsAsync(createUserDto.RoleId);
+            var isValidRole = await _roleRepository.RoleExistsAsync(createUserDto.RoleId);
             if (!isValidRole)
             {
                 throw new Exception("Vai trò không tồn tại");
@@ -265,10 +266,9 @@ namespace CHSMS.API.Services
             user.Status = true;
             user.Password = BCrypt.Net.BCrypt.HashPassword(randomPassword);
 
-            _unitOfWork.Users.Add(user);
-            await _unitOfWork.CommitAsync();
+            _userRepository.Add(user);
+            await _context.SaveChangesAsync();
 
-            // 🔹 Send email with username & password
             string emailBody = $"Tài khoản của bạn đã được tạo:<br><br>" +
                                $"<strong>Tên đăng nhập:</strong> {user.UserName}<br>" +
                                $"<strong>Mật khẩu:</strong> {randomPassword}<br><br>" +
@@ -281,33 +281,34 @@ namespace CHSMS.API.Services
 
         public async Task<bool> ChangeStatusAsync(int userId)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
                 throw new Exception("Người dùng không tồn tại");
             }
 
             user.Status = !user.Status;
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.CommitAsync();
+            _userRepository.Update(user);
+            await _context.SaveChangesAsync();
 
             return true;
         }
+
         public async Task<IEnumerable<UserListDto>> GetUserListAsync()
         {
-            var userList = await _unitOfWork.Users.GetAllAsync();
+            var userList = await _userRepository.GetAllAsync();
             return _mapper.Map<IEnumerable<UserListDto>>(userList);
         }
 
         public async Task<UserListDto> GetUserProfileAsync(int id)
         {
-            var userList = await _unitOfWork.Users.GetByIdAsync(id);
-            return _mapper.Map<UserListDto>(userList);
+            var user = await _userRepository.GetByIdAsync(id);
+            return _mapper.Map<UserListDto>(user);
         }
 
         public async Task<bool> EditUserProfileAsync(int userId, EditUserProfileDto updatedUser)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
             {
                 throw new Exception("Người dùng không tồn tại");
@@ -320,8 +321,8 @@ namespace CHSMS.API.Services
             user.Gender = updatedUser.Gender;
             user.Dob = updatedUser.Dob;
 
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.CommitAsync();
+            _userRepository.Update(user);
+            await _context.SaveChangesAsync();
 
             return true;
         }
@@ -329,7 +330,7 @@ namespace CHSMS.API.Services
         public async Task<IEnumerable<UserListDto>> GetUserListAsync(
             string? search, string? gender, bool? status, int? roleId)
         {
-            var userList = await _unitOfWork.Users.GetAllAsync(
+            var userList = await _userRepository.GetAllAsync(
                 u => (string.IsNullOrEmpty(search) ||
                      u.UserName.Contains(search) ||
                      u.Fullname.Contains(search) ||
@@ -355,19 +356,16 @@ namespace CHSMS.API.Services
             var password = new char[length];
             var random = new Random();
 
-            // Ensure at least one of each required character type
             password[0] = uppercase[random.Next(uppercase.Length)];
             password[1] = lowercase[random.Next(lowercase.Length)];
             password[2] = digits[random.Next(digits.Length)];
             password[3] = specialChars[random.Next(specialChars.Length)];
 
-            // Fill remaining slots with random characters from all types
             for (int i = 4; i < length; i++)
             {
                 password[i] = allChars[random.Next(allChars.Length)];
             }
 
-            // Shuffle password to randomize character positions
             return new string(password.OrderBy(_ => random.Next()).ToArray());
         }
     }
