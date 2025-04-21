@@ -1,5 +1,6 @@
 ﻿using CHSMS.API.DTOs.UseMedicalSupply;
 using CHSMS.API.Models;
+using CHSMS.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -128,5 +129,12 @@ public class UseMedicalSupplyController : ControllerBase
         {
             return BadRequest(new { Message = ex.Message });
         }
+    }
+
+    [HttpGet("TodayCount")]
+    public IActionResult GetTodayMedicalRecordHistoryCount()
+    {
+        var count = _useMedicalSupplyService.GetTodayMedicalSupplyCount();
+        return Ok(count);
     }
 }

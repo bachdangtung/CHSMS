@@ -3,6 +3,7 @@ using CHSMS.API.DTOs.MedicalSupply;
 using CHSMS.API.DTOs.MedicalSupplyConsumption;
 using CHSMS.API.DTOs.UseMedicalSupply;
 using CHSMS.API.Models;
+using CHSMS.API.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -410,5 +411,10 @@ public class UseMedicalSupplyService
             }).ToList(),
             TotalPrice = totalPrice
         };
+    }
+
+    public int GetTodayMedicalSupplyCount()
+    {
+        return _repository.CountTodayMedicalSupplies();
     }
 }
