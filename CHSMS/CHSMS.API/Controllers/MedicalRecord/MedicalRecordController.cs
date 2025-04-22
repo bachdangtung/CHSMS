@@ -1,5 +1,6 @@
 ﻿using CHSMS.API.DTOs.MedicalRecord;
 using CHSMS.API.Services;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,9 +10,9 @@ namespace CHSMS.API.Controllers.MedicalRecord
     [ApiController]
     public class MedicalRecordController : ControllerBase
     {
-        private readonly MedicalRecordService _medicalRecordService;
+        private readonly IMedicalRecordService _medicalRecordService;
 
-        public MedicalRecordController(MedicalRecordService medicalRecordService)
+        public MedicalRecordController(IMedicalRecordService medicalRecordService)
         {
             _medicalRecordService = medicalRecordService;
         }

@@ -1,5 +1,4 @@
 ﻿using CHSMS.API.DTOs.Medicine;
-using CHSMS.API.DTOs.Medicine;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -638,6 +637,11 @@ namespace CHSMS.API.Repositories
         public bool SaveChanges()
         {
             return _context.SaveChanges() > 0;
+        }
+
+        Task<List<Medicine>> IMedicineRepository.SearchMedicinesAsync(int? medicineId, string? medicineName, string? activeIngredient, string? dosage, string? dosageForm, double? quantity, double? importPrice, DateTime? expiryDate, string? batchNumber, string? bidNumber, bool? status, DateTime? minExpiryDate, DateTime? maxExpiryDate)
+        {
+            throw new NotImplementedException();
         }
     }
 }

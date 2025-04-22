@@ -2,6 +2,7 @@
 using CHSMS.API.DTOs.Medicine;
 using CHSMS.API.Models;
 using CHSMS.API.Services;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
