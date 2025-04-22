@@ -6,10 +6,7 @@ namespace CHSMS.API.Services.Interfaces
 {
     public interface IMedicineService
     {
-        List<MedicineDTO> GetAll();
-        List<UserDTO> GetAllReceivers();
-        List<SupplierDTO> GetAllSuppliers();
-        List<MedicineInventoryDetailDTO> GetMedicineInventoryByMedicineId(int medicineId);
+        List<MedicineDTO> GetAllMedicine();
         MedicineDTO? GetMedicineById(int medicineId);
         List<MedicineInventoryDetailDTO> MedicineDetail(int medicineId);
         List<MedicineDTO> SearchMedicineByName(string name);
