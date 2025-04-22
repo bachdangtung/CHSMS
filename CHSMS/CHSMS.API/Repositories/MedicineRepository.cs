@@ -638,10 +638,5 @@ namespace CHSMS.API.Repositories
         {
             return _context.SaveChanges() > 0;
         }
-
-        Task<List<Medicine>> IMedicineRepository.SearchMedicinesAsync(int? medicineId, string? medicineName, string? activeIngredient, string? dosage, string? dosageForm, double? quantity, double? importPrice, DateTime? expiryDate, string? batchNumber, string? bidNumber, bool? status, DateTime? minExpiryDate, DateTime? maxExpiryDate)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

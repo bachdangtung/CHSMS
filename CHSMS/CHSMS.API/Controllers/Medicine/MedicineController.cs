@@ -1,7 +1,4 @@
 ﻿using CHSMS.API.DTOs.Medicine;
-using CHSMS.API.DTOs.Medicine;
-using CHSMS.API.Models;
-using CHSMS.API.Services;
 using CHSMS.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +10,10 @@ namespace CHSMS.API.Controllers
     [ApiController]
     public class MedicineController : ControllerBase
     {
-        private readonly MedicineService _medicineService;
+        private readonly IMedicineService _medicineService;
         private readonly ILogger<MedicineController> _logger;
 
-        public MedicineController(MedicineService medicineService, ILogger<MedicineController> logger)
+        public MedicineController(IMedicineService medicineService, ILogger<MedicineController> logger)
         {
             _medicineService = medicineService;
             _logger = logger;

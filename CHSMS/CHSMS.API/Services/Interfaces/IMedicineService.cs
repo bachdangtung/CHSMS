@@ -29,5 +29,20 @@ namespace CHSMS.API.Services.Interfaces
         List<MedicineInventory> GetRecentInventoryHistory(int userId);
         List<MedicineInventoryUpdateHistoryDTO> GetAllInventoryHistory(int userId);
         List<MedicineDTO> FilterMedicineStock(MedicineInventoryFilter filter);
+        List<MedicineInventoryGetAllDTO> GetAllMedicineInInventory();
+        List<MedicineDTO> GetAllActualMedicines(DateTime? date);
+        List<SupplierDTO> GetAllSuppliers();
+        List<UserDTO> GetAllReceivers();
+        List<MedicineInventoryDetailDTO> GetMedicineInventoryByMedicineId(int medicineId);
+        int ConsumeMedicine(ConsumeMedicineDTO consumeMedicineDTO);
+        Dictionary<MedicineDTO, double> ConsumeReport(DateTime? from, DateTime? to);
+        object GetExpiryMedicineInventory(int medicineId, DateTime? from, DateTime? to);
+        double GetAddOnMedicineInventory(int id, DateTime? from, DateTime? to);
+        List<MedicineConsumption> ConsumptionDetail(int id, DateTime? from, DateTime? to);
+        List<MedicineConsumption> ConsumptionHistory(DateTime? from, DateTime? to);
+        Medicine GetMedicineByMedicineInventoryId(int medicineInventoryId);
+        MedicineInventory GetMedicineInventoryById(int? medicineInventoryId);
+        bool UpdateMedicineConsumption(ConsumeMedicineDTO medicineConsumption);
+        List<MedicineInventory>? GetMedicineImportHistory(DateTime fromDate, DateTime toDate);
     }
 }

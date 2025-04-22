@@ -21,7 +21,7 @@ namespace CHSMS.API.Repositories.Interfaces
         List<MedicineInventory> GetExpiredMedicines();
         List<MedicineInventory> GetMedicinesByBatchNumber(string batchNumber);
         List<Medicine> SearchMedicineByName(string name);
-        Task<List<Medicine>> SearchMedicinesAsync(
+        Task<List<MedicineInventory>> SearchMedicinesAsync(
             int? medicineId = null, string? medicineName = null,
             string? activeIngredient = null, string? dosage = null,
             string? dosageForm = null, double? quantity = null,

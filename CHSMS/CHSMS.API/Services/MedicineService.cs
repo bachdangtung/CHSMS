@@ -1,7 +1,4 @@
-﻿using CHSMS.API.DTOs;
-using CHSMS.API.DTOs.Medicine;
-using CHSMS.API.DTOs.Medicine;
-using CHSMS.API.DTOs.MedicineInventory;
+﻿using CHSMS.API.DTOs.Medicine;
 using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
@@ -286,26 +283,24 @@ namespace CHSMS.API.Services
 
             var result = inventories.Select(mi => new MedicineDTO
             {
-                MedicineId = mi.MedicineId,
-                MedicineName = mi.MedicineName,
-                ActiveIngredient = mi.ActiveIngredient,
-                Dosage = mi.Dosage,
-                DosageForm = mi.DosageForm,
-                ImportPrice = mi.ImportPrice,
-                SellingPrice = mi.SellingPrice,
-                ShelfLife = mi.ShelfLife,
-                BidNumber = mi.BidNumber,
-                Status = mi.Status,
-                IsBhyt = mi.IsBhyt,
-                /*ExpiryDate = mi.MedicineInventories.ExpiryDate,
+                MedicineId = mi.Medicine.MedicineId,
+                MedicineName = mi.Medicine.MedicineName,
+                ActiveIngredient = mi.Medicine.ActiveIngredient,
+                Dosage = mi.Medicine.Dosage,
+                DosageForm = mi.Medicine.DosageForm,
+                ImportPrice = mi.Medicine.ImportPrice,
+                SellingPrice = mi.Medicine.SellingPrice,
+                ShelfLife = mi.Medicine.ShelfLife,
+                BidNumber = mi.Medicine.BidNumber,
+                Status = mi.Medicine.Status,
+                IsBhyt = mi.Medicine.IsBhyt,
+                ExpiryDate = mi.ExpiryDate,
                 BatchNumber = mi.BatchNumber,
-                Quantity = mi.Quantity ?? 0*/
+                Quantity = mi.Quantity ?? 0
             }).ToList();
 
             return result;
         }
-
-
 
 
         public AddMedicineInventoryResultDTO AddMedicineInventoryList(List<MedicineInventoryAddDTO> dtoList, int userId)
