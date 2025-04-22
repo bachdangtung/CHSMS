@@ -1,9 +1,10 @@
 ﻿using CHSMS.API.Models;
+using CHSMS.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace CHSMS.API.Repositories
 {
-    public class ExternalPrescriptionRepository
+    public class ExternalPrescriptionRepository : IExternalPrescriptionRepository
     {
         private readonly SEP_TestContext _context;
 
@@ -80,7 +81,7 @@ namespace CHSMS.API.Repositories
         public async Task<List<ExternalPrescription>> GetExternalPrescriptionsByMedicalRecordHistoryIdAsync(int medicalRecordHistoryId)
         {
             return await _context.ExternalPrescriptions
-                .Include(ep => ep.MedicalRecordHistory) 
+                .Include(ep => ep.MedicalRecordHistory)
                 .ThenInclude(mrh => mrh.MedicalRecord)
                 .Where(ep => ep.MedicalRecordHistoryId == medicalRecordHistoryId)
                 .ToListAsync();

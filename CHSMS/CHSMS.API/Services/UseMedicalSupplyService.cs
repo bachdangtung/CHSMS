@@ -1,20 +1,17 @@
 ﻿using CHSMS.API.DTOs;
-using CHSMS.API.DTOs.MedicalSupply;
 using CHSMS.API.DTOs.MedicalSupplyConsumption;
 using CHSMS.API.DTOs.UseMedicalSupply;
 using CHSMS.API.Models;
+using CHSMS.API.Repositories.Interfaces;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-public class UseMedicalSupplyService
+public class UseMedicalSupplyService : IUseMedicalSupplyService
 {
-    private readonly UseMedicalSupplyRepository _repository;
+    private readonly IUseMedicalSupplyRepository _repository;
     private readonly SEP_TestContext _context;
 
-    public UseMedicalSupplyService(UseMedicalSupplyRepository repository, SEP_TestContext context)
+    public UseMedicalSupplyService(IUseMedicalSupplyRepository repository, SEP_TestContext context)
     {
         _repository = repository;
         _context = context;
@@ -446,7 +443,7 @@ public class UseMedicalSupplyService
             ExpiryDate = umsmsc.Msconsumption.MedicalSupplyInventory.ExpiryDate,
             TotalPrice = umsmsc.TotalPrice,
             UseMedicalSupplieId = umsmsc.UseMedicalSupplieId
-            
+
         }).ToList();
     }
 }

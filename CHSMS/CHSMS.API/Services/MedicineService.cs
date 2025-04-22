@@ -1,20 +1,18 @@
 ﻿using CHSMS.API.DTOs.Medicine;
-using CHSMS.API.DTOs.MedicineInventory;
 using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
-using CHSMS.API.Repositories;
 using CHSMS.API.Repositories.Interfaces;
-using Newtonsoft.Json.Linq;
+using CHSMS.API.Services.Interfaces;
 
 namespace CHSMS.API.Services
 {
-    public class MedicineService
+    public class MedicineService : IMedicineService
     {
         private readonly SEP_TestContext _context;
-        private readonly MedicineRepository _medicineRepository;
+        private readonly IMedicineRepository _medicineRepository;
         private readonly ILogger<MedicineService> _logger;
 
-        public MedicineService(MedicineRepository medicineRepository, SEP_TestContext context, ILogger<MedicineService> logger)
+        public MedicineService(IMedicineRepository medicineRepository, SEP_TestContext context, ILogger<MedicineService> logger)
         {
             _medicineRepository = medicineRepository;
             _context = context;
@@ -356,8 +354,8 @@ namespace CHSMS.API.Services
             existing.Note = dto.Note;
             /*existing.BatchNumber = dto.BatchNumber;*/
             existing.ManufacturingDate = dto.ManufacturingDate;
-/*            existing.TransactionDate = dto.TransactionDate;
-*/
+            /*            existing.TransactionDate = dto.TransactionDate;
+            */
             return _medicineRepository.SaveChanges();
         }
         public List<MedicineInventory> GetRecentInventoryHistory(int userId)
@@ -367,7 +365,8 @@ namespace CHSMS.API.Services
         public List<MedicineInventoryUpdateHistoryDTO> GetAllInventoryHistory(int userId)
         {
             var inventories = _medicineRepository.GetAllInventoriesByUser(userId);
-            return inventories.Select(x => {
+            return inventories.Select(x =>
+            {
                 bool isWithin24Hours = x.TransactionDate >= DateTime.Now.AddHours(-24);
 
                 return new MedicineInventoryUpdateHistoryDTO

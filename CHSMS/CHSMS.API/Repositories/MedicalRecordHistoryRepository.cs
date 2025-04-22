@@ -1,9 +1,10 @@
 ﻿using CHSMS.API.Models;
+using CHSMS.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace CHSMS.API.Repositories
 {
-    public class MedicalRecordHistoryRepository
+    public class MedicalRecordHistoryRepository : IMedicalRecordHistoryRepository
     {
         private readonly SEP_TestContext _context;
 
@@ -88,7 +89,7 @@ namespace CHSMS.API.Repositories
             var query = _context.MedicalRecordHistories
                 .Include(m => m.MedicalRecord)
                 .Include(m => m.User)
-                .Where(m => m.Date >= today && m.Date < tomorrow) 
+                .Where(m => m.Date >= today && m.Date < tomorrow)
                 .OrderByDescending(m => m.Date)
                 .AsQueryable();
 

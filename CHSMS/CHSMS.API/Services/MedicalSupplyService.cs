@@ -1,13 +1,14 @@
 ﻿using CHSMS.API.DTOs.MedicalSupply;
-using CHSMS.API.Repositories;
 using CHSMS.API.Models;
+using CHSMS.API.Repositories.Interfaces;
+using CHSMS.API.Services.Interfaces;
 
 namespace CHSMS.API.Services
 {
-    public class MedicalSupplyService
+    public class MedicalSupplyService : IMedicalSupplyService
     {
-        private readonly MedicalSupplyRepository _medicalSupplyReposotory;
-        public MedicalSupplyService(MedicalSupplyRepository medicalSupplyReposotory)
+        private readonly IMedicalSupplyRepository _medicalSupplyReposotory;
+        public MedicalSupplyService(IMedicalSupplyRepository medicalSupplyReposotory)
         {
             _medicalSupplyReposotory = medicalSupplyReposotory;
         }
@@ -196,7 +197,7 @@ namespace CHSMS.API.Services
             if (MSC == null)
             {
                 return false;
-            }            
+            }
             var medicalSupplyInventory = _medicalSupplyReposotory.GetMedicalSupplyInventoryById(medicalSupplyConsumption.MedicalSupplyInventoryId.Value);
             if (medicalSupplyInventory == null)
             {

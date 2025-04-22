@@ -321,9 +321,6 @@ public class PrescriptionService : IPrescriptionService
         }).ToList();
     }
 
-
-
-
     public async Task<List<PrescriptionDTO>> GetPrescriptionsByUserIdListAsync(int userId)
     {
         var prescriptions = await _repository.GetPrescriptionsByUserIdAsync(userId);

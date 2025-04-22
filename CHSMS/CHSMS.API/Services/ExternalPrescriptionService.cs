@@ -1,21 +1,19 @@
-﻿using CHSMS.API.DTOs;
-using CHSMS.API.DTOs.ExternalPrescription;
-using CHSMS.API.DTOs.MedicineConsumption;
-using CHSMS.API.DTOs.Prescription;
+﻿using CHSMS.API.DTOs.ExternalPrescription;
 using CHSMS.API.Models;
-using CHSMS.API.Repositories;
+using CHSMS.API.Repositories.Interfaces;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace CHSMS.API.Services
 {
-    public class ExternalPrescriptionService
+    public class ExternalPrescriptionService : IExternalPrescriptionService
     {
-        private readonly ExternalPrescriptionRepository _repository;
+        private readonly IExternalPrescriptionRepository _repository;
 
         private readonly SEP_TestContext _context;
 
 
-        public ExternalPrescriptionService(ExternalPrescriptionRepository repository, SEP_TestContext context)
+        public ExternalPrescriptionService(IExternalPrescriptionRepository repository, SEP_TestContext context)
 
         {
             _repository = repository;
@@ -51,7 +49,7 @@ namespace CHSMS.API.Services
                     MedicalRecordHistoryId = medicalRecordHistoryId,
                     UserId = userId,
                     IssueDate = dto.IssueDate,
-                    Status = true, 
+                    Status = true,
                     Note = dto.Note,
                     IsBhyt = false,// Mặc định là false
                 };

@@ -1,9 +1,9 @@
 ﻿using CHSMS.API.Models;
-using Microsoft.EntityFrameworkCore;
+using CHSMS.API.Repositories.Interfaces;
 
 namespace CHSMS.API.Repositories
 {
-    public class MedicalRecordRepository
+    public class MedicalRecordRepository : IMedicalRecordRepository
     {
         private readonly SEP_TestContext _context;
 

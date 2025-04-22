@@ -2,13 +2,10 @@
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Text.RegularExpressions;
 
 namespace CHSMS.API.Repositories
 {
-    public class MedicineRepository
+    public class MedicineRepository : IMedicineRepository
     {
         private readonly SEP_TestContext _context;
         private readonly HttpClient _httpClient;
