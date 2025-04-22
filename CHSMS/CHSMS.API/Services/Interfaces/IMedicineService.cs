@@ -5,7 +5,7 @@ namespace CHSMS.API.Services.Interfaces
 {
     public interface IMedicineService
     {
-        List<MedicineDTO> GetAll();
+        List<MedicineDTO> GetAllMedicine();
         MedicineDTO? GetMedicineById(int medicineId);
         List<MedicineInventoryDetailDTO> MedicineDetail(int medicineId);
         bool AddMedicineInventory(MedicineInventoryAddDTO medicineInventory);

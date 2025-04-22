@@ -1,4 +1,5 @@
 ﻿using CHSMS.API.DTOs.Medicine;
+using CHSMS.API.DTOs.Medicine;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,14 @@ namespace CHSMS.API.Repositories
         {
             _context = context;
             _httpClient = httpClient;
+        }
+
+        public List<MedicineInventory> GetAllMedicineInventories()
+        {
+            return _context.MedicineInventories
+                .Include(mi => mi.Medicine)
+                .Include(mi => mi.Supplier)
+                .ToList();
         }
 
         // Get all medicines
@@ -60,6 +69,43 @@ namespace CHSMS.API.Repositories
             return medicineInventories;
         }
 
+        public Medicine? GetMedicineByMedicineInventoryId(int id)
+        {
+            var medicineInventory = _context.MedicineInventories
+                .Where(x => x.MedicineInventoryId == id)
+                .FirstOrDefault();
+            return _context.Medicines
+                .Where(x => x.MedicineId == medicineInventory.MedicineId)
+                .FirstOrDefault();
+        }
+
+        public MedicineInventory? GetMedicineInventoryById(int id)
+        {
+            return _context.MedicineInventories
+                .Where(x => x.MedicineInventoryId == id)
+                .FirstOrDefault();
+        }
+
+        public MedicineConsumption? GetMedicineConsumptionById(int id)
+        {
+            return _context.MedicineConsumptions
+                .Where(x => x.MedicineConsumptionId == id)
+                .FirstOrDefault();
+        }
+
+        public bool UpdateMedicineConsumption(MedicineConsumption medicineConsumption)
+        {
+            _context.MedicineConsumptions.Update(medicineConsumption);
+            return _context.SaveChanges() > 0;
+        }
+
+        public List<MedicineInventory> GetMedicineImportHistory(DateTime fromDate, DateTime toDate)
+        {
+            return _context.MedicineInventories
+                .Where(x => x.TransactionDate >= fromDate && x.TransactionDate <= toDate)
+                .ToList();
+        }
+
         public List<User> GetAllUsers()
         {
             return _context.Users.ToList();
@@ -99,12 +145,175 @@ namespace CHSMS.API.Repositories
                 .ToList();
         }
 
-        // Get total quantity of a medicine
-        public double GetMedicineQuantity(int medicineId)
+        public List<MedicineInventory> GetAllMedicineInventory(int medicineId)
         {
             return _context.MedicineInventories
                 .Where(x => x.MedicineId == medicineId && x.Quantity > 0)
-                .Sum(x => x.Quantity) ?? 0;
+                .OrderBy(x => x.ExpiryDate)
+                .ToList();
+        }
+
+        //Get actual supply quantity by Date
+        public double? GetActualMedicineQuantity(int medicineId, DateTime date)
+        {
+            double sum = GetMedicineQuantityById(medicineId).Value;
+            sum += MedicineConsumeReport(medicineId, date, DateTime.Now);
+            sum -= GetInputAmountOfMedicine(medicineId, date, DateTime.Now).Value;
+            sum += GetNumberOfExpiredMedicine(medicineId, date, DateTime.Now);
+            return sum;
+        }
+
+        //Get input amount by time
+        public double? GetInputAmountOfMedicine(int medicineId, DateTime? from, DateTime? to)
+        {
+            double sum = 0;
+            var list = GetInputMedicineInventoryByDate(from, to).Where(x => x.MedicineId == medicineId);
+            foreach (var item in list)
+            {
+                sum += item.ImportQuantity.Value;
+            }
+            return sum;
+        }
+
+        //Get input medical supply inventory by time
+        public List<MedicineInventory> GetInputMedicineInventoryByDate(DateTime? from, DateTime? to)
+        {
+            return _context.MedicineInventories
+                .Where(x => x.TransactionDate >= from && x.TransactionDate <= to)
+                .ToList();
+        }
+
+        public double GetNumberOfExpiredMedicine(int medicineId, DateTime? from, DateTime? to)
+        {
+            double sum = 0;
+            sum += _context.MedicineInventories
+                .Where(x => x.MedicineId == medicineId && x.ExpiryDate <= DateTime.Now && x.ExpiryDate >= from)
+                .Sum(x => x.Quantity).Value;
+            return sum;
+        }
+
+        //Consume medicine inventory
+        public int ConsumeMedicineByMedicineId(ConsumeMedicineDTO consumeMedicineDTO)
+        {
+            var medicineInventory = _context.MedicineInventories
+                .Where(x => x.MedicineInventoryId == consumeMedicineDTO.MedicineInventoryId)
+                .FirstOrDefault();
+            if (medicineInventory == null)
+            {
+                return -1; //Id not found
+            }
+            if (medicineInventory.Quantity < consumeMedicineDTO.Quantity)
+            {
+                return -3;
+            } //Not enough quantity
+            if (consumeMedicineDTO.Quantity <= 0)
+            {
+                return -2; //Invalid quantity
+            }
+            medicineInventory.Quantity -= consumeMedicineDTO.Quantity;
+            MedicineConsumption medicineConsumption = new MedicineConsumption
+            {
+                MedicineInventoryId = consumeMedicineDTO.MedicineInventoryId.Value,
+                Amount = consumeMedicineDTO.Quantity,
+                ConsumptionDate = DateTime.Now,
+                Status = consumeMedicineDTO.Status,
+                Note = consumeMedicineDTO.Note
+            };
+            _context.MedicineInventories.UpdateRange(medicineInventory);
+            _context.MedicineConsumptions.Add(medicineConsumption);
+            if (!(_context.SaveChanges() > 0))
+                return 0;
+            return 1;
+        }
+
+        //Get all medical supply consumption report
+        public Dictionary<Medicine, double> GetAllMedicineConsumeReport(DateTime? from, DateTime? to)
+        {
+            var result = new Dictionary<Medicine, double>();
+            var list = GetAllMedicine();
+            foreach (var item in list)
+            {
+                result.Add(item, MedicineConsumeReport(item.MedicineId, from, to));
+            }
+            return result;
+        }
+
+        // Get total quantity of a medicine
+        public double GetMedicineQuantity(int medicineId)
+        {
+            double sum = 0;
+            var medicineInventory = GetAllMedicineInventory(medicineId);
+            foreach (var item in medicineInventory)
+            {
+                sum += item.Quantity.Value;
+            }
+            return sum;
+        }
+
+        //Get supply total quantity
+        public double? GetMedicineQuantityById(int medicineId)
+        {
+            double sum = 0;
+            var medicineInventory = GetAvailableMedicineInventory(medicineId);
+            foreach (var item in medicineInventory)
+            {
+                sum += item.Quantity.Value;
+            }
+            return sum;
+        }
+
+        public double GetAddOnMedicineInventory(int id, DateTime? from, DateTime? to)
+        {
+            var result = _context.MedicineInventories
+                .Where(x => x.MedicineId == id && x.TransactionDate >= from && x.TransactionDate <= to)
+                .Sum(x => x.ImportQuantity);
+            return result.Value;
+        }
+
+        public double GetNumberOfExpiredMedicineInventory(int medicineInventoryId, DateTime? from, DateTime? to)
+        {
+            double sum = 0;
+            sum += _context.MedicineInventories
+                .Where(x => x.MedicineId == medicineInventoryId && x.ExpiryDate <= DateTime.Now && x.ExpiryDate >= from)
+                .Sum(x => x.Quantity).Value;
+            return sum;
+        }
+
+        public List<MedicineConsumption> MedicineConsumptionDetail(int id, DateTime? from, DateTime? to)
+        {
+            var result = _context.MedicineConsumptions
+                .Where(x => x.MedicineInventoryId == id && x.ConsumptionDate >= from && x.ConsumptionDate <= to && x.Status == true)
+                .ToList();
+            return result;
+        }
+
+        public List<MedicineConsumption> ConsumptionHistory(DateTime? from, DateTime? to)
+        {
+            return _context.MedicineConsumptions
+                 .Where(x => x.ConsumptionDate >= from && x.ConsumptionDate <= to && x.Status == true)
+                 .ToList();
+        }
+
+        //Get medical supply consumption report by MSID
+        public double MedicineConsumeReport(int medicineid, DateTime? from, DateTime? to)
+        {
+            double sum = 0;
+            var listconsumption = GetAllMedicineConsumptionByDate(from, to);
+            var listinventory = GetAllMedicineInventory(medicineid);
+            foreach (var item in listinventory)
+            {
+                listconsumption.Where(x => x.MedicineInventoryId == item.MedicineInventoryId)
+                    .Sum(x => sum += x.Amount.Value);
+            }
+            return sum;
+        }
+
+        //Get medical supply consumption by time
+        public List<MedicineConsumption> GetAllMedicineConsumptionByDate(DateTime? from, DateTime? to)
+        {
+            return _context.MedicineConsumptions
+                .Where(x => x.ConsumptionDate >= from && x.ConsumptionDate <= to && x.Status == true)
+                .ToList();
         }
 
         // Get total quantity of a medicine
@@ -215,7 +424,7 @@ namespace CHSMS.API.Repositories
         }
 
         // Tìm kiếm thuốc theo nhiều tiêu chí
-        public async Task<List<Medicine>> SearchMedicinesAsync(
+        public async Task<List<MedicineInventory>> SearchMedicinesAsync(
     int? medicineId = null, string? medicineName = null,
     string? activeIngredient = null, string? dosage = null,
     string? dosageForm = null, double? quantity = null,
@@ -224,94 +433,90 @@ namespace CHSMS.API.Repositories
     string? bidNumber = null, bool? status = null,
     DateTime? minExpiryDate = null, DateTime? maxExpiryDate = null)
         {
-            var query = _context.Medicines
-                .Include(m => m.MedicineInventories)
-                .ThenInclude(mi => mi.Supplier)
+            var query = _context.MedicineInventories
+                .Include(mi => mi.Medicine)
+                .Include(mi => mi.Supplier)
                 .AsQueryable();
 
-            // Apply filters
             if (medicineId.HasValue && medicineId.Value > 0)
             {
-                query = query.Where(m => m.MedicineId == medicineId.Value);
+                query = query.Where(mi => mi.MedicineId == medicineId.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(medicineName))
             {
-                query = query.Where(m => EF.Functions.Like(m.MedicineName, $"{medicineName}%"));
+                query = query.Where(mi => EF.Functions.Like(mi.Medicine.MedicineName, $"{medicineName}%"));
             }
 
             if (!string.IsNullOrWhiteSpace(activeIngredient))
             {
-                query = query.Where(m => EF.Functions.Like(m.ActiveIngredient, $"{activeIngredient}%"));
+                query = query.Where(mi => EF.Functions.Like(mi.Medicine.ActiveIngredient, $"{activeIngredient}%"));
             }
 
             if (!string.IsNullOrWhiteSpace(dosage))
             {
-                query = query.Where(m => EF.Functions.Like(m.Dosage, $"{dosage}%"));
+                query = query.Where(mi => EF.Functions.Like(mi.Medicine.Dosage, $"{dosage}%"));
             }
 
             if (!string.IsNullOrWhiteSpace(dosageForm))
             {
-                query = query.Where(m => EF.Functions.Like(m.DosageForm, $"{dosageForm}%"));
+                query = query.Where(mi => EF.Functions.Like(mi.Medicine.DosageForm, $"{dosageForm}%"));
             }
 
             if (importPrice.HasValue)
             {
-                query = query.Where(m => m.ImportPrice.ToString().StartsWith(importPrice.Value.ToString()));
+                query = query.Where(mi => mi.Medicine.ImportPrice == importPrice.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(bidNumber))
             {
-                query = query.Where(m => EF.Functions.Like(m.BidNumber, $"{bidNumber}%"));
+                query = query.Where(mi => EF.Functions.Like(mi.Medicine.BidNumber, $"{bidNumber}%"));
             }
 
-            // Filter by MedicineInventories properties
             if (quantity.HasValue)
             {
-                query = query.Where(m => m.MedicineInventories.Any(mi => mi.Quantity.ToString().StartsWith(quantity.Value.ToString())));
+                query = query.Where(mi => mi.Quantity == quantity.Value);
             }
 
             if (expiryDate.HasValue)
             {
-                query = query.Where(m => m.MedicineInventories.Any(mi =>
+                query = query.Where(mi =>
                     mi.ExpiryDate.HasValue &&
-                    mi.ExpiryDate.Value.Date == expiryDate.Value.Date));
+                    mi.ExpiryDate.Value.Date == expiryDate.Value.Date);
             }
             else
             {
                 if (minExpiryDate.HasValue)
                 {
-                    query = query.Where(m => m.MedicineInventories.Any(mi =>
+                    query = query.Where(mi =>
                         mi.ExpiryDate.HasValue &&
-                        mi.ExpiryDate.Value.Date >= minExpiryDate.Value.Date));
+                        mi.ExpiryDate.Value.Date >= minExpiryDate.Value.Date);
                 }
 
                 if (maxExpiryDate.HasValue)
                 {
-                    query = query.Where(m => m.MedicineInventories.Any(mi =>
+                    query = query.Where(mi =>
                         mi.ExpiryDate.HasValue &&
-                        mi.ExpiryDate.Value.Date <= maxExpiryDate.Value.Date));
+                        mi.ExpiryDate.Value.Date <= maxExpiryDate.Value.Date);
                 }
             }
 
             if (!string.IsNullOrWhiteSpace(batchNumber))
             {
-                query = query.Where(m => m.MedicineInventories.Any(mi =>
-                    EF.Functions.Like(mi.BatchNumber, $"{batchNumber}%")));
+                query = query.Where(mi => EF.Functions.Like(mi.BatchNumber, $"{batchNumber}%"));
             }
 
             if (status.HasValue)
             {
-                query = query.Where(m => m.Status == status.Value);
+                query = query.Where(mi => mi.Medicine.Status == status.Value);
             }
 
-            // Sắp xếp theo ID để đảm bảo kết quả có thứ tự rõ ràng
-            query = query.OrderBy(m => m.MedicineId);
+            query = query.OrderBy(mi => mi.MedicineInventoryId);
 
-            // Truy vấn dữ liệu
             var medicines = await query.ToListAsync();
-            return medicines ?? new List<Medicine>();
+            return medicines ?? new List<MedicineInventory>();
         }
+
 
         public List<MedicineDTO> GetFilteredMedicineInventory(MedicineInventoryFilter filter)
         {

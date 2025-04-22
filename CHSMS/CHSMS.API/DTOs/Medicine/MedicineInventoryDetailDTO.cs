@@ -18,6 +18,7 @@
         public string? BatchNumber { get; set; }
         public int? SupplierId { get; set; }
         public string? SupplierName { get; set; }
+        public bool IsBhyt { get; set; }
     }
 
 }
