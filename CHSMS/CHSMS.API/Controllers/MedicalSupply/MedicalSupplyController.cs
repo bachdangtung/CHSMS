@@ -1,18 +1,14 @@
 ﻿using CHSMS.API.DTOs.MedicalSupply;
-using CHSMS.API.Models;
-using CHSMS.API.Services;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Update.Internal;
-using Microsoft.VisualBasic;
-using System.Transactions;
 namespace CHSMS.API.Controllers.MedicalSupply
 {
     [Route("api/[controller]")]
     [ApiController]
     public class MedicalSupplyController : ControllerBase
     {
-        private readonly MedicalSupplyService _medicalSupplyService;
-        public MedicalSupplyController(MedicalSupplyService medicalSupplyService)
+        private readonly IMedicalSupplyService _medicalSupplyService;
+        public MedicalSupplyController(IMedicalSupplyService medicalSupplyService)
         {
             _medicalSupplyService = medicalSupplyService;
         }
@@ -146,7 +142,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
         {
             var result = _medicalSupplyService.UpdateMedicalSupplyConsumption(medicalSupplyConsumption);
             if (result == true)
-                return Ok(); 
+                return Ok();
             return NotFound();
 
         }
