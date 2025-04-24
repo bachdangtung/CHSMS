@@ -12,7 +12,6 @@ namespace CHSMS.API.Services
 
         private readonly SEP_TestContext _context;
 
-
         public ExternalPrescriptionService(IExternalPrescriptionRepository repository, SEP_TestContext context)
 
         {

@@ -599,12 +599,12 @@ namespace CHSMS.API.Tests.Services
         public async Task CreateUserAsync_InvalidRole_ThrowsException()
         {
             // Arrange
-            var dto = new CreateUserDto { UserName = "newuser", Email = "new@example.com", RoleId = 1 };
+            var dto = new CreateUserDto { UserName = "newuser", Email = "new@example.com", RoleId = -1 };
             _userRepositoryMock.Setup(u => u.GetByUserNameAsync("newuser"))
                 .ReturnsAsync((User)null);
             _userRepositoryMock.Setup(u => u.GetByEmailAsync("new@example.com"))
                 .ReturnsAsync((User)null);
-            _roleRepositoryMock.Setup(r => r.RoleExistsAsync(1))
+            _roleRepositoryMock.Setup(r => r.RoleExistsAsync(-1))
                 .ReturnsAsync(false);
 
             // Act & Assert
