@@ -57,10 +57,10 @@ namespace CHSMS.API.Repositories
         }
 
         //Update medical supply inventory
-        public bool UpdateMedicalSupplyInventory(MedicalSupplyInventory medicalSupplyInventory)
+        public bool UpdateMedicalSupplyInventory(List<MedicalSupplyInventory> medicalSupplyInventory)
         {
 
-            _context.MedicalSupplyInventories.Update(medicalSupplyInventory);
+            _context.MedicalSupplyInventories.UpdateRange(medicalSupplyInventory);
             return (_context.SaveChanges() > 0);
         }
 
@@ -290,11 +290,28 @@ namespace CHSMS.API.Repositories
                 .Where(x => x.ConfirmDate >= from && x.ConfirmDate <= to)
                 .ToList();
         }
-        public bool UpdateMedicalSupplyInventoryStatistic(List<MedicalSupplyInventoryStatistic> medicalSupplyInventoryStatistics)
+        public bool DeleteMedicalSupplyInventoryStatistic(MedicalSupplyInventoryStatistic medicalSupplyInventoryStatistic)
         {
-            _context.MedicalSupplyInventoryStatistics.UpdateRange(medicalSupplyInventoryStatistics);
+            _context.MedicalSupplyInventoryStatistics.Remove(medicalSupplyInventoryStatistic);
             return _context.SaveChanges() > 0;
         }
-
+        public bool UpdateMedicalSupplyInventoryStatistic(List<MedicalSupplyInventoryStatistic> medicalSupplyInventoryStatistics)
+        {
+            try
+            {
+                _context.MedicalSupplyInventoryStatistics.UpdateRange(medicalSupplyInventoryStatistics);
+                return _context.SaveChanges() > 0;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+        public List<MedicalSupplyInventoryStatistic> GetAllMSISNotConfirm()
+        {
+            return _context.MedicalSupplyInventoryStatistics
+                .Where(x => x.ConfirmDate == null)
+                .ToList();
+        }
     }
 }

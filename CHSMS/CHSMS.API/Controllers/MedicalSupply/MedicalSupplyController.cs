@@ -224,8 +224,13 @@ namespace CHSMS.API.Controllers.MedicalSupply
         [HttpGet("GetInventoryStatistic")]
         public IActionResult GetInventoryStatistic(DateTime? from, DateTime? to)
         {
-            if (from.HasValue == false || to.HasValue == false)
-                return BadRequest("From and To date are required");
+            if (from == null || to == null)
+            {
+                var result = _medicalSupplyService.GetAllMedicalSupplyInventoryStatistics();
+                if (result == null)
+                    return NotFound();
+                return Ok(result);
+            }
             var list = _medicalSupplyService.GetMedicalSupplyInventoryStatisticsByStatisticDate(from.Value, to.Value);
             if (list == null)
                 return NotFound();
@@ -242,10 +247,17 @@ namespace CHSMS.API.Controllers.MedicalSupply
         [HttpPost("AddInventoryStatistic")]
         public IActionResult AddInventoryStatistic([FromBody] List<MSIStatisticDTO> mSIStatisticDTO)
         {
-            var result = _medicalSupplyService.AddMedicalSupplyInventoryStatistic(mSIStatisticDTO);
-            if (result == false)
-                return BadRequest();
-            return Ok("done");
+            try
+            {
+                var result = _medicalSupplyService.AddMedicalSupplyInventoryStatistic(mSIStatisticDTO);
+                if (result == false)
+                    return BadRequest();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         [HttpPut("UpdateInventoryStatistic")]
         public IActionResult UpdateInventoryStatistic([FromBody] List<MSIStatisticDTO> mSIStatisticDTO)
@@ -253,7 +265,15 @@ namespace CHSMS.API.Controllers.MedicalSupply
             var result = _medicalSupplyService.UpdateMedicalSupplyInventoryStatistic(mSIStatisticDTO);
             if (result == false)
                 return BadRequest();
-            return Ok("done");
+            return Ok();
+        }
+        [HttpDelete("DeleteInventoryStatistic")]
+        public IActionResult DeleteInventoryStatistic(int id)
+        {
+            var result = _medicalSupplyService.DeleteMedicalSupplyInventoryStatistic(id);
+            if (result == false)
+                return BadRequest();
+            return Ok();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace CHSMS.API.DTOs.MedicalSupply
+﻿using CHSMS.API.Models;
+
+namespace CHSMS.API.DTOs.MedicalSupply
 {
     public class MSIStatisticDTO
     {
@@ -11,7 +13,8 @@
         public DateTime? StatisticDate { get; set; }
         public DateTime? ConfirmDate { get; set; }
         public bool? IsUpdate { get; set; }
-        public DateTime? UpdateTime { get; set; }
+        public DateTime? UpdateDate { get; set; }
         public string? Note { get; set; }
+
     }
 }
