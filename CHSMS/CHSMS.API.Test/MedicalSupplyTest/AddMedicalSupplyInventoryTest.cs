@@ -21,30 +21,44 @@ namespace CHSMS.API.Test.MedicalSupplyTest
         public void AddMedicalSupplyInventory_ShouldReturnTrue_WhenRepositoryReturnsTrue()
         {
             // Arrange
-            var dto = CreateMedicalSupplyInventoryDTO();
-            _mockRepository.Setup(repo => repo.AddMedicalSupplyInventory(It.IsAny<MedicalSupplyInventory>())).Returns(true);
+            var dtoList = new List<MedicalSupplyInventoryDTO> { CreateMedicalSupplyInventoryDTO() };
+            _mockRepository.Setup(repo => repo.AddMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>())).Returns(true);
 
             // Act
-            var result = _service.AddMedicalSupplyInventory(dto);
+            var result = _service.AddMedicalSupplyInventory(dtoList);
 
             // Assert
             Assert.True(result);
-            _mockRepository.Verify(repo => repo.AddMedicalSupplyInventory(It.IsAny<MedicalSupplyInventory>()), Times.Once);
+            _mockRepository.Verify(repo => repo.AddMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Once());
         }
 
         [Fact]
         public void AddMedicalSupplyInventory_ShouldReturnFalse_WhenRepositoryReturnsFalse()
         {
             // Arrange
-            var dto = CreateMedicalSupplyInventoryDTO();
-            _mockRepository.Setup(repo => repo.AddMedicalSupplyInventory(It.IsAny<MedicalSupplyInventory>())).Returns(false);
+            var dtoList = new List<MedicalSupplyInventoryDTO> { CreateMedicalSupplyInventoryDTO() };
+            _mockRepository.Setup(repo => repo.AddMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>())).Returns(false);
 
             // Act
-            var result = _service.AddMedicalSupplyInventory(dto);
+            var result = _service.AddMedicalSupplyInventory(dtoList);
 
             // Assert
             Assert.False(result);
-            _mockRepository.Verify(repo => repo.AddMedicalSupplyInventory(It.IsAny<MedicalSupplyInventory>()), Times.Once);
+            _mockRepository.Verify(repo => repo.AddMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Once());
+        }
+
+        [Fact]
+        public void AddMedicalSupplyInventory_ShouldReturnFalse_WhenInputListIsEmpty()
+        {
+            // Arrange
+            var emptyDtoList = new List<MedicalSupplyInventoryDTO>();
+
+            // Act
+            var result = _service.AddMedicalSupplyInventory(emptyDtoList);
+
+            // Assert
+            Assert.False(result);
+            _mockRepository.Verify(repo => repo.AddMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Never());
         }
 
         [Fact]
@@ -53,12 +67,14 @@ namespace CHSMS.API.Test.MedicalSupplyTest
             // Arrange
             var dto = CreateMedicalSupplyInventoryDTO();
             dto.MedicalSupplyId = null;
+            var dtoList = new List<MedicalSupplyInventoryDTO> { dto };
 
             // Act & Assert
-            Assert.Throws<InvalidOperationException>(() => _service.AddMedicalSupplyInventory(dto));
+            Assert.Throws<InvalidOperationException>(() => _service.AddMedicalSupplyInventory(dtoList));
+            _mockRepository.Verify(repo => repo.AddMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Never());
         }
 
-        public MedicalSupplyInventoryDTO CreateMedicalSupplyInventoryDTO()
+        private MedicalSupplyInventoryDTO CreateMedicalSupplyInventoryDTO()
         {
             return new MedicalSupplyInventoryDTO
             {

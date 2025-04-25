@@ -5,29 +5,28 @@ using Moq;
 
 namespace CHSMS.API.Test.MedicalSupplyTest
 {
-    public class GetMedicalSupplyByIdTest
+    public class MedicalSupplyInventoryByMedicalSupplyIdTests
     {
         private readonly Mock<IMedicalSupplyRepository> _mockRepository;
         private readonly MedicalSupplyService _service;
 
-        public GetMedicalSupplyByIdTest()
+        public MedicalSupplyInventoryByMedicalSupplyIdTests()
         {
             _mockRepository = new Mock<IMedicalSupplyRepository>();
             _service = new MedicalSupplyService(_mockRepository.Object);
         }
 
         [Fact]
-        public void GetMedicalSupplyById_ReturnsDTOList_WhenInventoryExists()
+        public void MedicalSupplyInventoryByMedicalSupplyId_ReturnsDTOList_WhenInventoriesExist()
         {
             // Arrange
             int medicalSupplyId = 1;
             var inventoryList = GetSampleMedicalSupplyInventories();
-
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryByMSID(medicalSupplyId))
+            _mockRepository.Setup(repo => repo.GetAllMedicalSupplyInventory(medicalSupplyId))
                            .Returns(inventoryList);
 
             // Act
-            var result = _service.GetMedicalSupplyById(medicalSupplyId);
+            var result = _service.MedicalSupplyInventoryByMedicalSupplyId(medicalSupplyId);
 
             // Assert
             Assert.NotNull(result);
@@ -35,36 +34,22 @@ namespace CHSMS.API.Test.MedicalSupplyTest
             Assert.Equal("BATCH-001", result[0].BatchNumber);
             Assert.Equal(50, result[0].Quantity);
             Assert.Equal("CERT001", result[0].CertificateNumber);
+            Assert.Equal("Initial batch", result[0].Note);
+            Assert.Equal("BATCH-002", result[1].BatchNumber);
+            Assert.Equal(100, result[1].Quantity);
         }
 
         [Fact]
-        public void GetMedicalSupplyById_ReturnsNull_WhenInventoryIsNull()
+        public void MedicalSupplyInventoryByMedicalSupplyId_ReturnsEmptyList_WhenNoInventoriesExist()
         {
             // Arrange
-            int nonExistingId = 999;
-
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryByMSID(nonExistingId))
-                           .Returns((List<MedicalSupplyInventory>?)null);
-
-            // Act
-            var result = _service.GetMedicalSupplyById(nonExistingId);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public void GetMedicalSupplyById_ReturnsEmptyList_WhenNoInventoryExists()
-        {
-            // Arrange
-            int medicalSupplyId = 5;
-            var emptyInventoryList = new List<MedicalSupplyInventory>();
-
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryByMSID(medicalSupplyId))
-                           .Returns(emptyInventoryList);
+            int medicalSupplyId = 999;
+            var emptyList = new List<MedicalSupplyInventory>();
+            _mockRepository.Setup(repo => repo.GetAllMedicalSupplyInventory(medicalSupplyId))
+                           .Returns(emptyList);
 
             // Act
-            var result = _service.GetMedicalSupplyById(medicalSupplyId);
+            var result = _service.MedicalSupplyInventoryByMedicalSupplyId(medicalSupplyId);
 
             // Assert
             Assert.NotNull(result);
