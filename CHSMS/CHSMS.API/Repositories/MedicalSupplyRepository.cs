@@ -68,22 +68,6 @@ namespace CHSMS.API.Repositories
         //Consume medical supply inventory
         public int ConsumeMedicalSupplyByMSID(ConsumpMSDTO consump)
         {
-            var supplyInventory = _context.MedicalSupplyInventories
-                .Where(x => x.SupplyInventoryId == consump.MedicalSupplyInventoryId)
-                .FirstOrDefault();
-            if (supplyInventory == null)
-            {
-                return -1; //Id not found
-            }
-            if (supplyInventory.Quantity < consump.Quantity)
-            {
-                return -3;
-            } //Not enough quantity
-            if (consump.Quantity <= 0)
-            {
-                return -2; //Invalid quantity
-            }
-            supplyInventory.Quantity -= consump.Quantity;
             MedicalSupplyConsumption medicalSupplyConsumption = new MedicalSupplyConsumption
             {
                 MedicalSupplyInventoryId = consump.MedicalSupplyInventoryId.Value,
@@ -92,7 +76,6 @@ namespace CHSMS.API.Repositories
                 Status = consump.Status,
                 Note = consump.Note
             };
-            _context.MedicalSupplyInventories.UpdateRange(supplyInventory);
             _context.MedicalSupplyConsumptions.Add(medicalSupplyConsumption);
             if (!(_context.SaveChanges() > 0))
                 return 0;

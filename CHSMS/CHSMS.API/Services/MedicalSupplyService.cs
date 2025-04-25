@@ -105,7 +105,26 @@ namespace CHSMS.API.Services
 
         public int ConsumeMedicalSupply(ConsumpMSDTO consumpMSDTO)
         {
-            return _medicalSupplyReposotory.ConsumeMedicalSupplyByMSID(consumpMSDTO);
+            var MSInventory = _medicalSupplyReposotory.GetMedicalSupplyInventoryById(consumpMSDTO.MedicalSupplyInventoryId.Value);
+            if (MSInventory == null)
+            {
+                return -1;
+            }
+            if (MSInventory.Quantity < consumpMSDTO.Quantity)
+            {
+                return -3;
+            }
+            if (consumpMSDTO.Quantity < 0)
+            {
+                return -2;
+            }
+            MSInventory.Quantity -= consumpMSDTO.Quantity;
+            var res1 = _medicalSupplyReposotory.UpdateMedicalSupplyInventory(new List<MedicalSupplyInventory> { MSInventory });
+            var res2 = _medicalSupplyReposotory.ConsumeMedicalSupplyByMSID(consumpMSDTO);
+
+            if (res1 && res2 == 1)
+                return 1;
+            else return 0;
         }
 
         public Dictionary<MedicalSupplyDTO, double> ConsumeReport(DateTime? from, DateTime? to)
