@@ -232,14 +232,6 @@ namespace CHSMS.API.Controllers.MedicalSupply
                 return NotFound();
             return Ok(list);
         }
-        [HttpGet("GetInventoryStatisticDetail")]
-        public IActionResult GetInventoryStatisticDetail(int id)
-        {
-            var result = _medicalSupplyService.GetMedicalSupplyInventoryStatisticsById(id);
-            if (result == null)
-                return NotFound();
-            return Ok(result);
-        }
         [HttpPost("AddInventoryStatistic")]
         public IActionResult AddInventoryStatistic([FromBody] List<MSIStatisticDTO> mSIStatisticDTO)
         {
