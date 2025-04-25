@@ -9,7 +9,7 @@ namespace CHSMS.API.Services.Interfaces
         List<MedicalSupplyDTO> GetAllActualMedicalSupplies(DateTime? date);
         List<MedicalSupplyInventoryDTO>? GetMedicalSupplyById(int medicalSupplyId);
         List<MedicalSupplyInventoryDTO> MedicalSupplyInventoryByMedicalSupplyId(int medicalSupplyId);
-        bool AddMedicalSupplyInventory(MedicalSupplyInventoryDTO medicalSupplyInventoryDTO);
+        bool AddMedicalSupplyInventory(List<MedicalSupplyInventoryDTO> medicalSupplyInventoryDTO);
         bool UpdateMedicalSupplyInventory(MedicalSupplyInventoryDTO medicalSupplyInventoryDTO);
         int ConsumeMedicalSupply(ConsumpMSDTO consumpMSDTO);
         Dictionary<MedicalSupplyDTO, double> ConsumeReport(DateTime? from, DateTime? to);
@@ -21,5 +21,12 @@ namespace CHSMS.API.Services.Interfaces
         object GetExpiryMSI(int medicalSupplyId, DateTime? from, DateTime? to);
         MedicalSupplyInventory GetMedicalSupplyInventoryById(int? medicalSupplyInventoryId);
         List<MedicalSupplyInventory> GetMedicalSupplyImportHistory(DateTime fromDate, DateTime toDate);
+        List<MedicalSupplyInventoryStatistic>? GetAllMedicalSupplyInventoryStatistics();
+        List<MedicalSupplyInventoryStatistic>? GetMedicalSupplyInventoryStatisticsByStatisticDate(DateTime? from, DateTime? to);
+        bool AddMedicalSupplyInventoryStatistic(List<MSIStatisticDTO> mSIStatisticDTOs);
+        bool UpdateMedicalSupplyInventoryStatistic(List<MSIStatisticDTO> mSIStatisticDTOs);
+        bool DeleteMedicalSupplyInventoryStatistic(int medicalSupplyInventoryStatisticId);
+
+
     }
 }
