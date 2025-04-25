@@ -1,5 +1,6 @@
 ﻿using CHSMS.API.DTOs.Prescription;
 using CHSMS.API.Models;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -9,9 +10,9 @@ using Microsoft.IdentityModel.Tokens;
 [ApiController]
 public class PrescriptionController : ControllerBase
 {
-    private readonly PrescriptionService _prescriptionService;
+    private readonly IPrescriptionService _prescriptionService;
 
-    public PrescriptionController(PrescriptionService prescriptionService)
+    public PrescriptionController(IPrescriptionService prescriptionService)
     {
         _prescriptionService = prescriptionService;
     }

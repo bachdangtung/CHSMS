@@ -1,14 +1,15 @@
 ﻿using CHSMS.API.DTOs.MedicalRecord;
 using CHSMS.API.Models;
-using CHSMS.API.Repositories;
+using CHSMS.API.Repositories.Interfaces;
+using CHSMS.API.Services.Interfaces;
 
 namespace CHSMS.API.Services
 {
-    public class MedicalRecordService
+    public class MedicalRecordService : IMedicalRecordService
     {
-        private readonly MedicalRecordRepository _medicalRecordRepository;
+        private readonly IMedicalRecordRepository _medicalRecordRepository;
 
-        public MedicalRecordService(MedicalRecordRepository medicalRecordRepository)
+        public MedicalRecordService(IMedicalRecordRepository medicalRecordRepository)
         {
             _medicalRecordRepository = medicalRecordRepository;
         }
@@ -26,7 +27,7 @@ namespace CHSMS.API.Services
                     EthnicGroup = record.EthnicGroup,
                     EducationLevel = record.EducationLevel,
                     HealthInsurance = record.HealthInsurance,
-                    Address = record.Address,                    
+                    Address = record.Address,
                     PhoneNumber = record.PhoneNumber,
                     Email = record.Email,
                     Job = record.Job,

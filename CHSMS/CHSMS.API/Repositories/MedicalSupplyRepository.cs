@@ -1,8 +1,9 @@
 ﻿using CHSMS.API.DTOs.MedicalSupply;
 using CHSMS.API.Models;
+using CHSMS.API.Repositories.Interfaces;
 namespace CHSMS.API.Repositories
 {
-    public class MedicalSupplyRepository
+    public class MedicalSupplyRepository : IMedicalSupplyRepository
     {
         private readonly SEP_TestContext _context;
         public MedicalSupplyRepository(SEP_TestContext context)

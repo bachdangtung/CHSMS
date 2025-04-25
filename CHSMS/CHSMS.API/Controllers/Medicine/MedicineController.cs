@@ -1,6 +1,5 @@
 ﻿using CHSMS.API.DTOs.Medicine;
-using CHSMS.API.Models;
-using CHSMS.API.Services;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
@@ -11,20 +10,40 @@ namespace CHSMS.API.Controllers
     [ApiController]
     public class MedicineController : ControllerBase
     {
-        private readonly MedicineService _medicineService;
+        private readonly IMedicineService _medicineService;
         private readonly ILogger<MedicineController> _logger;
 
-        public MedicineController(MedicineService medicineService, ILogger<MedicineController> logger)
+        public MedicineController(IMedicineService medicineService, ILogger<MedicineController> logger)
         {
             _medicineService = medicineService;
             _logger = logger;
         }
 
-        [HttpGet("medicines")]
-        public ActionResult<IEnumerable<MedicineDTO>> GetAllMedicine()
+        [HttpGet("get-all-medicines-inventory")]
+        public IActionResult GetAllMedicine1()
         {
-            var medicines = _medicineService.GetAll();
+            var medicines = _medicineService.GetAllMedicineInInventory();
             if (medicines == null || !medicines.Any())
+                return NotFound();
+            return Ok(medicines);
+        }
+
+
+        [HttpGet("get-all-medicines")]
+        public IActionResult GetAllMedicine()
+        {
+            var medicines = _medicineService.GetAllMedicine();
+            if (medicines == null || !medicines.Any())
+                return NotFound();
+            return Ok(medicines);
+        }
+
+        //get all medical supply  Actual inventory by date
+        [HttpGet("get-quantity")]
+        public IActionResult GetAllMedicine(DateTime? date)
+        {
+            var medicines = _medicineService.GetAllActualMedicines(date);
+            if (medicines == null)
                 return NotFound();
             return Ok(medicines);
         }
@@ -44,7 +63,7 @@ namespace CHSMS.API.Controllers
         }
 
         //get medicine inventory by medicineId
-        [HttpGet("GetInventory/{medicineId}")]
+        [HttpGet("get-medicine-inventory/{medicineId}")]
         public ActionResult<IEnumerable<MedicineInventoryDetailDTO>> GetMedicineInventory(int medicineId)
         {
             var medicineInventories = _medicineService.GetMedicineInventoryByMedicineId(medicineId);
@@ -54,7 +73,7 @@ namespace CHSMS.API.Controllers
         }
 
         //Get one medical supply by ID
-        [HttpGet("Get/{id}")]
+        [HttpGet("get-medicine-detail/{id}")]
         public ActionResult<MedicineDTO> GetMedicineDetail(int id)
         {
             var medicine = _medicineService.GetMedicineById(id);
@@ -65,7 +84,7 @@ namespace CHSMS.API.Controllers
         }
 
         //search medicine by name
-        [HttpGet("SearchByName")]
+        [HttpGet("search-medicine-by-name")]
         public ActionResult<IEnumerable<MedicineDTO>> SearchMedicine([FromQuery] string name)
         {
             var medicines = _medicineService.SearchMedicineByName(name);
@@ -203,6 +222,129 @@ namespace CHSMS.API.Controllers
                 return BadRequest($"Lỗi: {ex.Message}");
             }
         }
+
+        //Medical supply inventory consumption
+        [HttpPost("ConsumeInventory")]
+        public IActionResult ConsumeMedicine([FromBody] ConsumeMedicineDTO consumeMedicineDTO)
+        {
+            var result = _medicineService.ConsumeMedicine(consumeMedicineDTO);
+            if (result == -3)
+                return Problem("Not enough quantity");
+            else if (result == -2)
+                return Problem("Invalid quantity");
+            else if (result == -1)
+                return NotFound("Id not found");
+            else if (result == 0)
+                return BadRequest();
+            else if (result == 1)
+                return Ok("Done");
+            else return BadRequest();
+        }
+
+        //Medical supply inventory consumption report
+        [HttpGet("ConsumeReport")]
+        public IActionResult ConsumeReport(DateTime? from, DateTime? to)
+        {
+            List<object> list = new List<object>();
+            var actual = _medicineService.GetAllActualMedicines(from);
+            var result = _medicineService.ConsumeReport(from, to);
+            foreach (var item in result)
+            {
+                var addOn = _medicineService.GetAddOnMedicineInventory(item.Key.MedicineId, from, to);
+                var expry = _medicineService.GetExpiryMedicineInventory(item.Key.MedicineId, from, to);
+                list.Add(new
+                {
+                    medicineId = item.Key.MedicineId,
+                    medicineName = item.Key.MedicineName,
+                    consume = item.Value,
+                    present = item.Key.Quantity.Value,
+                    addnew = addOn,
+                    expry = expry,
+                    before = actual.Find(x => x.MedicineId == item.Key.MedicineId).Quantity.Value
+                });
+            }
+            return Ok(list);
+        }
+
+        [HttpGet("ConsumptionDetail")]
+        public IActionResult ConsumptionDetail(int id, DateTime? from, DateTime? to)
+        {
+            var result = _medicineService.ConsumptionDetail(id, from, to);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+
+        [HttpGet("ConsumptionHistory")]
+        public IActionResult ConsumptionHistory(DateTime? from, DateTime? to)
+        {
+            var list = _medicineService.ConsumptionHistory(from, to);
+            List<object> result = new List<object>();
+            foreach (var item in list)
+            {
+                var medicine = _medicineService.GetMedicineByMedicineInventoryId(item.MedicineInventoryId);
+                var medicineInventory = _medicineService.GetMedicineInventoryById(item.MedicineInventoryId);
+                result.Add(new
+                {
+                    consumeMedicineId = item.MedicineConsumptionId,
+                    medicineInventoryId = item.MedicineInventoryId,
+                    medicineName = medicine.MedicineName,
+                    batchNumber = medicineInventory.BatchNumber,
+                    quantity = item.Amount,
+                    date = item.ConsumptionDate,
+                    note = item.Note
+                });
+            }
+            return Ok(result);
+        }
+        [HttpPut("UpdateConsumption")]
+        public IActionResult UpdateConsumtion([FromBody] ConsumeMedicineDTO medicineConsumption)
+        {
+            var result = _medicineService.UpdateMedicineConsumption(medicineConsumption);
+            if (result == true)
+                return Ok();
+            return NotFound();
+
+        }
+
+        [HttpGet("GetMedicineImportHistory")]
+        public IActionResult GetMedicineImportHistory(DateTime fromDate, DateTime toDate)
+        {
+            var msi = _medicineService.GetMedicineImportHistory(fromDate, toDate);
+            if (msi == null)
+                return NotFound();
+            var result = new List<object>();
+            foreach (var item in msi)
+            {
+                var medicine = _medicineService.GetMedicineByMedicineInventoryId(item.MedicineId);
+                result.Add(new
+                {
+                    MSID = medicine.MedicineId,
+                    MedicineName = medicine.MedicineName,
+                    CertificateNumber = item.CertificateNumber,
+                    BatchNumber = item.BatchNumber,
+                    ImportAmount = item.ImportQuantity,
+                    TransactionDate = item.TransactionDate,
+                    ManufacturingDate = item.ManufacturingDate,
+                    ExpiryDate = item.ExpiryDate,
+                    Date = item.TransactionDate,
+                    Note = item.Note,
+
+                });
+            }
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
+        [HttpGet("ImportHistory")]
+        public IActionResult ImportHistory(DateTime from, DateTime to)
+        {
+            var list = _medicineService.GetMedicineImportHistory(from, to);
+            if (list == null)
+                return NotFound();
+            return Ok(list);
+        }
+        
 
         [Authorize]
         [HttpGet("GetRecentInventoryHistory")]

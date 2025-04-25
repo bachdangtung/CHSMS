@@ -11,9 +11,9 @@ namespace CHSMS.API.Controllers.MedicalRecord
     [ApiController]
     public class MedicalRecordHistoryController : ControllerBase
     {
-        private readonly MedicalRecordHistoryService _medicalRecordHistoryService;
+        private readonly IMedicalRecordHistoryService _medicalRecordHistoryService;
 
-        public MedicalRecordHistoryController(MedicalRecordHistoryService medicalRecordHistoryService)
+        public MedicalRecordHistoryController(IMedicalRecordHistoryService medicalRecordHistoryService)
         {
             _medicalRecordHistoryService = medicalRecordHistoryService;
         }

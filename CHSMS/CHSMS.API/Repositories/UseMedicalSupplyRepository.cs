@@ -1,10 +1,8 @@
 ﻿using CHSMS.API.Models;
-using System.Threading.Tasks;
+using CHSMS.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
 
-public class UseMedicalSupplyRepository
+public class UseMedicalSupplyRepository : IUseMedicalSupplyRepository
 {
     private readonly SEP_TestContext _context;
 
@@ -177,8 +175,8 @@ public class UseMedicalSupplyRepository
                 .ThenInclude(msc => msc.MedicalSupplyInventory)
                     .ThenInclude(msi => msi.MedicalSupply)
             .Include(umsmsc => umsmsc.UseMedicalSupplie)
-            .Where(umsmsc => umsmsc.Msconsumption.Status == true) 
-            .OrderByDescending(umsmsc => umsmsc.Msconsumption.ConsumptionDate) 
+            .Where(umsmsc => umsmsc.Msconsumption.Status == true)
+            .OrderByDescending(umsmsc => umsmsc.Msconsumption.ConsumptionDate)
             .ToListAsync();
     }
 }

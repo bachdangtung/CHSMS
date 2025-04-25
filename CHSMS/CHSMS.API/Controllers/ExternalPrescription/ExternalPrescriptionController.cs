@@ -1,7 +1,5 @@
 ﻿using CHSMS.API.DTOs.ExternalPrescription;
-using CHSMS.API.Models;
-using CHSMS.API.Services;
-using Microsoft.AspNetCore.Http;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CHSMS.API.Controllers.ExternalPrescription
@@ -10,8 +8,8 @@ namespace CHSMS.API.Controllers.ExternalPrescription
     [ApiController]
     public class ExternalPrescriptionController : ControllerBase
     {
-        private readonly ExternalPrescriptionService _externalPrescriptionService;
-        public ExternalPrescriptionController(ExternalPrescriptionService externalPrescriptionService)
+        private readonly IExternalPrescriptionService _externalPrescriptionService;
+        public ExternalPrescriptionController(IExternalPrescriptionService externalPrescriptionService)
         {
             _externalPrescriptionService = externalPrescriptionService;
         }
@@ -89,7 +87,7 @@ namespace CHSMS.API.Controllers.ExternalPrescription
             }
         }
 
-        
+
         [HttpGet("external-prescription-detail/{externalPrescriptionId}")]
         public async Task<IActionResult> GetExternalPrescriptionDetail(int externalPrescriptionId)
         {

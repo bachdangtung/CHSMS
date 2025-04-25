@@ -1,18 +1,14 @@
 ﻿using CHSMS.API.DTOs.UseMedicalSupply;
-using CHSMS.API.Models;
-using Microsoft.AspNetCore.Authorization;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Threading.Tasks;
 
 [Route("api/[controller]")]
 [ApiController]
 public class UseMedicalSupplyController : ControllerBase
 {
-    private readonly UseMedicalSupplyService _useMedicalSupplyService;
+    private readonly IUseMedicalSupplyService _useMedicalSupplyService;
 
-    public UseMedicalSupplyController(UseMedicalSupplyService useMedicalSupplyService)
+    public UseMedicalSupplyController(IUseMedicalSupplyService useMedicalSupplyService)
     {
         _useMedicalSupplyService = useMedicalSupplyService;
     }

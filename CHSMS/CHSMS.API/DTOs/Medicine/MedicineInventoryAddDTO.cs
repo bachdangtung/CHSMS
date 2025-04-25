@@ -11,6 +11,7 @@ namespace CHSMS.API.DTOs.Medicine
 
         [Required(ErrorMessage = "Số chứng nhận là bắt buộc.")]
         [StringLength(100, MinimumLength = 1, ErrorMessage = "Số chứng nhận phải từ 1 đến 100 ký tự.")]
+        [RegularExpression(@"^[a-zA-Z0-9-]+$", ErrorMessage = "Số chứng chỉ chỉ được chứa chữ cái, số và dấu gạch ngang.")]
         public string CertificateNumber { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Loại giao dịch là bắt buộc.")]

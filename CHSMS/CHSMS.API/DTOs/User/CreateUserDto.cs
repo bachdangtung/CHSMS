@@ -10,7 +10,7 @@ namespace CHSMS.API.DTOs.User
         public string? UserName { get; set; }
         public string? Fullname { get; set; }
         public string? Gender { get; set; }
-        [MinimumAge(18)]
+        [MinimumAge(18, ErrorMessage = "Người dùng phải trên 18")]
         public DateTime? Dob { get; set; }
         [Required(ErrorMessage = "Hãy nhập Email!")]
         [EmailAddress]

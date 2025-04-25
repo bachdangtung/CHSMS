@@ -1,16 +1,16 @@
 ﻿using CHSMS.API.DTOs.MedicalRecord;
 using CHSMS.API.Models;
-using CHSMS.API.Repositories;
 using CHSMS.API.Repositories.Interfaces;
+using CHSMS.API.Services.Interfaces;
 
 namespace CHSMS.API.Services
 {
-    public class MedicalRecordHistoryService
+    public class MedicalRecordHistoryService : IMedicalRecordHistoryService
     {
-        private readonly MedicalRecordHistoryRepository _medicalRecordHistoryRepository;
+        private readonly IMedicalRecordHistoryRepository _medicalRecordHistoryRepository;
         private readonly IUserRepository _userRepository;
 
-        public MedicalRecordHistoryService(MedicalRecordHistoryRepository medicalRecordHistoryRepository, IUserRepository userRepository)
+        public MedicalRecordHistoryService(IMedicalRecordHistoryRepository medicalRecordHistoryRepository, IUserRepository userRepository)
         {
             _medicalRecordHistoryRepository = medicalRecordHistoryRepository;
             _userRepository = userRepository;

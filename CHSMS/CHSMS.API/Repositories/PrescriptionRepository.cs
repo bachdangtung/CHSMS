@@ -1,11 +1,8 @@
 ﻿using CHSMS.API.Models;
-using System.Threading.Tasks;
+using CHSMS.API.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using CHSMS.API.DTOs;
-using CHSMS.API.DTOs.Prescription;
 
-public class PrescriptionRepository
+public class PrescriptionRepository : IPrescriptionRepository
 {
     private readonly SEP_TestContext _context;
 
@@ -42,7 +39,7 @@ public class PrescriptionRepository
         return pmc;
     }
 
-   
+
 
     public async Task<List<MedicineInventory>> GetAvailableMedicinesAsync()
     {
@@ -66,7 +63,7 @@ public class PrescriptionRepository
             .Include(p => p.MedicalRecordHistory)
             .ThenInclude(mrh => mrh.MedicalRecord)
             .Where(p => p.UserId == userId)
-            .OrderByDescending(p => p.IssueDate) 
+            .OrderByDescending(p => p.IssueDate)
             .ToListAsync();
     }
     public async Task<List<Prescription>> GetAllPrescriptionsAsync()
@@ -74,7 +71,7 @@ public class PrescriptionRepository
         return await _context.Prescriptions
             .Include(p => p.MedicalRecordHistory)
             .ThenInclude(mrh => mrh.MedicalRecord)
-            .OrderByDescending(p => p.IssueDate) 
+            .OrderByDescending(p => p.IssueDate)
             .ToListAsync();
     }
     public async Task<List<Prescription>> GetAllPrescriptionsNoBHYTAsync()
