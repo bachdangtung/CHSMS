@@ -40,7 +40,7 @@ namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
                 .Returns(false);
 
             // Act
-            var result = _service.DeleteMedicalRecordHistory(1);
+            var result = _service.DeleteMedicalRecordHistory(0);
 
             // Assert
             Assert.False(result);

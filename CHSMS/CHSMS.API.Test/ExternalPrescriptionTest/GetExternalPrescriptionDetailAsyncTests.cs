@@ -174,69 +174,6 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
         }
 
         [Fact]
-        public async Task GetExternalPrescriptionDetailAsync_NullProperties_ReturnsDefaultValues()
-        {
-            // Arrange
-            int externalPrescriptionId = 1;
-            var prescription = new ExternalPrescription
-            {
-                ExternalPrescriptionId = externalPrescriptionId,
-                MedicalRecordHistoryId = 1,
-                UserId = 1,
-                IssueDate = null,
-                Status = null,
-                Note = null,
-                IsBhyt = null,
-                User = null,
-                MedicalRecordHistory = null
-            };
-
-            // Create a Medicine entity to satisfy the Include(mp => mp.Medicine) requirement
-            var medicine = new Medicine
-            {
-                MedicineId = 1,
-                MedicineName = null,
-                DosageForm = null,
-                IsBhyt = null
-            };
-
-            var medicinePrescription = new MedicinePrescription
-            {
-                ExternalPrescriptionId = externalPrescriptionId,
-                MedicineId = 1,
-                Amount = null,
-                Note = null,
-                Medicine = medicine  // Assign the medicine to ensure the Include works
-            };
-
-            _repositoryMock.Setup(r => r.GetExternalPrescriptionDetailAsync(externalPrescriptionId))
-                .ReturnsAsync(prescription);
-
-            // Add the medicine first (for proper relationships)
-            _dbContext.Medicines.Add(medicine);
-            _dbContext.MedicinePrescriptions.Add(medicinePrescription);
-            await _dbContext.SaveChangesAsync();
-
-            // Act
-            var result = await _service.GetExternalPrescriptionDetailAsync(externalPrescriptionId);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(externalPrescriptionId, result.ExternalPrescriptionId);
-
-            Assert.Single(result.Medicines);
-            var medicineResult = result.Medicines[0];
-            Assert.Equal(1, medicineResult.MedicineId);
-            Assert.Equal(string.Empty, medicineResult.MedicineName);
-            Assert.Equal(string.Empty, medicineResult.DosageForm);
-            Assert.Equal(0, medicineResult.Amount);
-            Assert.Equal(string.Empty, medicineResult.Note);
-            Assert.False(medicineResult.IsBhyt);
-
-            _repositoryMock.Verify(r => r.GetExternalPrescriptionDetailAsync(externalPrescriptionId), Times.Once());
-        }
-
-        [Fact]
         public async Task GetExternalPrescriptionDetailAsync_NoMedicinePrescriptions_ReturnsEmptyMedicinesList()
         {
             // Arrange

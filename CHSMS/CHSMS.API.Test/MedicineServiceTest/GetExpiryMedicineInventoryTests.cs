@@ -31,7 +31,7 @@ namespace CHSMS.API.Test.MedicineServiceTest
             var result = _service.GetExpiryMedicineInventory(1, DateTime.Now.AddDays(-10), DateTime.Now);
 
             // Assert
-            Assert.Equal(5, result);
+            Assert.Equal((double)5, result);
         }
     }
 }

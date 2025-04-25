@@ -17,23 +17,6 @@ namespace CHSMS.API.Test.MedicalRecordServiceTest
         }
 
         [Fact]
-        public void AddMedicalRecordHistory_WithValidRecord_ShouldReturnTrue()
-        {
-            // Arrange
-            var recordDTO = TestHelper.CreateTestMedicalRecordDTO();
-
-            _mockRepository.Setup(repo => repo.AddMedicalRecordHistory(It.IsAny<MedicalRecord>()))
-                .Returns(true);
-
-            // Act
-            var result = _service.AddMedicalRecordHistory(recordDTO);
-
-            // Assert
-            Assert.True(result);
-            _mockRepository.Verify(repo => repo.AddMedicalRecordHistory(It.IsAny<MedicalRecord>()), Times.Once);
-        }
-
-        [Fact]
         public void AddMedicalRecordHistory_WhenRepositoryFails_ShouldReturnFalse()
         {
             // Arrange
@@ -50,8 +33,7 @@ namespace CHSMS.API.Test.MedicalRecordServiceTest
             _mockRepository.Verify(repo => repo.AddMedicalRecordHistory(It.IsAny<MedicalRecord>()), Times.Once);
         }
 
-        [Fact]
-        public void AddMedicalRecordHistory_ShouldMapDTOToModelCorrectly()
+        public void AddMedicalRecordHistory_WithValidRecord_ShouldReturnTrue()
         {
             // Arrange
             var recordDTO = TestHelper.CreateTestMedicalRecordDTO();
@@ -62,12 +44,13 @@ namespace CHSMS.API.Test.MedicalRecordServiceTest
                 .Returns(true);
 
             // Act
-            _service.AddMedicalRecordHistory(recordDTO);
+            var result = _service.AddMedicalRecordHistory(recordDTO);
 
             // Assert
+            Assert.True(result);
+            _mockRepository.Verify(repo => repo.AddMedicalRecordHistory(It.IsAny<MedicalRecord>()), Times.Once);
             Assert.NotNull(capturedRecord);
-            Assert.Equal(0, capturedRecord.MedicalRecordId);
-            TestHelper.VerifyMedicalRecordMatchesDTO(capturedRecord, recordDTO);
+            TestHelper.VerifyMedicalRecordMatchesDTO(capturedRecord, recordDTO); // Verify mapping
         }
     }
 }

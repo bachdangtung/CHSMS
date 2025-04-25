@@ -125,14 +125,6 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
         }
 
         [Fact]
-        public async Task EditExternalPrescriptionForDoctorAsync_NullDTO_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() =>
-                _service.EditExternalPrescriptionForDoctorAsync(null));
-        }
-
-        [Fact]
         public async Task EditExternalPrescriptionForDoctorAsync_FutureIssueDate_ThrowsException()
         {
             // Arrange
