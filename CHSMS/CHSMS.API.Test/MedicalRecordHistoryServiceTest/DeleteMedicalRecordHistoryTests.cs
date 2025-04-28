@@ -1,4 +1,4 @@
-﻿using CHSMS.API.Repositories.Interfaces;
+﻿/*using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
 using Moq;
 
@@ -47,3 +47,4 @@ namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
         }
     }
 }
+*/

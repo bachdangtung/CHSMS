@@ -262,10 +262,10 @@ namespace CHSMS.API.Services
         }
 
 
-        public bool DeleteMedicalRecordHistory(int medicalRecordId)
-        {
-            return _medicalRecordHistoryRepository.DeleteMedicalRecordHistory(medicalRecordId);
-        }
+        /*        public bool DeleteMedicalRecordHistory(int medicalRecordId)
+                {
+                    return _medicalRecordHistoryRepository.DeleteMedicalRecordHistory(medicalRecordId);
+                }*/
 
         public int GetTodayMedicalRecordHistoryCount()
         {

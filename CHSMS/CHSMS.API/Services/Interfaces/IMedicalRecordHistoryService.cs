@@ -10,7 +10,8 @@ namespace CHSMS.API.Services.Interfaces
         List<MedicalRecordHistoryDTO> GetMedicalRecordHistoriesByFilter(string? doctorName, string? patientName);
         bool AddMedicalRecordHistory(int userId, MedicalRecordHistoryDTO medicalRecordDTO);
         bool UpdateMedicalRecordHistory(MedicalRecordHistoryDTO medicalRecordDTO);
-        bool DeleteMedicalRecordHistory(int medicalRecordId);
+        /*        bool DeleteMedicalRecordHistory(int medicalRecordId);
+        */
         int GetTodayMedicalRecordHistoryCount();
         List<UserDTO> GetAllUsers();
     }

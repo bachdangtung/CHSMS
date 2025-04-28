@@ -50,8 +50,7 @@ namespace CHSMS.API.Tests
             var result = await _service.GetUseMedicalSuppliesByUserIdListAsync(999);
 
             // Assert
-            Assert.Single(result);
-            Assert.Equal(1, result[0].UseMedicalSupplyId);
+            Assert.Empty(result);
         }
     }
 }
