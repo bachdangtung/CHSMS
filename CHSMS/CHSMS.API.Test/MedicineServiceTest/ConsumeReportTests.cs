@@ -41,6 +41,25 @@ namespace CHSMS.API.Test.MedicineServiceTest
         }
 
         [Fact]
+        public void ConsumeReport_NoInputDate_ReturnsReport()
+        {
+            // Arrange
+            var medicine = TestHelper.CreateMedicine(1);
+            var dict = new Dictionary<Medicine, double> { { medicine, 50.0 } };
+            _medicineRepositoryMock.Setup(repo => repo.GetAllMedicineConsumeReport(It.IsAny<DateTime?>(), It.IsAny<DateTime?>())).Returns(dict);
+            _medicineRepositoryMock.Setup(repo => repo.GetMedicineQuantityById(1)).Returns(100);
+
+            // Act
+            var result = _service.ConsumeReport(null, null);
+
+            // Assert
+            Assert.Single(result);
+            Assert.Equal("TestMedicine", result.Keys.First().MedicineName);
+            Assert.Equal(50.0, result.Values.First());
+            Assert.Equal(100, result.Keys.First().Quantity);
+        }
+
+        [Fact]
         public void ConsumeReport_ReturnsEmptyWhenNoData()
         {
             // Arrange

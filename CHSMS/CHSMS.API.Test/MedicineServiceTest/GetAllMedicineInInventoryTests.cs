@@ -43,6 +43,18 @@ namespace CHSMS.API.Test.MedicineServiceTest
         }
 
         [Fact]
+        public void GetAllMedicineInInventory_ReturnsEmptyList()
+        {
+            _medicineRepositoryMock.Setup(repo => repo.GetAllMedicineInventories()).Returns(new List<MedicineInventory>());
+
+            // Act
+            var result = _service.GetAllMedicineInInventory();
+
+            // Assert
+            Assert.Empty(result);
+        }
+
+        [Fact]
         public void GetAllMedicineInInventory_HandlesNullMedicineProperties()
         {
             // Arrange

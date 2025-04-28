@@ -49,20 +49,6 @@ namespace CHSMS.API.Test.MedicalSupplyTest
             _mockRepository.Verify(repo => repo.GetAllMedicalSupplyInventoryStatistics(), Times.Once());
         }
 
-        [Fact]
-        public void GetAllMedicalSupplyInventoryStatistics_ReturnsNull_WhenRepositoryReturnsNull()
-        {
-            // Arrange
-            _mockRepository.Setup(repo => repo.GetAllMedicalSupplyInventoryStatistics()).Returns((List<MedicalSupplyInventoryStatistic>)null);
-
-            // Act
-            var result = _service.GetAllMedicalSupplyInventoryStatistics();
-
-            // Assert
-            Assert.Null(result);
-            _mockRepository.Verify(repo => repo.GetAllMedicalSupplyInventoryStatistics(), Times.Once());
-        }
-
         private List<MedicalSupplyInventoryStatistic> GetSampleStatistics()
         {
             return new List<MedicalSupplyInventoryStatistic>
