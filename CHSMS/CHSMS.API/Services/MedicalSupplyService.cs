@@ -63,6 +63,10 @@ namespace CHSMS.API.Services
             List<MedicalSupplyInventory> medicalSupplyInventories = new List<MedicalSupplyInventory>();
             foreach (var item in medicalSupplyInventoryDTO)
             {
+                if (GetMedicalSupplyById(item.MedicalSupplyId.Value) == null)
+                {
+                    throw new Exception("Medical Supply is not exist for " + item);
+                }
                 var medicalSupply = new MedicalSupplyInventory
                 {
                     MedicalSupplyId = (int)item.MedicalSupplyId,
@@ -85,11 +89,23 @@ namespace CHSMS.API.Services
 
         public bool UpdateMedicalSupplyInventory(MedicalSupplyInventoryDTO medicalSupplyInventoryDTO)
         {
+
             List<MedicalSupplyInventory> medicalSupplyInventories = new List<MedicalSupplyInventory>();
+            if (medicalSupplyInventoryDTO == null)
+                throw new Exception("Medical supply inventory is not valid");
+            var medicalSupplyInventory = _medicalSupplyReposotory.GetMedicalSupplyInventoryById(medicalSupplyInventoryDTO.SupplyInventoryId);
+            if (medicalSupplyInventory == null)
+            {
+                throw new Exception("Medical supply inventory is not exist");
+            }
+            if(medicalSupplyInventoryDTO.Quantity>medicalSupplyInventory.ImportQuantity)
+            {
+                throw new Exception("Số lượng tồn không hợp lệ");
+            }
             var MedicalSupplyInventory = new MedicalSupplyInventory
             {
                 SupplyInventoryId = medicalSupplyInventoryDTO.SupplyInventoryId,
-                MedicalSupplyId = (int)medicalSupplyInventoryDTO.MedicalSupplyId,
+                MedicalSupplyId = medicalSupplyInventoryDTO.MedicalSupplyId.Value,
                 Quantity = medicalSupplyInventoryDTO.Quantity,
                 CertificateNumber = medicalSupplyInventoryDTO.CertificateNumber,
                 ManufactureDate = medicalSupplyInventoryDTO.ManufactureDate,
@@ -97,10 +113,14 @@ namespace CHSMS.API.Services
                 ExpiryDate = medicalSupplyInventoryDTO.ExpiryDate,
                 ReceiverId = medicalSupplyInventoryDTO.ReceiverId,
                 Note = medicalSupplyInventoryDTO.Note,
+                TransactionType=medicalSupplyInventoryDTO.TransactionType,
+                BatchNumber=medicalSupplyInventoryDTO.BatchNumber,
+                ImportQuantity=medicalSupplyInventory.ImportQuantity
             };
             medicalSupplyInventories.Add(MedicalSupplyInventory);
             if (!_medicalSupplyReposotory.UpdateMedicalSupplyInventory(medicalSupplyInventories)) return false;
             return true;
+
         }
 
         public int ConsumeMedicalSupply(ConsumpMSDTO consumpMSDTO)
@@ -114,7 +134,7 @@ namespace CHSMS.API.Services
             {
                 return -3;
             }
-            if (consumpMSDTO.Quantity < 0)
+            if (consumpMSDTO.Quantity <= 0)
             {
                 return -2;
             }
@@ -209,6 +229,14 @@ namespace CHSMS.API.Services
 
         public List<MedicalSupplyConsumption> ConsumptionHistory(DateTime? from, DateTime? to)
         {
+            if(from == null )
+            {
+                from = DateTime.MinValue;
+            }
+            if (to == null)
+            {
+                to = DateTime.Now;
+            }
             return _medicalSupplyReposotory.ConsumptionHistory(from, to);
         }
 
@@ -232,6 +260,10 @@ namespace CHSMS.API.Services
             if (medicalSupplyInventory == null)
             {
                 return false;
+            }
+            if (medicalSupplyConsumption.Quantity < 0)
+            {
+                return false ;
             }
             var numberUpdate = medicalSupplyConsumption.Quantity.Value - MSC.Amount.Value;
             medicalSupplyInventory.Quantity -= numberUpdate;
@@ -264,13 +296,21 @@ namespace CHSMS.API.Services
             return _medicalSupplyReposotory.GetMedicalSupplyInventoryById(medicalSupplyInventoryId.Value);
         }
 
-        public List<MedicalSupplyInventory>? GetMedicalSupplyImportHistory(DateTime fromDate, DateTime toDate)
+        public List<MedicalSupplyInventory>? GetMedicalSupplyImportHistory(DateTime? fromDate, DateTime? toDate)
         {
+            if (fromDate==null)
+            {
+                fromDate = DateTime.MinValue;
+            }
+            if (toDate == null)
+            {
+                toDate = DateTime.Now;
+            }
             if (fromDate > toDate || fromDate > DateTime.Now)
             {
                 return null;
             }
-            return _medicalSupplyReposotory.GetMedicalSupplyImportHistory(fromDate, toDate);
+            return _medicalSupplyReposotory.GetMedicalSupplyImportHistory(fromDate.Value, toDate.Value);
         }
         public List<MedicalSupplyInventoryStatistic>? GetAllMedicalSupplyInventoryStatistics()
         {

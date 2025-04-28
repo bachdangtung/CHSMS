@@ -49,20 +49,33 @@ namespace CHSMS.API.Controllers.MedicalSupply
         [HttpPost("AddInventoryList")]
         public IActionResult AddMedicalSupply([FromBody] List<MedicalSupplyInventoryDTO> medicalSupplyInventoryDTO)
         {
-            var result = _medicalSupplyService.AddMedicalSupplyInventory(medicalSupplyInventoryDTO);
-            if (!result)
-                return BadRequest();
-            return Ok("done");
+            try
+            {
+                var result = _medicalSupplyService.AddMedicalSupplyInventory(medicalSupplyInventoryDTO);
+                if (!result)
+                    return BadRequest();
+                return Ok("done");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-
         //Update medical supply inventory by MSInventoryID
         [HttpPut("UpdateInventory")]
         public IActionResult UpdateMedicalSupply([FromBody] MedicalSupplyInventoryDTO medicalSupplyInventoryDTO)
         {
-            var result = _medicalSupplyService.UpdateMedicalSupplyInventory(medicalSupplyInventoryDTO);
-            if (!result)
-                return BadRequest();
-            return Ok();
+            try
+            {
+                var result = _medicalSupplyService.UpdateMedicalSupplyInventory(medicalSupplyInventoryDTO);
+                if (!result)
+                    return BadRequest();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         //Medical supply inventory consumption
@@ -87,6 +100,8 @@ namespace CHSMS.API.Controllers.MedicalSupply
         [HttpGet("ConsumeReport")]
         public IActionResult ConsumeReport(DateTime? from, DateTime? to)
         {
+            if (from > DateTime.Now || from > to)
+                return BadRequest("Invalid date");
             List<object> list = new List<object>();
             var actual = _medicalSupplyService.GetAllActualMedicalSupplies(from);
             var result = _medicalSupplyService.ConsumeReport(from, to);
@@ -107,17 +122,11 @@ namespace CHSMS.API.Controllers.MedicalSupply
             }
             return Ok(list);
         }
-        [HttpGet("ConsumptionDetail")]
-        public IActionResult ConsumptionDetail(int id, DateTime? from, DateTime? to)
-        {
-            var result = _medicalSupplyService.ConsumptionDetail(id, from, to);
-            if (result == null)
-                return NotFound();
-            return Ok(result);
-        }
         [HttpGet("ConsumptionHistory")]
         public IActionResult ConsumptionHistory(DateTime? from, DateTime? to)
         {
+            if (from > DateTime.Now || from > to)
+                return BadRequest("Invalid date");
             var list = _medicalSupplyService.ConsumptionHistory(from, to);
             List<object> result = new List<object>();
             foreach (var item in list)
@@ -181,7 +190,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
         }
 
         [HttpGet("GetMedicalSupplyImportHistory")]
-        public IActionResult GetMedicalSupplyImportHistory(DateTime fromDate, DateTime toDate)
+        public IActionResult GetMedicalSupplyImportHistory(DateTime? fromDate, DateTime? toDate)
         {
             var msi = _medicalSupplyService.GetMedicalSupplyImportHistory(fromDate, toDate);
             if (msi == null)
@@ -190,6 +199,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
             foreach (var item in msi)
             {
                 var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyId);
+                if (medicalSupply == null) continue;
                 result.Add(new
                 {
                     MSID = medicalSupply.MedicalSupplyId,
@@ -202,7 +212,6 @@ namespace CHSMS.API.Controllers.MedicalSupply
                     ExpiryDate = item.ExpiryDate,
                     Date = item.TransactionDate,
                     Note = item.Note,
-
                 });
             }
             if (result == null)

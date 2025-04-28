@@ -1,6 +1,7 @@
 ﻿using CHSMS.API.DTOs.MedicalSupply;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 namespace CHSMS.API.Repositories
 {
     public class MedicalSupplyRepository : IMedicalSupplyRepository
@@ -53,8 +54,15 @@ namespace CHSMS.API.Repositories
         //Add medical supply inventory      
         public bool AddMedicalSupplyInventory(List<MedicalSupplyInventory> medicalSupply)
         {
-            _context.MedicalSupplyInventories.AddRange(medicalSupply);
-            return _context.SaveChanges() > 0;
+            try
+            {
+                _context.MedicalSupplyInventories.AddRange(medicalSupply);
+                return _context.SaveChanges() > 0;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         //Update medical supply inventory
@@ -68,6 +76,19 @@ namespace CHSMS.API.Repositories
         //Consume medical supply inventory
         public int ConsumeMedicalSupplyByMSID(ConsumpMSDTO consump)
         {
+            if (consump.Quantity <= 0)
+            {
+                throw new Exception("Số lượng không hợp lệ");
+            }
+            var msInventory= GetMedicalSupplyInventoryById(consump.MedicalSupplyInventoryId.Value);
+            if (msInventory == null)
+            {
+                throw new Exception("Không tìm thấy thông tin tồn kho");
+            }
+            if (msInventory.Quantity < consump.Quantity)
+            {
+                throw new Exception("Số lượng tiêu thụ lớn hơn số lượng tồn kho");
+            }
             MedicalSupplyConsumption medicalSupplyConsumption = new MedicalSupplyConsumption
             {
                 MedicalSupplyInventoryId = consump.MedicalSupplyInventoryId.Value,
@@ -195,11 +216,10 @@ namespace CHSMS.API.Repositories
 
         public MedicalSupply? GetMedicalSupplyByMSIID(int id)
         {
-            var msi = _context.MedicalSupplyInventories
-                .Where(x => x.SupplyInventoryId == id)
-                .FirstOrDefault();
+            
             return _context.MedicalSupplies
-                .Where(x => x.MedicalSupplyId == msi.MedicalSupplyId)
+                .AsNoTracking()
+                .Where(x => x.MedicalSupplyId == id)
                 .FirstOrDefault();
         }
         public MedicalSupplyConsumption? GetSupplyConsumptionByID(int id)
@@ -211,7 +231,7 @@ namespace CHSMS.API.Repositories
 
         public MedicalSupplyInventory? GetMedicalSupplyInventoryById(int id)
         {
-            return _context.MedicalSupplyInventories
+            return _context.MedicalSupplyInventories.AsNoTracking()
                 .Where(x => x.SupplyInventoryId == id)
                 .FirstOrDefault();
         }

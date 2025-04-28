@@ -20,7 +20,7 @@ namespace CHSMS.API.Services.Interfaces
         bool UpdateMedicalSupplyConsumption(ConsumpMSDTO medicalSupplyConsumption);
         object GetExpiryMSI(int medicalSupplyId, DateTime? from, DateTime? to);
         MedicalSupplyInventory GetMedicalSupplyInventoryById(int? medicalSupplyInventoryId);
-        List<MedicalSupplyInventory> GetMedicalSupplyImportHistory(DateTime fromDate, DateTime toDate);
+        List<MedicalSupplyInventory> GetMedicalSupplyImportHistory(DateTime? fromDate, DateTime? toDate);
         List<MedicalSupplyInventoryStatistic>? GetAllMedicalSupplyInventoryStatistics();
         List<MedicalSupplyInventoryStatistic>? GetMedicalSupplyInventoryStatisticsByStatisticDate(DateTime? from, DateTime? to);
         bool AddMedicalSupplyInventoryStatistic(List<MSIStatisticDTO> mSIStatisticDTOs);
