@@ -58,12 +58,11 @@ namespace CHSMS.API.Test.MedicineServiceTest
         {
             // Arrange
             var inventory = TestHelper.CreateMedicineInventory(1, 1, 100);
-            inventory.ReceiverId = 2;
             var dto = TestHelper.CreateMedicineInventoryUpdateDTO(1, 1, 75);
             _medicineRepositoryMock.Setup(repo => repo.GetInventoryById(1)).Returns(inventory);
 
             // Act & Assert
-            Assert.Throws<Exception>(() => _service.UpdateMedicineInventory(dto, 1));
+            Assert.Throws<Exception>(() => _service.UpdateMedicineInventory(dto, 2));
         }
 
         [Fact]

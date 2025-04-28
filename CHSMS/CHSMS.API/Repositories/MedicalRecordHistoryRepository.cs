@@ -127,13 +127,13 @@ namespace CHSMS.API.Repositories
         }
 
 
-        public bool DeleteMedicalRecordHistory(int medicalRecordId)
-        {
-            var record = _context.MedicalRecordHistories.Find(medicalRecordId);
-            if (record == null) return false;
-            _context.MedicalRecordHistories.Remove(record);
-            return _context.SaveChanges() > 0;
-        }
+        /*        public bool DeleteMedicalRecordHistory(int medicalRecordId)
+                {
+                    var record = _context.MedicalRecordHistories.Find(medicalRecordId);
+                    if (record == null) return false;
+                    _context.MedicalRecordHistories.Remove(record);
+                    return _context.SaveChanges() > 0;
+                }*/
 
         public List<User> GetAllUsers()
         {

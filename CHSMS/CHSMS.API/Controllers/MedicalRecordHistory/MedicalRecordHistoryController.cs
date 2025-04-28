@@ -1,8 +1,5 @@
 ﻿using CHSMS.API.DTOs.MedicalRecord;
-using CHSMS.API.DTOs.User;
-using CHSMS.API.Services;
 using CHSMS.API.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CHSMS.API.Controllers.MedicalRecord
@@ -90,14 +87,14 @@ namespace CHSMS.API.Controllers.MedicalRecord
             }
         }
 
-        [HttpDelete("Delete/{id}")]
-        public IActionResult DeleteMedicalRecordHistory(int id)
-        {
-            var result = _medicalRecordHistoryService.DeleteMedicalRecordHistory(id);
-            if (!result)
-                return NotFound();
-            return Ok();
-        }
+        /*        [HttpDelete("Delete/{id}")]
+                public IActionResult DeleteMedicalRecordHistory(int id)
+                {
+                    var result = _medicalRecordHistoryService.DeleteMedicalRecordHistory(id);
+                    if (!result)
+                        return NotFound();
+                    return Ok();
+                }*/
 
         [HttpGet("TodayCount")]
         public IActionResult GetTodayMedicalRecordHistoryCount()

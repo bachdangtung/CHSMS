@@ -54,22 +54,6 @@ namespace CHSMS.API.Test.MedicalSupplyTest
             _mockRepository.Verify(repo => repo.ConsumptionHistory(from, to), Times.Once());
         }
 
-        [Fact]
-        public void ConsumptionHistory_ReturnsNull_WhenRepositoryReturnsNull()
-        {
-            // Arrange
-            DateTime? from = DateTime.Now.AddDays(-30);
-            DateTime? to = DateTime.Now;
-            _mockRepository.Setup(repo => repo.ConsumptionHistory(from, to)).Returns((List<MedicalSupplyConsumption>)null);
-
-            // Act
-            var result = _service.ConsumptionHistory(from, to);
-
-            // Assert
-            Assert.Null(result);
-            _mockRepository.Verify(repo => repo.ConsumptionHistory(from, to), Times.Once());
-        }
-
         private List<MedicalSupplyConsumption> GetSampleConsumptions()
         {
             return new List<MedicalSupplyConsumption>

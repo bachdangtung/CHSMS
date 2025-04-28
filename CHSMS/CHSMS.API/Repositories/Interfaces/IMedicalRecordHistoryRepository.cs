@@ -12,7 +12,8 @@ namespace CHSMS.API.Repositories.Interfaces
         List<MedicalRecordHistory> GetMedicalRecordHistoriesByFilter(string? doctorName, string? patientName);
         bool AddMedicalRecordHistory(MedicalRecordHistory medicalRecordHistory);
         bool UpdateMedicalRecordHistory(MedicalRecordHistory medicalRecordHistory);
-        bool DeleteMedicalRecordHistory(int medicalRecordId);
+        /*        bool DeleteMedicalRecordHistory(int medicalRecordId);
+        */
         List<User> GetAllUsers();
     }
 }

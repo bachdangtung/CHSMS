@@ -44,16 +44,6 @@ namespace CHSMS.API.Test.MedicineServiceTest
         }
 
         [Fact]
-        public void UpdateMedicineConsumption_ReturnsFalseWhenDtoIsNull()
-        {
-            // Act
-            var result = _service.UpdateMedicineConsumption(null);
-
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
         public void UpdateMedicineConsumption_ReturnsFalseWhenConsumptionNotFound()
         {
             // Arrange

@@ -731,11 +731,11 @@ namespace CHSMS.API.Tests.Services
         {
             // Arrange
             var dto = new EditUserProfileDto();
-            _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
+            _userRepositoryMock.Setup(u => u.GetByIdAsync(999))
                 .ReturnsAsync((User)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<Exception>(() => _authService.EditUserProfileAsync(1, dto));
+            await Assert.ThrowsAsync<Exception>(() => _authService.EditUserProfileAsync(999, dto));
         }
 
         [Fact]

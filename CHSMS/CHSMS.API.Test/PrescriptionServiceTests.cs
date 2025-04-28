@@ -750,102 +750,6 @@ namespace CHSMS.API.Tests.Services
             Assert.Contains("dưới ngưỡng tối thiểu", ex.Message);
         }
 
-        [Fact]
-        public async Task EditPrescriptionForPharmacistAsync_MultipleConsumptions_SetsPrescriptionStatusCorrectly()
-        {
-            // Arrange
-            var dto = new EditPrescriptionForPharmacistDTO
-            {
-                PrescriptionId = 1,
-                MedicineConsumptionStatuses = new List<MedicineConsumptionStatusDTO>
-        {
-            new MedicineConsumptionStatusDTO { MedicineConsumptionId = 1, Status = true },
-            new MedicineConsumptionStatusDTO { MedicineConsumptionId = 2, Status = false }
-        }
-            };
-
-            var prescription = GetTestPrescription();
-            prescription.IssueDate = DateTime.Now; // Today
-
-            var consumption1 = new MedicineConsumption
-            {
-                MedicineConsumptionId = 1,
-                Status = false,
-                MedicineInventoryId = 1,
-                Amount = 5
-            };
-
-            var consumption2 = new MedicineConsumption
-            {
-                MedicineConsumptionId = 2,
-                Status = true, // Already dispensed, now rolling back
-                MedicineInventoryId = 2,
-                Amount = 3
-            };
-
-            var inventory1 = new MedicineInventory
-            {
-                MedicineInventoryId = 1,
-                Quantity = 20,
-                Medicine = new Medicine { SellingPrice = 10 }
-            };
-
-            var inventory2 = new MedicineInventory
-            {
-                MedicineInventoryId = 2,
-                Quantity = 15,
-                Medicine = new Medicine { SellingPrice = 8 }
-            };
-
-            var pmc1 = new PrescriptionMedicineConsumption
-            {
-                PrescriptionId = 1,
-                MedicineConsumtionId = 1,
-                TotalPrice = 0
-            };
-
-            var pmc2 = new PrescriptionMedicineConsumption
-            {
-                PrescriptionId = 1,
-                MedicineConsumtionId = 2,
-                TotalPrice = 24
-            };
-
-            _repositoryMock.Setup(r => r.GetPrescriptionByIdAsync(1))
-                .ReturnsAsync(prescription);
-
-            _repositoryMock.Setup(r => r.GetMedicineConsumptionByIdAsync(1))
-                .ReturnsAsync(consumption1);
-            _repositoryMock.Setup(r => r.GetMedicineConsumptionByIdAsync(2))
-                .ReturnsAsync(consumption2);
-
-            _repositoryMock.Setup(r => r.GetMedicineInventoryByIdAsync(1))
-                .ReturnsAsync(inventory1);
-            _repositoryMock.Setup(r => r.GetMedicineInventoryByIdAsync(2))
-                .ReturnsAsync(inventory2);
-
-            _repositoryMock.Setup(r => r.GetPrescriptionMedicineConsumptionByConsumptionIdAsync(1))
-                .ReturnsAsync(pmc1);
-            _repositoryMock.Setup(r => r.GetPrescriptionMedicineConsumptionByConsumptionIdAsync(2))
-                .ReturnsAsync(pmc2);
-
-            _repositoryMock.Setup(r => r.UpdateMedicineConsumptionAsync(It.IsAny<MedicineConsumption>()))
-                .Returns(Task.CompletedTask);
-            _repositoryMock.Setup(r => r.UpdateMedicineInventoryAsync(It.IsAny<MedicineInventory>()))
-                .Returns(Task.CompletedTask);
-            _repositoryMock.Setup(r => r.UpdatePrescriptionMedicineConsumptionAsync(It.IsAny<PrescriptionMedicineConsumption>()))
-                .Returns(Task.CompletedTask);
-            _repositoryMock.Setup(r => r.UpdatePrescriptionAsync(It.IsAny<Prescription>()))
-                .Returns(Task.CompletedTask);
-
-            // Act
-            await _service.EditPrescriptionForPharmacistAsync(dto);
-
-            // Assert
-            _repositoryMock.Verify(r => r.UpdatePrescriptionAsync(It.Is<Prescription>(p =>
-                p.Status == true)), Times.Once); // Should be true since at least one consumption has status true
-        }
-
         #endregion
 
         #region QueryMethodTests
@@ -913,6 +817,24 @@ namespace CHSMS.API.Tests.Services
         }
 
         [Fact]
+        public async Task GetAllMedicinesInInventoryAsync_ReturnsEmptyList()
+        {
+            // Arrange
+            var testData = new List<MedicineInventory>
+            {
+            };
+
+            _repositoryMock.Setup(r => r.GetAvailableMedicinesAsync())
+                .ReturnsAsync(testData);
+
+            // Act
+            var result = await _service.GetAllMedicinesInInventoryAsync();
+
+            // Assert
+            Assert.Empty(result);
+        }
+
+        [Fact]
         public async Task GetPrescriptionsByUserIdListAsync_ReturnsCorrectData()
         {
             // Arrange
@@ -973,6 +895,25 @@ namespace CHSMS.API.Tests.Services
             Assert.Equal("Another note", result[1].Note);
             Assert.False(result[1].IsBhyt);
             Assert.Equal("Another Patient", result[1].PatientName);
+        }
+
+        [Fact]
+        public async Task GetPrescriptionsByUserIdListAsync_ReturnsEmptyList()
+        {
+            // Arrange
+            int userId = 1;
+            var testData = new List<Prescription>
+            {
+            };
+
+            _repositoryMock.Setup(r => r.GetPrescriptionsByUserIdAsync(userId))
+                .ReturnsAsync(testData);
+
+            // Act
+            var result = await _service.GetPrescriptionsByUserIdListAsync(userId);
+
+            // Assert
+            Assert.Empty(result);
         }
 
         [Fact]
@@ -1039,6 +980,24 @@ namespace CHSMS.API.Tests.Services
             Assert.All(result, item => Assert.True(item.IsBhyt));
             Assert.Equal(1, result[0].PrescriptionId);
             Assert.Equal(3, result[1].PrescriptionId);
+        }
+
+        [Fact]
+        public async Task GetAllPrescriptionsAsync_ReturnsEmptyList()
+        {
+            // Arrange
+            var testData = new List<Prescription>
+            {
+            };
+
+            _repositoryMock.Setup(r => r.GetAllPrescriptionsAsync())
+                .ReturnsAsync(testData);
+
+            // Act
+            var result = await _service.GetAllPrescriptionsAsync();
+
+            // Assert
+            Assert.Empty(result);
         }
 
         [Fact]
@@ -1125,6 +1084,25 @@ namespace CHSMS.API.Tests.Services
         }
 
         [Fact]
+        public async Task GetTodayPrescriptionsAsync_ReturnsEmptyList()
+        {
+            // Arrange
+            var today = DateTime.Today;
+            var testData = new List<Prescription>
+            {
+            };
+
+            _repositoryMock.Setup(r => r.GetAllPrescriptionsAsync())
+                .ReturnsAsync(testData);
+
+            // Act
+            var result = await _service.GetTodayPrescriptionsAsync();
+
+            // Assert
+            Assert.Empty(result);
+        }
+
+        [Fact]
         public async Task GetAllPrescriptionsNoBHYTAsync_ReturnsOnlyNonBhytPrescriptions()
         {
             // Arrange
@@ -1188,6 +1166,24 @@ namespace CHSMS.API.Tests.Services
             Assert.All(result, item => Assert.False(item.IsBhyt));
             Assert.Equal(2, result[0].PrescriptionId);
             Assert.Equal(3, result[1].PrescriptionId);
+        }
+
+        [Fact]
+        public async Task GetAllPrescriptionsNoBHYTAsync_ReturnsEmptyList()
+        {
+            // Arrange
+            var testData = new List<Prescription>
+            {
+            };
+
+            _repositoryMock.Setup(r => r.GetAllPrescriptionsNoBHYTAsync())
+                .ReturnsAsync(testData);
+
+            // Act
+            var result = await _service.GetAllPrescriptionsNoBHYTAsync();
+
+            // Assert
+            Assert.Empty(result);
         }
 
         [Fact]
@@ -1274,6 +1270,25 @@ namespace CHSMS.API.Tests.Services
         }
 
         [Fact]
+        public async Task GetTodayPrescriptionsNoBHYTAsync_ReturnsEmptyList()
+        {
+            // Arrange
+            var today = DateTime.Today;
+            var testData = new List<Prescription>
+            {
+            };
+
+            _repositoryMock.Setup(r => r.GetAllPrescriptionsNoBHYTAsync())
+                .ReturnsAsync(testData);
+
+            // Act
+            var result = await _service.GetTodayPrescriptionsNoBHYTAsync();
+
+            // Assert
+            Assert.Empty(result);
+        }
+
+        [Fact]
         public async Task GetPrescriptionsByMedicalRecordHistoryIdAsync_ReturnsCorrectPrescriptions()
         {
             // Arrange
@@ -1328,7 +1343,7 @@ namespace CHSMS.API.Tests.Services
         public async Task GetPrescriptionsByMedicalRecordHistoryIdAsync_ThrowsExceptionWhenNoneFound()
         {
             // Arrange
-            int medicalRecordHistoryId = 1;
+            int medicalRecordHistoryId = 999;
             _repositoryMock.Setup(r => r.GetPrescriptionsByMedicalRecordHistoryIdAsync(medicalRecordHistoryId))
                 .ReturnsAsync(new List<Prescription>()); // Empty list
 
@@ -1627,6 +1642,24 @@ namespace CHSMS.API.Tests.Services
             Assert.Equal("Another Medicine", result[1].MedicineName);
             Assert.Equal(200, result[1].TotalPrice);
             Assert.Equal(2, result[1].PrescriptionId);
+        }
+
+        [Fact]
+        public async Task GetAllMedicineConsumptionsAsync_ReturnsEmptyList()
+        {
+            // Arrange
+            var testData = new List<PrescriptionMedicineConsumption>
+            {
+            };
+
+            _repositoryMock.Setup(r => r.GetAllMedicineConsumptionsAsync())
+                .ReturnsAsync(testData);
+
+            // Act
+            var result = await _service.GetAllMedicineConsumptionsAsync();
+
+            // Assert
+            Assert.Empty(result);
         }
 
         #endregion

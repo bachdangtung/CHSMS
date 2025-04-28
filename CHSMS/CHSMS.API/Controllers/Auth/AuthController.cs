@@ -151,7 +151,7 @@ namespace CHSMS.API.Controllers.Auth
             }
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpGet("/api/User/Profile")]
         public async Task<ActionResult<UserListDto>> UserProfile()
         {
@@ -167,7 +167,7 @@ namespace CHSMS.API.Controllers.Auth
             }
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPut("/api/User/EditProfile")]
         public async Task<IActionResult> EditUserProfile([FromBody] EditUserProfileDto editUserProfileDto)
         {
