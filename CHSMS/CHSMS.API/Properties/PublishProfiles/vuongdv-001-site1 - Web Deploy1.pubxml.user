@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This file is used by the publish/package process of your Web project. You can customize the behavior of this process
+by editing this MSBuild file. In order to learn more about this please visit https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project>
+  <PropertyGroup>
+    <TimeStampOfAssociatedLegacyPublishXmlFile />
+    <EncryptedPassword>AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAgOv+aW6EoUiuH1se5c4T4wAAAAACAAAAAAAQZgAAAAEAACAAAAB0hZjyOWO0bv9MMTBxL4bI4Zf77uFS83pJ5IpsanzEFQAAAAAOgAAAAAIAACAAAABmktkF3V9kx9tnj+40+gIezDBCYUVQ+y89lRxnRU0vzSAAAAByLEgZVsup+pHeI8/Z6iIlTUUC/BV/XG9zhji5WU5d60AAAABO0ePO+nNSirFMp8nmxKPxbvmydC076EwYjZME/QLRX71SouPB/MgeBRwC6mmembuv7THZYrkcqSTxuqRUDGps</EncryptedPassword>
+    <History>True|2025-04-28T15:15:30.4365732Z||;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+  <ItemGroup>
+    <DestinationConnectionStrings Include="SEP_DB">
+      <Value>Server=localhost%3bUid=sa%3bPwd=123%3bDatabase=SEP_Test%3bTrustServerCertificate=True%3bIntegrated Security=true%3b</Value>
+    </DestinationConnectionStrings>
+  </ItemGroup>
+</Project>

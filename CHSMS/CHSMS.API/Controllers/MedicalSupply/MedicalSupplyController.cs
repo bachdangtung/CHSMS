@@ -133,6 +133,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
             {
                 var medicalSupply = _medicalSupplyService.GetMedicalSupplyByMSIId(item.MedicalSupplyInventoryId);
                 var medicalSupplyInventory = _medicalSupplyService.GetMedicalSupplyInventoryById(item.MedicalSupplyInventoryId);
+                if (medicalSupply == null || medicalSupplyInventory == null) continue;
                 result.Add(new
                 {
                     consumpMSID = item.MsconsumptionId,

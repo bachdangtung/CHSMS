@@ -242,7 +242,12 @@ namespace CHSMS.API.Services
 
         public MedicalSupply GetMedicalSupplyByMSIId(int id)
         {
-            return _medicalSupplyReposotory.GetMedicalSupplyByMSIID(id);
+            var medicalInventory = _medicalSupplyReposotory.GetMedicalSupplyInventoryById(id);
+            if (medicalInventory == null)
+            {
+                return null;
+            }
+            return _medicalSupplyReposotory.GetMedicalSupplyByMSIID(medicalInventory.MedicalSupplyId);
         }
 
         public bool UpdateMedicalSupplyConsumption(ConsumpMSDTO medicalSupplyConsumption)
