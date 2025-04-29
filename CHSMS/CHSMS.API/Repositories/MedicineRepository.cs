@@ -79,7 +79,7 @@ namespace CHSMS.API.Repositories
         {
             return _context.MedicineInventories
                 .Where(x => x.MedicineInventoryId == id)
-                .FirstOrDefault();
+                .FirstOrDefault();  
         }
 
         public MedicineConsumption? GetMedicineConsumptionById(int id)
@@ -191,22 +191,6 @@ namespace CHSMS.API.Repositories
         //Consume medicine inventory
         public int ConsumeMedicineByMedicineId(ConsumeMedicineDTO consumeMedicineDTO)
         {
-            var medicineInventory = _context.MedicineInventories
-                .Where(x => x.MedicineInventoryId == consumeMedicineDTO.MedicineInventoryId)
-                .FirstOrDefault();
-            if (medicineInventory == null)
-            {
-                return -1; //Id not found
-            }
-            if (medicineInventory.Quantity < consumeMedicineDTO.Quantity)
-            {
-                return -3;
-            } //Not enough quantity
-            if (consumeMedicineDTO.Quantity <= 0)
-            {
-                return -2; //Invalid quantity
-            }
-            medicineInventory.Quantity -= consumeMedicineDTO.Quantity;
             MedicineConsumption medicineConsumption = new MedicineConsumption
             {
                 MedicineInventoryId = consumeMedicineDTO.MedicineInventoryId.Value,
@@ -215,7 +199,6 @@ namespace CHSMS.API.Repositories
                 Status = consumeMedicineDTO.Status,
                 Note = consumeMedicineDTO.Note
             };
-            _context.MedicineInventories.UpdateRange(medicineInventory);
             _context.MedicineConsumptions.Add(medicineConsumption);
             if (!(_context.SaveChanges() > 0))
                 return 0;
@@ -359,9 +342,15 @@ namespace CHSMS.API.Repositories
             existingInventory.ExpiryDate = medicineInventory.ExpiryDate;
             existingInventory.ManufacturingDate = medicineInventory.ManufacturingDate;
             existingInventory.SupplierId = medicineInventory.SupplierId;
-            // Cập nhật thêm các trường cần thiết
 
             return _context.SaveChanges() > 0;
+        }
+
+        public bool UpdateMedicineInInventory(List<MedicineInventory> medicineInventory)
+        {
+
+            _context.MedicineInventories.UpdateRange(medicineInventory);
+            return (_context.SaveChanges() > 0);
         }
 
 

@@ -1,6 +1,8 @@
-﻿using CHSMS.API.DTOs.Medicine;
+﻿using CHSMS.API.DTOs.MedicalSupply;
+using CHSMS.API.DTOs.Medicine;
 using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
+using CHSMS.API.Repositories;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services.Interfaces;
 
@@ -25,6 +27,9 @@ namespace CHSMS.API.Services
 
             var dtoList = inventories.Select(inventory => new MedicineInventoryGetAllDTO
             {
+                MedicineInventoryId = inventory.MedicineInventoryId,
+                MedicineCode = inventory.Medicine?.MedicineCode ?? "Không rõ",
+                ShelfLife = inventory.Medicine.ShelfLife,
                 MedicineId = inventory.MedicineId,
                 MedicineName = inventory.Medicine?.MedicineName ?? "Không rõ",
                 ActiveIngredient = inventory.Medicine?.ActiveIngredient ?? "Không rõ",
@@ -428,7 +433,26 @@ namespace CHSMS.API.Services
 
         public int ConsumeMedicine(ConsumeMedicineDTO consumeMedicineDTO)
         {
-            return _medicineRepository.ConsumeMedicineByMedicineId(consumeMedicineDTO);
+            var MedicineInventory = _medicineRepository.GetMedicineInventoryById(consumeMedicineDTO.MedicineInventoryId.Value);
+            if (MedicineInventory == null)
+            {
+                return -1;
+            }
+            if (MedicineInventory.Quantity < consumeMedicineDTO.Quantity)
+            {
+                return -3;
+            }
+            if (consumeMedicineDTO.Quantity < 0)
+            {
+                return -2;
+            }
+            MedicineInventory.Quantity -= consumeMedicineDTO.Quantity;
+            var res1 = _medicineRepository.UpdateMedicineInInventory(new List<MedicineInventory> { MedicineInventory });
+            var res2 = _medicineRepository.ConsumeMedicineByMedicineId(consumeMedicineDTO);
+
+            if (res1 && res2 == 1)
+                return 1;
+            else return 0;
         }
 
         public Dictionary<MedicineDTO, double> ConsumeReport(DateTime? from, DateTime? to)

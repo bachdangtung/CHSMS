@@ -16,6 +16,7 @@ namespace CHSMS.API.Repositories.Interfaces
         DateTime? CalculateExpiryDate(DateTime? manufacturingDate, int? shelfLife);
         bool AddMedicineInventoryList(List<MedicineInventory> inventoryList);
         bool UpdateMedicineInventory(MedicineInventory medicineInventory);
+        bool UpdateMedicineInInventory(List<MedicineInventory> medicineInventory);
         List<MedicineInventory> GetNearExpiryMedicines(int monthsThreshold = 6);
         List<Medicine> GetLowStockMedicines(double minimumThreshold);
         List<MedicineInventory> GetExpiredMedicines();
