@@ -176,4 +176,9 @@ public class UseMedicalSupplyRepository : IUseMedicalSupplyRepository
         return _context.UseMedicalSupplies
             .Count(m => m.IssueDate >= today && m.IssueDate < tomorrow);
     }
+
+    public Task<List<UseMedicalSuppliesMedicalSupplyConsumption>> GetAllMedicalSupplyConsumptionsAsync()
+    {
+        throw new NotImplementedException();
+    }
 }
