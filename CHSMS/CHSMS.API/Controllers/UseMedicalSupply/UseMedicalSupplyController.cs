@@ -1,5 +1,7 @@
 ﻿using CHSMS.API.DTOs.UseMedicalSupply;
-using CHSMS.API.Services.Interfaces;
+using CHSMS.API.Models;
+using CHSMS.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [Route("api/[controller]")]
@@ -141,18 +143,10 @@ public class UseMedicalSupplyController : ControllerBase
         }
     }
 
-    [HttpGet("statistics-medicalsupply-consumption")]
-    public async Task<IActionResult> GetAllMedicalSupplyConsumptions()
+    [HttpGet("TodayCount")]
+    public IActionResult GetTodayMedicalRecordHistoryCount()
     {
-        try
-        {
-            var medicalSupplyConsumptions = await _useMedicalSupplyService.GetAllMedicalSupplyConsumptionsAsync();
-            return Ok(medicalSupplyConsumptions);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var count = _useMedicalSupplyService.GetTodayMedicalSupplyCount();
+        return Ok(count);
     }
-
 }

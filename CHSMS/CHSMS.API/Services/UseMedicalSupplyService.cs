@@ -2,8 +2,7 @@
 using CHSMS.API.DTOs.MedicalSupplyConsumption;
 using CHSMS.API.DTOs.UseMedicalSupply;
 using CHSMS.API.Models;
-using CHSMS.API.Repositories.Interfaces;
-using CHSMS.API.Services.Interfaces;
+using CHSMS.API.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 public class UseMedicalSupplyService : IUseMedicalSupplyService
@@ -424,26 +423,9 @@ public class UseMedicalSupplyService : IUseMedicalSupplyService
             TotalPrice = totalPrice
         };
     }
-    public async Task<List<MedicalSupplyConsumptionStatisticDTO>> GetAllMedicalSupplyConsumptionsAsync()
+
+    public int GetTodayMedicalSupplyCount()
     {
-        var useMedicalSuppliesConsumptions = await _repository.GetAllMedicalSupplyConsumptionsAsync();
-
-        return useMedicalSuppliesConsumptions.Select(umsmsc => new MedicalSupplyConsumptionStatisticDTO
-        {
-            MedicalSupplyConsumptionId = umsmsc.Msconsumption.MsconsumptionId,
-            MedicalSupplyInventoryId = umsmsc.Msconsumption.MedicalSupplyInventoryId,
-            MedicalSupplyName = umsmsc.Msconsumption.MedicalSupplyInventory.MedicalSupply.MedicalSupplyName ?? string.Empty,
-            MedicalSupplyCode = umsmsc.Msconsumption.MedicalSupplyInventory.MedicalSupply.MedicalSupplyCode ?? string.Empty,
-            UnitOfMeasure = umsmsc.Msconsumption.MedicalSupplyInventory.MedicalSupply.UnitOfMeasure ?? string.Empty,
-            Amount = umsmsc.Msconsumption.Amount,
-            Note = umsmsc.Msconsumption.Note ?? string.Empty,
-            BatchNumber = umsmsc.Msconsumption.MedicalSupplyInventory.BatchNumber ?? string.Empty,
-            TransactionDate = umsmsc.Msconsumption.MedicalSupplyInventory.TransactionDate,
-            ConsumptionDate = umsmsc.Msconsumption.ConsumptionDate,
-            ExpiryDate = umsmsc.Msconsumption.MedicalSupplyInventory.ExpiryDate,
-            TotalPrice = umsmsc.TotalPrice,
-            UseMedicalSupplieId = umsmsc.UseMedicalSupplieId
-
-        }).ToList();
+        return _repository.CountTodayMedicalSupplies();
     }
 }
