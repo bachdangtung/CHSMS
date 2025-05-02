@@ -1,4 +1,4 @@
-﻿/*using CHSMS.API.Repositories.Interfaces;
+﻿using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
 using Moq;
 
@@ -16,35 +16,34 @@ namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
             _userRepositoryMock = new Mock<IUserRepository>();
             _service = new MedicalRecordHistoryService(_repositoryMock.Object, _userRepositoryMock.Object);
         }
+        /*
+                [Fact]
+                public void DeleteMedicalRecordHistory_ValidId_ReturnsTrue()
+                {
+                    // Arrange
+                    _repositoryMock.Setup(r => r.DeleteMedicalRecordHistory(1))
+                        .Returns(true);
 
-        [Fact]
-        public void DeleteMedicalRecordHistory_ValidId_ReturnsTrue()
-        {
-            // Arrange
-            _repositoryMock.Setup(r => r.DeleteMedicalRecordHistory(1))
-                .Returns(true);
+                    // Act
+                    var result = _service.DeleteMedicalRecordHistory(1);
 
-            // Act
-            var result = _service.DeleteMedicalRecordHistory(1);
+                    // Assert
+                    Assert.True(result);
+                    _repositoryMock.Verify(r => r.DeleteMedicalRecordHistory(1), Times.Once());
+                }
 
-            // Assert
-            Assert.True(result);
-            _repositoryMock.Verify(r => r.DeleteMedicalRecordHistory(1), Times.Once());
-        }
+                [Fact]
+                public void DeleteMedicalRecordHistory_RepositoryFailure_ReturnsFalse()
+                {
+                    // Arrange
+                    _repositoryMock.Setup(r => r.DeleteMedicalRecordHistory(1))
+                        .Returns(false);
 
-        [Fact]
-        public void DeleteMedicalRecordHistory_RepositoryFailure_ReturnsFalse()
-        {
-            // Arrange
-            _repositoryMock.Setup(r => r.DeleteMedicalRecordHistory(1))
-                .Returns(false);
+                    // Act
+                    var result = _service.DeleteMedicalRecordHistory(0);
 
-            // Act
-            var result = _service.DeleteMedicalRecordHistory(0);
-
-            // Assert
-            Assert.False(result);
-        }
+                    // Assert
+                    Assert.False(result);
+                }*/
     }
 }
-*/

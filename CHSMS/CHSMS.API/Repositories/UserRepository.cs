@@ -61,5 +61,10 @@ namespace CHSMS.API.Repositories
 
             return await query.ToListAsync();
         }
+
+        public async Task<int> CountActiveUser()
+        {
+            return await _context.Users.Where(r => r.Status == true).CountAsync();
+        }
     }
 }
