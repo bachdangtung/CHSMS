@@ -79,13 +79,6 @@ public class PrescriptionService : IPrescriptionService
                 if (medDto.ConsumptionDate > (inventory.ExpiryDate ?? DateTime.MaxValue) || dto.IssueDate > (inventory.ExpiryDate ?? DateTime.MaxValue))
                     throw new Exception($"Ngày sử dụng vượt quá hạn sử dụng");
 
-                // Business Rule 8: Kiểm tra số lượng tồn kho tối thiểu (cho bác sĩ)
-                const int minimumQuantity = 10;
-                if ((inventory.Quantity ?? 0) - medDto.Amount < minimumQuantity)
-                {
-                    throw new Exception($"Số lượng tồn kho của thuốc ID {medDto.MedicineInventoryId} sẽ dưới ngưỡng tối thiểu ({minimumQuantity}) sau khi tạo đơn thuốc!");
-                }
-
                 var consumption = new MedicineConsumption
                 {
                     MedicineInventoryId = medDto.MedicineInventoryId,
@@ -176,13 +169,6 @@ public class PrescriptionService : IPrescriptionService
                 if (medDto.ConsumptionDate > (inventory.ExpiryDate ?? DateTime.MaxValue) || dto.IssueDate > (inventory.ExpiryDate ?? DateTime.MaxValue))
                     throw new Exception($"Ngày sử dụng vượt quá hạn sử dụng");
 
-                // Business Rule 8: Kiểm tra số lượng tồn kho tối thiểu (cho bác sĩ)
-                const int minimumQuantity = 10;
-                if ((inventory.Quantity ?? 0) - medDto.Amount < minimumQuantity)
-                {
-                    throw new Exception($"Số lượng tồn kho của thuốc ID {medDto.MedicineInventoryId} sẽ dưới ngưỡng tối thiểu ({minimumQuantity}) sau khi thêm vào đơn thuốc!");
-                }
-
                 var consumption = new MedicineConsumption
                 {
                     MedicineInventoryId = medDto.MedicineInventoryId,
@@ -265,11 +251,6 @@ public class PrescriptionService : IPrescriptionService
                     inventory.Quantity -= (consumption.Amount ?? 0);
                     if (inventory.Quantity < 0)
                         throw new Exception($"Số lượng tồn kho không đủ để phát thuốc!");
-
-                    // Kiểm tra số lượng tồn kho tối thiểu (cho dược sĩ)
-                    const int minimumQuantity = 10;
-                    if (inventory.Quantity < minimumQuantity)
-                        throw new Exception($"Số lượng tồn kho của thuốc ID {consumption.MedicineInventoryId} dưới ngưỡng tối thiểu ({minimumQuantity}) sau khi phát thuốc!");
 
                     await _repository.UpdateMedicineInventoryAsync(inventory);
 

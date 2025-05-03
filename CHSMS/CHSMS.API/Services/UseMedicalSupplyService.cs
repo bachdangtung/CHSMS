@@ -23,11 +23,14 @@ public class UseMedicalSupplyService : IUseMedicalSupplyService
 
         try
         {
-            // Business Rule 3: Kiểm tra IssueDate
+            // Kiểm tra ít nhất một MedicalSupplyInventoryId
+            if (dto.MedicalSupplyConsumptions == null || !dto.MedicalSupplyConsumptions.Any())
+                throw new Exception("Phải có ít nhất một vật tư y tế trong đơn vật tư!");
+            //  Kiểm tra IssueDate
             if (dto.IssueDate > DateTime.Now)
                 throw new Exception("Ngày phát hành không được là ngày trong tương lai!");
 
-            // Business Rule 4: Kiểm tra số lượng tối đa loại vật tư (dựa trên MedicalSupplyId)
+            //  Kiểm tra số lượng tối đa loại vật tư (dựa trên MedicalSupplyId)
             var medicalSupplyIds = new List<int>();
             foreach (var msDto in dto.MedicalSupplyConsumptions)
             {
@@ -67,13 +70,6 @@ public class UseMedicalSupplyService : IUseMedicalSupplyService
                     throw new Exception($"Số lượng yêu cầu vượt quá tồn kho");
                 if (msDto.ConsumptionDate > (inventory.ExpiryDate ?? DateTime.MaxValue) || dto.IssueDate > (inventory.ExpiryDate ?? DateTime.MaxValue))
                     throw new Exception($"Ngày sử dụng vượt quá hạn sử dụng");
-
-                // Business Rule 8: Kiểm tra số lượng tồn kho tối thiểu (cho bác sĩ)
-                const int minimumQuantity = 10;
-                if ((inventory.Quantity ?? 0) - msDto.Amount < minimumQuantity)
-                {
-                    throw new Exception($"Số lượng tồn kho của vật tư ID {msDto.MedicalSupplyInventoryId} sẽ dưới ngưỡng tối thiểu ({minimumQuantity}) sau khi tạo đơn vật tư!");
-                }
 
                 var consumption = new MedicalSupplyConsumption
                 {
@@ -145,9 +141,12 @@ public class UseMedicalSupplyService : IUseMedicalSupplyService
                     await _repository.DeleteMedicalSupplyConsumptionAsync(consumptionId);
                 }
             }
+            var existingConsumptions = await _repository.GetMedicalSupplyConsumptionsByUseMedicalSupplyIdAsync(dto.UseMedicalSupplyId);
+            // Kiểm tra xem sau khi xóa, đơn vật tư có còn vật tư nào không
+            if (!existingConsumptions.Any() && (dto.MedicalSupplyConsumptionsToAdd == null || !dto.MedicalSupplyConsumptionsToAdd.Any()))
+                throw new Exception("Đơn vật tư phải có ít nhất một vật tư y tế!");
 
             // Kiểm tra số lượng vật tư trong đơn
-            var existingConsumptions = await _repository.GetMedicalSupplyConsumptionsByUseMedicalSupplyIdAsync(dto.UseMedicalSupplyId);
             if (existingConsumptions.Count() + dto.MedicalSupplyConsumptionsToAdd.Count > 10)
                 throw new Exception("Một đơn vật tư không được chứa quá 10 loại vật tư!");
 
@@ -167,13 +166,6 @@ public class UseMedicalSupplyService : IUseMedicalSupplyService
                     throw new Exception($"Số lượng yêu cầu vượt quá tồn kho");
                 if (msDto.ConsumptionDate > (inventory.ExpiryDate ?? DateTime.MaxValue) || dto.IssueDate > (inventory.ExpiryDate ?? DateTime.MaxValue))
                     throw new Exception($"Ngày sử dụng vượt quá hạn sử dụng");
-
-                // Business Rule 8: Kiểm tra số lượng tồn kho tối thiểu (cho bác sĩ)
-                const int minimumQuantity = 10;
-                if ((inventory.Quantity ?? 0) - msDto.Amount < minimumQuantity)
-                {
-                    throw new Exception($"Số lượng tồn kho của vật tư ID {msDto.MedicalSupplyInventoryId} sẽ dưới ngưỡng tối thiểu ({minimumQuantity}) sau khi thêm vào đơn vật tư!");
-                }
 
                 var consumption = new MedicalSupplyConsumption
                 {
@@ -253,10 +245,7 @@ public class UseMedicalSupplyService : IUseMedicalSupplyService
                     if (inventory.Quantity < 0)
                         throw new Exception($"Số lượng tồn kho không đủ để phát vật tư!");
 
-                    // Kiểm tra số lượng tồn kho tối thiểu (cho dược sĩ)
-                    const int minimumQuantity = 10;
-                    if (inventory.Quantity < minimumQuantity)
-                        throw new Exception($"Số lượng tồn kho của vật tư ID {consumption.MedicalSupplyInventoryId} dưới ngưỡng tối thiểu ({minimumQuantity}) sau khi phát vật tư!");
+                    
 
                     await _repository.UpdateMedicalSupplyInventoryAsync(inventory);
 
