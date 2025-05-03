@@ -150,4 +150,20 @@ public class UseMedicalSupplyController : ControllerBase
         var count = _useMedicalSupplyService.GetTodayMedicalSupplyCount();
         return Ok(count);
     }
+
+    [HttpGet("statistics-medicalsupply-consumption")]
+    public async Task<IActionResult> GetAllMedicalSupplyConsumptions()
+    {
+        try
+        {
+            var medicalSupplyConsumptions = await _useMedicalSupplyService.GetAllMedicalSupplyConsumptionsAsync();
+            return Ok(medicalSupplyConsumptions);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+
 }
