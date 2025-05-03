@@ -39,10 +39,10 @@ namespace CHSMS.API.Services
             return medicalRecordDTOs;
         }
 
-        public List<MedicalRecordDTO> GetAllMedicalRecordsByPatientName(string? patientName)
+        public List<MedicalRecordDTO> GetAllMedicalRecordsByPatientName(string? patientName, string? healthInsurance)
         {
             List<MedicalRecordDTO> medicalRecordDTOs = new List<MedicalRecordDTO>();
-            foreach (var record in _medicalRecordRepository.GetMedicalRecordsByPatientName(patientName))
+            foreach (var record in _medicalRecordRepository.GetMedicalRecordsByPatientName(patientName, healthInsurance))
             {
                 var recordDTO = new MedicalRecordDTO
                 {

@@ -18,7 +18,7 @@ namespace CHSMS.API.Repositories
                 .ToList();
         }
 
-        public List<MedicalRecord> GetMedicalRecordsByPatientName(string? patientName)
+        public List<MedicalRecord> GetMedicalRecordsByPatientName(string? patientName, string? healthInsurance)
         {
             var query = _context.MedicalRecords
                 .AsQueryable();
@@ -27,6 +27,12 @@ namespace CHSMS.API.Repositories
             {
                 query = query.Where(p => p.PatientName != null && p.PatientName.Contains(patientName));
             }
+
+            if (!string.IsNullOrEmpty(healthInsurance))
+            {
+                query = query.Where(p => p.HealthInsurance != null && p.HealthInsurance.Contains(healthInsurance));
+            }
+
             return query.ToList();
         }
 

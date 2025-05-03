@@ -446,4 +446,9 @@ public class UseMedicalSupplyService : IUseMedicalSupplyService
 
         }).ToList();
     }
+
+    public int GetTodayMedicalSupplyCount()
+    {
+        return _repository.CountTodayMedicalSupplies();
+    }
 }

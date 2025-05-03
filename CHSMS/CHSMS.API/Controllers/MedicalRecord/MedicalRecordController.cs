@@ -25,9 +25,9 @@ namespace CHSMS.API.Controllers.MedicalRecord
         }
 
         [HttpGet("Search")]
-        public IActionResult GetMedicalRecordHistoriesByDateRange(string? patientName)
+        public IActionResult GetMedicalRecordHistoriesByDateRange(string? patientName, string? healthInsurance)
         {
-            var records = _medicalRecordService.GetAllMedicalRecordsByPatientName(patientName);
+            var records = _medicalRecordService.GetAllMedicalRecordsByPatientName(patientName, healthInsurance);
             return Ok(records);
         }
 

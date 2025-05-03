@@ -5,7 +5,7 @@ namespace CHSMS.API.Repositories.Interfaces
     public interface IMedicalRecordRepository
     {
         List<MedicalRecord> GetAllMedicalRecords();
-        List<MedicalRecord> GetMedicalRecordsByPatientName(string? patientName);
+        List<MedicalRecord> GetMedicalRecordsByPatientName(string? patientName, string? healthInsurance);
         bool AddMedicalRecordHistory(MedicalRecord medicalRecord);
     }
 }
