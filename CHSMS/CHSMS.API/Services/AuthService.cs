@@ -287,6 +287,13 @@ namespace CHSMS.API.Services
                 throw new Exception("Người dùng không tồn tại");
             }
 
+            var activeCount = await _userRepository.CountActiveUser();
+
+            if (user.Status == true && activeCount > 10)
+            {
+                throw new Exception("Chỉ được kích hoạt đồng thời 10 tài khoản");
+            }
+
             user.Status = !user.Status;
             _userRepository.Update(user);
             await _context.SaveChangesAsync();
@@ -342,6 +349,8 @@ namespace CHSMS.API.Services
 
             return _mapper.Map<IEnumerable<UserListDto>>(userList);
         }
+
+
 
         public string GenerateRandomPassword(int length = 12)
         {
