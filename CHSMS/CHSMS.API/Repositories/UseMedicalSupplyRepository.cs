@@ -177,8 +177,15 @@ public class UseMedicalSupplyRepository : IUseMedicalSupplyRepository
             .Count(m => m.IssueDate >= today && m.IssueDate < tomorrow);
     }
 
-    public Task<List<UseMedicalSuppliesMedicalSupplyConsumption>> GetAllMedicalSupplyConsumptionsAsync()
+    public async Task<List<UseMedicalSuppliesMedicalSupplyConsumption>> GetAllMedicalSupplyConsumptionsAsync()
     {
-        throw new NotImplementedException();
+        return await _context.UseMedicalSuppliesMedicalSupplyConsumptions
+            .Include(umsmsc => umsmsc.Msconsumption)
+                .ThenInclude(msc => msc.MedicalSupplyInventory)
+                    .ThenInclude(msi => msi.MedicalSupply)
+            .Include(umsmsc => umsmsc.UseMedicalSupplie)
+            .Where(umsmsc => umsmsc.Msconsumption.Status == true)
+            .OrderByDescending(umsmsc => umsmsc.Msconsumption.ConsumptionDate)
+            .ToListAsync();
     }
 }
