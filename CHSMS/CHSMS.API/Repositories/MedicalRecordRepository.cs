@@ -1,5 +1,6 @@
 ﻿using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace CHSMS.API.Repositories
 {
@@ -36,6 +37,13 @@ namespace CHSMS.API.Repositories
             return query.ToList();
         }
 
+        public MedicalRecord? GetMedicalRecord(int medicalRecordId)
+        {
+            return _context.MedicalRecords
+            .FirstOrDefault(m => m.MedicalRecordId == medicalRecordId);
+
+        }
+
         public bool AddMedicalRecordHistory(MedicalRecord medicalRecord)
         {
             _context.MedicalRecords.Add(medicalRecord);
@@ -44,6 +52,12 @@ namespace CHSMS.API.Repositories
             Console.WriteLine(sql);
             */
             Console.WriteLine($"Thêm MedicalRecordId = {medicalRecord.MedicalRecordId}");
+            return _context.SaveChanges() > 0;
+        }
+
+        public bool UpdateMedicalRecord(MedicalRecord medicalRecord)
+        {
+            _context.MedicalRecords.Update(medicalRecord);
             return _context.SaveChanges() > 0;
         }
     }
