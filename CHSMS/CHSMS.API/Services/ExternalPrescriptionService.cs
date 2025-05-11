@@ -26,11 +26,14 @@ namespace CHSMS.API.Services
 
             try
             {
-                // Business Rule 3: Kiểm tra IssueDate
+                // Kiểm tra ít nhất một MedicineId
+                if (dto.MedicinesToAdd == null || !dto.MedicinesToAdd.Any())
+                    throw new Exception("Phải có ít nhất một loại thuốc trong đơn thuốc!");
+                //  Kiểm tra IssueDate
                 if (dto.IssueDate > DateTime.Now)
                     throw new Exception("Ngày phát hành không được là ngày trong tương lai!");
 
-                // Business Rule 4: Kiểm tra số lượng tối đa thuốc
+                // Kiểm tra số lượng tối đa thuốc
                 if (dto.MedicinesToAdd.Count > 10)
                     throw new Exception("Một đơn thuốc không được chứa quá 10 loại thuốc!");
 
@@ -119,8 +122,15 @@ namespace CHSMS.API.Services
                 await _repository.DeleteMedicinePrescriptionAsync(dto.ExternalPrescriptionId, medicineId);
             }
 
-            // Kiểm tra số lượng thuốc trong đơn
+
+            
             var existingMedicines = await _repository.GetMedicinePrescriptionsByPrescriptionIdAsync(dto.ExternalPrescriptionId);
+
+            // Kiểm tra xem sau khi xóa, đơn thuốc có còn thuốc nào không
+            if (!existingMedicines.Any() && (dto.MedicinesToAdd == null || !dto.MedicinesToAdd.Any()))
+                throw new Exception("Đơn thuốc phải có ít nhất một loại thuốc!");
+
+            // Kiểm tra số lượng thuốc trong đơn
             if (existingMedicines.Count + dto.MedicinesToAdd.Count > 10)
                 throw new Exception("Một đơn thuốc không được chứa quá 10 loại thuốc!");
 

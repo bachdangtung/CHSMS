@@ -29,12 +29,15 @@ public class PrescriptionService : IPrescriptionService
         using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
-        {
-            // Business Rule 3: Kiểm tra IssueDate
+        {   
+            //  Kiểm tra Đơn thuốc không được rỗng
+            if (!dto.MedicineConsumptions.Any())
+                throw new Exception("Đơn thuốc phải chứa ít nhất một loại thuốc!");
+            //  Kiểm tra IssueDate
             if (dto.IssueDate > DateTime.Now)
                 throw new Exception("Ngày phát hành không được là ngày trong tương lai!");
 
-            // Business Rule 4: Kiểm tra số lượng tối đa loại thuốc (dựa trên MedicineId)
+            //  Kiểm tra số lượng tối đa loại thuốc (dựa trên MedicineId)
             var medicineIds = new List<int>();
             foreach (var medDto in dto.MedicineConsumptions)
             {
@@ -75,13 +78,6 @@ public class PrescriptionService : IPrescriptionService
                     throw new Exception($"Số lượng yêu cầu vượt quá tồn kho");
                 if (medDto.ConsumptionDate > (inventory.ExpiryDate ?? DateTime.MaxValue) || dto.IssueDate > (inventory.ExpiryDate ?? DateTime.MaxValue))
                     throw new Exception($"Ngày sử dụng vượt quá hạn sử dụng");
-
-                // Business Rule 8: Kiểm tra số lượng tồn kho tối thiểu (cho bác sĩ)
-                const int minimumQuantity = 10;
-                if ((inventory.Quantity ?? 0) - medDto.Amount < minimumQuantity)
-                {
-                    throw new Exception($"Số lượng tồn kho của thuốc ID {medDto.MedicineInventoryId} sẽ dưới ngưỡng tối thiểu ({minimumQuantity}) sau khi tạo đơn thuốc!");
-                }
 
                 var consumption = new MedicineConsumption
                 {
@@ -173,13 +169,6 @@ public class PrescriptionService : IPrescriptionService
                 if (medDto.ConsumptionDate > (inventory.ExpiryDate ?? DateTime.MaxValue) || dto.IssueDate > (inventory.ExpiryDate ?? DateTime.MaxValue))
                     throw new Exception($"Ngày sử dụng vượt quá hạn sử dụng");
 
-                // Business Rule 8: Kiểm tra số lượng tồn kho tối thiểu (cho bác sĩ)
-                const int minimumQuantity = 10;
-                if ((inventory.Quantity ?? 0) - medDto.Amount < minimumQuantity)
-                {
-                    throw new Exception($"Số lượng tồn kho của thuốc ID {medDto.MedicineInventoryId} sẽ dưới ngưỡng tối thiểu ({minimumQuantity}) sau khi thêm vào đơn thuốc!");
-                }
-
                 var consumption = new MedicineConsumption
                 {
                     MedicineInventoryId = medDto.MedicineInventoryId,
@@ -199,6 +188,10 @@ public class PrescriptionService : IPrescriptionService
                 };
                 await _repository.CreatePrescriptionMedicineConsumptionAsync(pmc);
             }
+            // Kiểm tra ít nhất một MedicineConsumption sau khi chỉnh sửa
+            var finalConsumptions = await _repository.GetMedicineConsumptionsByPrescriptionIdAsync(dto.PrescriptionId);
+            if (!finalConsumptions.Any() && !dto.MedicineConsumptionsToAdd.Any())
+                throw new Exception("Đơn thuốc phải chứa ít nhất một loại thuốc sau khi chỉnh sửa!");
 
             await transaction.CommitAsync();
         }
@@ -258,11 +251,6 @@ public class PrescriptionService : IPrescriptionService
                     inventory.Quantity -= (consumption.Amount ?? 0);
                     if (inventory.Quantity < 0)
                         throw new Exception($"Số lượng tồn kho không đủ để phát thuốc!");
-
-                    // Kiểm tra số lượng tồn kho tối thiểu (cho dược sĩ)
-                    const int minimumQuantity = 10;
-                    if (inventory.Quantity < minimumQuantity)
-                        throw new Exception($"Số lượng tồn kho của thuốc ID {consumption.MedicineInventoryId} dưới ngưỡng tối thiểu ({minimumQuantity}) sau khi phát thuốc!");
 
                     await _repository.UpdateMedicineInventoryAsync(inventory);
 

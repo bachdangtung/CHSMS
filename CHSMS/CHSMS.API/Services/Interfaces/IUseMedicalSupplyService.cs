@@ -16,5 +16,6 @@ namespace CHSMS.API.Services.Interfaces
         Task<List<UseMedicalSupplyDTO>> GetUseMedicalSuppliesByMedicalRecordHistoryIdAsync(int medicalRecordHistoryId);
         Task<UseMedicalSupplyDetailDTO> GetUseMedicalSupplyDetailAsync(int useMedicalSupplyId);
         Task<List<MedicalSupplyConsumptionStatisticDTO>> GetAllMedicalSupplyConsumptionsAsync();
+        int GetTodayMedicalSupplyCount();
     }
 }

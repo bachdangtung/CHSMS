@@ -24,5 +24,6 @@ namespace CHSMS.API.Repositories.Interfaces
         Task UpdateMedicalSupplyConsumptionAsync(MedicalSupplyConsumption consumption);
         Task UpdateUseMedicalSuppliesMedicalSupplyConsumptionAsync(UseMedicalSuppliesMedicalSupplyConsumption umsmsc);
         Task<List<UseMedicalSuppliesMedicalSupplyConsumption>> GetAllMedicalSupplyConsumptionsAsync();
+        int CountTodayMedicalSupplies();
     }
 }

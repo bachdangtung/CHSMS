@@ -168,6 +168,15 @@ public class UseMedicalSupplyRepository : IUseMedicalSupplyRepository
         await _context.SaveChangesAsync();
     }
 
+    public int CountTodayMedicalSupplies()
+    {
+        var today = DateTime.Today;
+        var tomorrow = today.AddDays(1);
+
+        return _context.UseMedicalSupplies
+            .Count(m => m.IssueDate >= today && m.IssueDate < tomorrow);
+    }
+
     public async Task<List<UseMedicalSuppliesMedicalSupplyConsumption>> GetAllMedicalSupplyConsumptionsAsync()
     {
         return await _context.UseMedicalSuppliesMedicalSupplyConsumptions
