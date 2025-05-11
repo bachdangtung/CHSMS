@@ -289,7 +289,7 @@ namespace CHSMS.API.Services
 
             var activeCount = await _userRepository.CountActiveUser();
 
-            if (user.Status == true && activeCount > 10)
+            if (user.Status == false && activeCount >= 10)
             {
                 throw new Exception("Chỉ được kích hoạt đồng thời 10 tài khoản");
             }
