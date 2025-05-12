@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore;
 public class UseMedicalSupplyService : IUseMedicalSupplyService
 {
     private readonly IUseMedicalSupplyRepository _repository;
-    private readonly SEP_TestContext _context;
+    private readonly CHSMSContext _context;
 
-    public UseMedicalSupplyService(IUseMedicalSupplyRepository repository, SEP_TestContext context)
+    public UseMedicalSupplyService(IUseMedicalSupplyRepository repository, CHSMSContext context)
     {
         _repository = repository;
         _context = context;

@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace CHSMS.API.Models
 {
-    public partial class SEP_TestContext : DbContext
+    public partial class CHSMSContext : DbContext
     {
-        public SEP_TestContext()
+        public CHSMSContext()
         {
         }
 
-        public SEP_TestContext(DbContextOptions<SEP_TestContext> options)
+        public CHSMSContext(DbContextOptions<CHSMSContext> options)
             : base(options)
         {
         }
@@ -26,6 +26,7 @@ namespace CHSMS.API.Models
         public virtual DbSet<Medicine> Medicines { get; set; } = null!;
         public virtual DbSet<MedicineConsumption> MedicineConsumptions { get; set; } = null!;
         public virtual DbSet<MedicineInventory> MedicineInventories { get; set; } = null!;
+        public virtual DbSet<MedicineInventoryStatistic> MedicineInventoryStatistics { get; set; } = null!;
         public virtual DbSet<MedicinePrescription> MedicinePrescriptions { get; set; } = null!;
         public virtual DbSet<Prescription> Prescriptions { get; set; } = null!;
         public virtual DbSet<PrescriptionMedicineConsumption> PrescriptionMedicineConsumptions { get; set; } = null!;
@@ -37,11 +38,11 @@ namespace CHSMS.API.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var builder = new ConfigurationBuilder()
-                              .SetBasePath(Directory.GetCurrentDirectory())
-                              .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-            IConfigurationRoot configuration = builder.Build();
-            optionsBuilder.UseSqlServer(configuration.GetConnectionString("SEP_DB"));
+            if (!optionsBuilder.IsConfigured)
+            {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseSqlServer("Server=tcp:chsms.database.windows.net,1433;Database=CHSMS;User ID=chsms;Password=Admin@123;Encrypt=True;");
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -324,9 +325,32 @@ namespace CHSMS.API.Models
                     .HasConstraintName("FK_MedicineInventory_Suppliers");
             });
 
+            modelBuilder.Entity<MedicineInventoryStatistic>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.Property(e => e.ConfirmDate).HasColumnType("datetime");
+
+                entity.Property(e => e.MedicineInventoryId).HasColumnName("MedicineInventoryID");
+
+                entity.Property(e => e.MedicineInventoryStatisticsId)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnName("MedicineInventoryStatisticsID");
+
+                entity.Property(e => e.StatisticDate).HasColumnType("datetime");
+
+                entity.Property(e => e.UpdateDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.MedicineInventory)
+                    .WithMany()
+                    .HasForeignKey(d => d.MedicineInventoryId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_MedicineInventoryStatistics_MedicineInventory");
+            });
+
             modelBuilder.Entity<MedicinePrescription>(entity =>
             {
-                entity.HasKey(e => new { e.MedicineId, e.ExternalPrescriptionId });
+                entity.HasNoKey();
 
                 entity.ToTable("Medicine_Prescription");
 
@@ -376,20 +400,17 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<PrescriptionMedicineConsumption>(entity =>
             {
-                entity.HasKey(e => new { e.PrescriptionId, e.MedicineConsumtionId });
+                entity.HasNoKey();
 
                 entity.ToTable("Prescription_MedicineConsumption");
-
-                entity.HasIndex(e => e.MedicineConsumtionId, "IX_Prescription_MedicineConsumption")
-                    .IsUnique();
 
                 entity.Property(e => e.MedicineConsumtionId).HasColumnName("MedicineConsumtionID");
 
                 entity.Property(e => e.PrescriptionId).HasColumnName("PrescriptionID");
 
                 entity.HasOne(d => d.MedicineConsumtion)
-                    .WithOne()
-                    .HasForeignKey<PrescriptionMedicineConsumption>(d => d.MedicineConsumtionId)
+                    .WithMany()
+                    .HasForeignKey(d => d.MedicineConsumtionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Prescription_MedicineConsumption_MedicineConsumption");
 
@@ -424,7 +445,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<UseMedicalSuppliesMedicalSupplyConsumption>(entity =>
             {
-                entity.HasKey(e => new { e.UseMedicalSupplieId, e.MsconsumptionId });
+                entity.HasNoKey();
 
                 entity.ToTable("UseMedicalSupplies_MedicalSupplyConsumption");
 

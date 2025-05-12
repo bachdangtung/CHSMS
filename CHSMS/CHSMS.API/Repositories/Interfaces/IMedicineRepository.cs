@@ -51,6 +51,14 @@ namespace CHSMS.API.Repositories.Interfaces
         List<MedicineConsumption> MedicineConsumptionDetail(int id, DateTime? from, DateTime? to);
         List<MedicineConsumption> ConsumptionHistory(DateTime? from, DateTime? to);
         bool SaveChanges();
+        List<MedicineInventoryStatistic> GetAllMedicineInventoryStatistics();
+        List<MedicineInventoryStatistic>? GetMedicineInventoryStatisticsByStatisticDate(DateTime from, DateTime to);
+        List<MedicineInventoryStatistic> GetAllMSISNotConfirm();
+        bool AddMedicineInventoryStatistic(List<MedicineInventoryStatistic> medicineInventoryStatistic);
+        bool UpdateMedicineInventoryStatistic(MedicineInventoryStatistic medicineInventoryStatistic);
+        bool UpdateMedicineInventoryStatistic(List<MedicineInventoryStatistic> medicineInventoryStatistics);
+        MedicineInventoryStatistic? GetMedicineInventoryStatisticById(int id);
+        bool DeleteMedicineInventoryStatistic(MedicineInventoryStatistic medicineInventoryStatistic);
     }
 
 }
