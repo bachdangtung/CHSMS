@@ -9,6 +9,7 @@ namespace CHSMS.API.Repositories.Interfaces
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetByUserNameAsync(string userName);
         Task<User?> GetByIdAsync(int id);
+        Task<User?> GetByPhoneNumber(string phone);
         void Update(User updatedUser);
         void Add(User newUser);
         Task<User?> GetByResetTokenAsync(ResetPasswordDto resetPasswordDto);

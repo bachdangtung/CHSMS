@@ -29,7 +29,10 @@ namespace CHSMS.API.Repositories
         {
             return await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(u => u.UserId == id);
         }
-
+        public async Task<User?> GetByPhoneNumber(string phone)
+        {
+            return await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(u => u.PhoneNumber == phone);
+        }
         public void Update(User updatedUser)
         {
             _context.Users.Update(updatedUser);
