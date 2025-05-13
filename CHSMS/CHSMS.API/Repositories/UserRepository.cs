@@ -8,9 +8,9 @@ namespace CHSMS.API.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly CHSMSContext _context;
+        private readonly SEP_TestContext _context;
 
-        public UserRepository(CHSMSContext context)
+        public UserRepository(SEP_TestContext context)
         {
             _context = context;
         }

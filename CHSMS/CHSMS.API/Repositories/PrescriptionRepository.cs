@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 public class PrescriptionRepository : IPrescriptionRepository
 {
-    private readonly CHSMSContext _context;
+    private readonly SEP_TestContext _context;
 
-    public PrescriptionRepository(CHSMSContext context)
+    public PrescriptionRepository(SEP_TestContext context)
     {
         _context = context;
     }

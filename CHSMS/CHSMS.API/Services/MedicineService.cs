@@ -10,11 +10,11 @@ namespace CHSMS.API.Services
 {
     public class MedicineService : IMedicineService
     {
-        private readonly CHSMSContext _context;
+        private readonly SEP_TestContext _context;
         private readonly IMedicineRepository _medicineRepository;
         private readonly ILogger<MedicineService> _logger;
 
-        public MedicineService(IMedicineRepository medicineRepository, CHSMSContext context, ILogger<MedicineService> logger)
+        public MedicineService(IMedicineRepository medicineRepository, SEP_TestContext context, ILogger<MedicineService> logger)
         {
             _medicineRepository = medicineRepository;
             _context = context;

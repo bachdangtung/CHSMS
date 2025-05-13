@@ -10,9 +10,9 @@ namespace CHSMS.API.Services
     {
         private readonly IExternalPrescriptionRepository _repository;
 
-        private readonly CHSMSContext _context;
+        private readonly SEP_TestContext _context;
 
-        public ExternalPrescriptionService(IExternalPrescriptionRepository repository, CHSMSContext context)
+        public ExternalPrescriptionService(IExternalPrescriptionRepository repository, SEP_TestContext context)
 
         {
             _repository = repository;

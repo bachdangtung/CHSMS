@@ -6,8 +6,8 @@ namespace CHSMS.API.Repositories
 {
     public class MedicalSupplyRepository : IMedicalSupplyRepository
     {
-        private readonly CHSMSContext _context;
-        public MedicalSupplyRepository(CHSMSContext context)
+        private readonly SEP_TestContext _context;
+        public MedicalSupplyRepository(SEP_TestContext context)
         {
             _context = context;
         }

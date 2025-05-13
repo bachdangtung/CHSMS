@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace CHSMS.API.Models
 {
-    public partial class CHSMSContext : DbContext
+    public partial class SEP_TestContext : DbContext
     {
-        public CHSMSContext()
+        public SEP_TestContext()
         {
         }
 
-        public CHSMSContext(DbContextOptions<CHSMSContext> options)
+        public SEP_TestContext(DbContextOptions<SEP_TestContext> options)
             : base(options)
         {
         }

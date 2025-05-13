@@ -7,9 +7,9 @@ namespace CHSMS.API.Repositories
 {
     public class MedicineRepository : IMedicineRepository
     {
-        private readonly CHSMSContext _context;
+        private readonly SEP_TestContext _context;
         private readonly HttpClient _httpClient;
-        public MedicineRepository(HttpClient httpClient, CHSMSContext context)
+        public MedicineRepository(HttpClient httpClient, SEP_TestContext context)
         {
             _context = context;
             _httpClient = httpClient;

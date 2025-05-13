@@ -13,10 +13,10 @@ public class PrescriptionService : IPrescriptionService
 {
     private readonly IPrescriptionRepository _repository;
 
-    private readonly CHSMSContext _context;
+    private readonly SEP_TestContext _context;
 
 
-    public PrescriptionService(IPrescriptionRepository repository, CHSMSContext context)
+    public PrescriptionService(IPrescriptionRepository repository, SEP_TestContext context)
 
     {
         _repository = repository;
