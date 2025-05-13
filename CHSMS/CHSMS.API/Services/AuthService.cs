@@ -254,6 +254,11 @@ namespace CHSMS.API.Services
             {
                 throw new Exception("Email đã tồn tại");
             }
+            var phoneExist = await _userRepository.GetByPhoneNumber(createUserDto.PhoneNumber);
+            if (phoneExist != null)
+            {
+                throw new Exception("Số điện thoại đã tồn tại");
+            }
             var isValidRole = await _roleRepository.RoleExistsAsync(createUserDto.RoleId);
             if (!isValidRole)
             {
@@ -320,7 +325,16 @@ namespace CHSMS.API.Services
             {
                 throw new Exception("Người dùng không tồn tại");
             }
-
+            var existEmail = await _userRepository.GetByEmailAsync(updatedUser.Email);
+            if (existEmail != null && existEmail.UserId != userId)
+            {
+                throw new Exception("Email đã tồn tại");
+            }
+            var phoneExist = await _userRepository.GetByPhoneNumber(updatedUser.PhoneNumber);
+            if (phoneExist != null && phoneExist.UserId != userId)
+            {
+                throw new Exception("   ");
+            }
             user.Fullname = updatedUser.Fullname;
             user.Email = updatedUser.Email;
             user.PhoneNumber = updatedUser.PhoneNumber;
