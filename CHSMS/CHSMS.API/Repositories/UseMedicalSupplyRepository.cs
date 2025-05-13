@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 public class UseMedicalSupplyRepository : IUseMedicalSupplyRepository
 {
-    private readonly SEP_TestContext _context;
+    private readonly CHSMSContext _context;
 
-    public UseMedicalSupplyRepository(SEP_TestContext context)
+    public UseMedicalSupplyRepository(CHSMSContext context)
     {
         _context = context;
     }

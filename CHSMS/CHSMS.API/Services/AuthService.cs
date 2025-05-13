@@ -19,7 +19,7 @@ namespace CHSMS.API.Services
         private readonly IRoleRepository _roleRepository;
         private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
-        private readonly SEP_TestContext _context;
+        private readonly CHSMSContext _context;
 
         public AuthService(
             IUserRepository userRepository,
@@ -27,7 +27,7 @@ namespace CHSMS.API.Services
             IConfiguration configuration,
             IEmailService emailService,
             IMapper mapper,
-            SEP_TestContext context)
+            CHSMSContext context)
         {
             _userRepository = userRepository;
             _roleRepository = roleRepository;

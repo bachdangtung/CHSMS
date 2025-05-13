@@ -6,9 +6,9 @@ namespace CHSMS.API.Repositories
 {
     public class RoleRepository : IRoleRepository
     {
-        private readonly SEP_TestContext _context;
+        private readonly CHSMSContext _context;
 
-        public RoleRepository(SEP_TestContext context)
+        public RoleRepository(CHSMSContext context)
         {
             _context = context;
         }

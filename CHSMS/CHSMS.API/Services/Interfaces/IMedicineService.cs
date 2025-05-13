@@ -44,5 +44,10 @@ namespace CHSMS.API.Services.Interfaces
         MedicineInventory GetMedicineInventoryById(int? medicineInventoryId);
         bool UpdateMedicineConsumption(ConsumeMedicineDTO medicineConsumption);
         List<MedicineInventory>? GetMedicineImportHistory(DateTime fromDate, DateTime toDate);
+        List<MedicineInventoryStatistic>? GetAllMedicineInventoryStatistics();
+        List<MedicineInventoryStatistic>? GetMedicineInventoryStatisticsByStatisticDate(DateTime? from, DateTime? to);
+        bool AddMedicineInventoryStatistic(List<MedicineInventoryStatisticDTO> mIStatisticDTOs);
+        bool UpdateMedicineInventoryStatistic(List<MedicineInventoryStatisticDTO> mIStatisticDTOs);
+        bool DeleteMedicineInventoryStatistic(int medicineInventoryStatisticId);
     }
 }

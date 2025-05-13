@@ -10,11 +10,11 @@ namespace CHSMS.API.Services
 {
     public class MedicineService : IMedicineService
     {
-        private readonly SEP_TestContext _context;
+        private readonly CHSMSContext _context;
         private readonly IMedicineRepository _medicineRepository;
         private readonly ILogger<MedicineService> _logger;
 
-        public MedicineService(IMedicineRepository medicineRepository, SEP_TestContext context, ILogger<MedicineService> logger)
+        public MedicineService(IMedicineRepository medicineRepository, CHSMSContext context, ILogger<MedicineService> logger)
         {
             _medicineRepository = medicineRepository;
             _context = context;
@@ -553,6 +553,114 @@ namespace CHSMS.API.Services
                 ExpiryDate = medicine.MedicineInventories.FirstOrDefault()?.ExpiryDate,
                 Status = medicine.Status
             };
+        }
+        public List<MedicineInventoryStatistic>? GetAllMedicineInventoryStatistics()
+        {
+            return _medicineRepository.GetAllMedicineInventoryStatistics();
+        }
+
+        public List<MedicineInventoryStatistic>? GetMedicineInventoryStatisticsByStatisticDate(DateTime? from, DateTime? to)
+        {
+            if (!from.HasValue && !to.HasValue)
+            {
+                return _medicineRepository.GetAllMedicineInventoryStatistics();
+            }
+            if (from > to || from > DateTime.Now)
+            {
+                return null;
+            }
+            var medicineInventoryStatistic = _medicineRepository.GetMedicineInventoryStatisticsByStatisticDate(from.Value, to.Value);
+            return medicineInventoryStatistic;
+        }
+        public bool AddMedicineInventoryStatistic(List<MedicineInventoryStatisticDTO> mIStatisticDTOs)
+        {
+            var list = _medicineRepository.GetAllMSISNotConfirm();
+            List<MedicineInventoryStatistic> medicineInventoryStatistics = new List<MedicineInventoryStatistic>();
+            if (mIStatisticDTOs == null || mIStatisticDTOs.Count == 0)
+            {
+                return false;
+            }
+            var adds = new List<MedicineInventoryStatistic>();
+            foreach (var item in mIStatisticDTOs)
+            {
+                var medicineInventoryStatistic = ConvertMedicineInventoryStatisticFromDTO(item);
+                if (item.MedicineInventoryId == null || item.Quantity == null || item.ActualQuantity == null || item.StatisticPerson == null || item.StatisticDate == null)
+                {
+                    throw new Exception("Medical supply inventory statistic is not valid");
+                }
+                else
+                if ((list.Count > 0) && (list.Any(x => x.MedicineInventoryId == medicineInventoryStatistic.MedicineInventoryId) == true))
+                {
+                    throw new Exception("Vật tư này đã tồn tại trong danh sách kiểm kê");
+                }
+                adds.Add(medicineInventoryStatistic);
+            }
+            return _medicineRepository.AddMedicineInventoryStatistic(adds);
+        }
+        public bool UpdateMedicineInventoryStatistic(List<MedicineInventoryStatisticDTO> mStatisticDTOs)
+        {
+            List<MedicineInventoryStatistic> medicineInventoryStatistics = new List<MedicineInventoryStatistic>();
+            List<MedicineInventory> medicineInventories = new List<MedicineInventory>();
+            if (mStatisticDTOs == null || mStatisticDTOs.Count == 0)
+            {
+                return false;
+            }
+            foreach (var item in mStatisticDTOs)
+            {
+                var medicineInventoryStatistic = ConvertMedicineInventoryStatisticFromDTO(item);
+                var medicineInventory = _medicineRepository.GetMedicineInventoryById(medicineInventoryStatistic.MedicineInventoryId);
+                if (medicineInventory == null)
+                {
+                    throw new Exception("Vật tư không hợp lệ");
+                }
+                medicineInventoryStatistics.Add(medicineInventoryStatistic);
+                if (medicineInventoryStatistic.IsUpdate)
+                {
+                    if (medicineInventoryStatistic.Quantity != medicineInventory.Quantity)
+                    {
+                        throw new Exception("Số lượng tồn không đồng nhất so với hệ thống");
+                    }
+                    medicineInventory.Quantity = medicineInventoryStatistic.ActualQuantity;
+                    medicineInventories.Add(medicineInventory);
+                }
+            }
+
+
+            if (medicineInventories.Count <= 0)
+                return _medicineRepository.UpdateMedicineInventoryStatistic(medicineInventoryStatistics);
+            else
+            {
+                var result1 = _medicineRepository.UpdateMedicineInInventory(medicineInventories);
+                var result2 = _medicineRepository.UpdateMedicineInventoryStatistic(medicineInventoryStatistics);
+                return result1 && result2;
+            }
+        }
+        public bool DeleteMedicineInventoryStatistic(int medicineInventoryStatisticId)
+        {
+            var medicineInventoryStatistic = _medicineRepository.GetMedicineInventoryStatisticById(medicineInventoryStatisticId);
+            if (medicineInventoryStatistic == null)
+            {
+                return false;
+            }
+            return _medicineRepository.DeleteMedicineInventoryStatistic(medicineInventoryStatistic);
+        }
+        public MedicineInventoryStatistic ConvertMedicineInventoryStatisticFromDTO(MedicineInventoryStatisticDTO mIStatisticDTO)
+        {
+            var obj = new MedicineInventoryStatistic
+            {
+                MedicineInventoryStatisticsId = mIStatisticDTO.MedicineInventoryStatisticsId,
+                MedicineInventoryId = mIStatisticDTO.MedicineInventoryId,
+                Quantity = mIStatisticDTO.Quantity,
+                ActualQuantity = mIStatisticDTO.ActualQuantity,
+                StatisticPerson = mIStatisticDTO.StatisticPerson,
+                ConfirmPerson = mIStatisticDTO.ConfirmPerson,
+                StatisticDate = mIStatisticDTO.StatisticDate,
+                ConfirmDate = mIStatisticDTO.ConfirmDate,
+                IsUpdate = mIStatisticDTO.IsUpdate || false,
+                Note = mIStatisticDTO.Note,
+                UpdateDate = mIStatisticDTO.UpdateDate,
+            };
+            return obj;
         }
     }
 }

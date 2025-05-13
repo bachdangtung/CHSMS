@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("SEP_DB");
-builder.Services.AddDbContext<SEP_TestContext>(options =>
+builder.Services.AddDbContext<CHSMSContext>(options =>
 {
     options.UseSqlServer(connectionString);
 });

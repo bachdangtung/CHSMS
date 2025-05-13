@@ -7,9 +7,9 @@ namespace CHSMS.API.Repositories
 {
     public class MedicineRepository : IMedicineRepository
     {
-        private readonly SEP_TestContext _context;
+        private readonly CHSMSContext _context;
         private readonly HttpClient _httpClient;
-        public MedicineRepository(HttpClient httpClient, SEP_TestContext context)
+        public MedicineRepository(HttpClient httpClient, CHSMSContext context)
         {
             _context = context;
             _httpClient = httpClient;
@@ -627,5 +627,55 @@ namespace CHSMS.API.Repositories
         {
             return _context.SaveChanges() > 0;
         }
+        public List<MedicineInventoryStatistic> GetAllMedicineInventoryStatistics()
+        {
+            return _context.MedicineInventoryStatistics.ToList();
+        }
+        public List<MedicineInventoryStatistic>? GetMedicineInventoryStatisticsByStatisticDate(DateTime from, DateTime to)
+        {
+            return _context.MedicineInventoryStatistics
+                .Where(x => x.StatisticDate >= from && x.StatisticDate <= to)
+                .ToList();
+        }
+        public List<MedicineInventoryStatistic> GetAllMSISNotConfirm()
+        {
+            return _context.MedicineInventoryStatistics
+                .Where(x => x.ConfirmDate == null)
+                .ToList();
+        }
+        public bool AddMedicineInventoryStatistic(List<MedicineInventoryStatistic> medicineInventoryStatistic)
+        {
+            _context.MedicineInventoryStatistics.AddRange(medicineInventoryStatistic);
+            return _context.SaveChanges() > 0;
+        }
+        public bool UpdateMedicineInventoryStatistic(MedicineInventoryStatistic medicineInventoryStatistic)
+        {
+            _context.MedicineInventoryStatistics.Update(medicineInventoryStatistic);
+            return _context.SaveChanges() > 0;
+        }
+        public bool UpdateMedicineInventoryStatistic(List<MedicineInventoryStatistic> medicineInventoryStatistics)
+        {
+            try
+            {
+                _context.MedicineInventoryStatistics.UpdateRange(medicineInventoryStatistics);
+                return _context.SaveChanges() > 0;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+        public MedicineInventoryStatistic? GetMedicineInventoryStatisticById(int id)
+        {
+            return _context.MedicineInventoryStatistics
+                .Where(x => x.MedicineInventoryStatisticsId == id)
+                .FirstOrDefault();
+        }
+        public bool DeleteMedicineInventoryStatistic(MedicineInventoryStatistic medicineInventoryStatistic)
+        {
+            _context.MedicineInventoryStatistics.Remove(medicineInventoryStatistic);
+            return _context.SaveChanges() > 0;
+        }
+
     }
 }

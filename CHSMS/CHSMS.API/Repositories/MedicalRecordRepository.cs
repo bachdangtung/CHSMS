@@ -5,9 +5,9 @@ namespace CHSMS.API.Repositories
 {
     public class MedicalRecordRepository : IMedicalRecordRepository
     {
-        private readonly SEP_TestContext _context;
+        private readonly CHSMSContext _context;
 
-        public MedicalRecordRepository(SEP_TestContext context)
+        public MedicalRecordRepository(CHSMSContext context)
         {
             _context = context;
         }
