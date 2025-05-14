@@ -2,6 +2,7 @@
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services.Interfaces;
+using System.Text.RegularExpressions;
 
 namespace CHSMS.API.Services
 {
@@ -199,6 +200,50 @@ namespace CHSMS.API.Services
 
         public bool AddMedicalRecordHistory(int userId, MedicalRecordHistoryDTO medicalRecordDTO)
         {
+            // 1. Validate các trường bắt buộc
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.MedicalRecordHistoryCode))
+                throw new Exception("Mã bệnh án không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.PatientCategory))
+                throw new Exception("Đối tượng không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.DiagnoseConclusion))
+                throw new Exception("Kết luận chẩn đoán không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.TreatmentMethod))
+                throw new Exception("Phương pháp điều trị không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.DiseaseProgress))
+                throw new Exception("Diễn biến bệnh không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.MedicalOrder))
+                throw new Exception("Y lệnh không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.Symptom))
+                throw new Exception("Triệu chứng không được để trống!");
+            if (!medicalRecordDTO.Pulse.HasValue)
+                throw new Exception("Mạch không được để trống!");
+            if (!medicalRecordDTO.RespiratoryRate.HasValue)
+                throw new Exception("Nhịp thở không được để trống!");
+            if (!medicalRecordDTO.Temperature.HasValue)
+                throw new Exception("Nhiệt độ không được để trống!");
+            if (!medicalRecordDTO.Height.HasValue)
+                throw new Exception("Chiều cao không được để trống!");
+            if (!medicalRecordDTO.Weight.HasValue)
+                throw new Exception("Cân nặng không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.BloodPressure))
+                throw new Exception("Huyết áp không được để trống!");
+
+            // 2. Validate ngưỡng sinh lý
+            if (medicalRecordDTO.Pulse.HasValue && (medicalRecordDTO.Pulse < 30 || medicalRecordDTO.Pulse > 200))
+                throw new Exception("Mạch phải nằm trong khoảng 30 bpm đến 200 bpm!");
+            if (medicalRecordDTO.RespiratoryRate.HasValue && (medicalRecordDTO.RespiratoryRate < 10 || medicalRecordDTO.RespiratoryRate > 60))
+                throw new Exception("Nhịp thở phải nằm trong khoảng 10 lần/phút đến 60 lần/phút!");
+            if (medicalRecordDTO.Temperature.HasValue && (medicalRecordDTO.Temperature < 33 || medicalRecordDTO.Temperature > 45))
+                throw new Exception("Nhiệt độ phải nằm trong khoảng 33°C đến 45°C!");
+            if (medicalRecordDTO.Height.HasValue && (medicalRecordDTO.Height < 30 || medicalRecordDTO.Height > 250))
+                throw new Exception("Chiều cao phải nằm trong khoảng 30 cm đến 250 cm!");
+            if (medicalRecordDTO.Weight.HasValue && (medicalRecordDTO.Weight < 1 || medicalRecordDTO.Weight > 300))
+                throw new Exception("Cân nặng phải nằm trong khoảng 1 kg đến 300 kg!");
+
+            // 3. Validate huyết áp
+            if (!string.IsNullOrWhiteSpace(medicalRecordDTO.BloodPressure) && !Regex.IsMatch(medicalRecordDTO.BloodPressure, @"^\d{1,3}/\d{1,3}$"))
+                throw new Exception("Huyết áp phải có định dạng 'số/số' (ví dụ: 120/80)!");
+
             var record = new MedicalRecordHistory
             {
                 MedicalRecordHistoryId = 0,
@@ -232,6 +277,51 @@ namespace CHSMS.API.Services
 
         public bool UpdateMedicalRecordHistory(MedicalRecordHistoryDTO medicalRecordDTO)
         {
+            // 1. Validate các trường bắt buộc
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.MedicalRecordHistoryCode))
+                throw new Exception("Mã bệnh án không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.PatientCategory))
+                throw new Exception("Đối tượng không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.DiagnoseConclusion))
+                throw new Exception("Kết luận chẩn đoán không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.TreatmentMethod))
+                throw new Exception("Phương pháp điều trị không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.DiseaseProgress))
+                throw new Exception("Diễn biến bệnh không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.MedicalOrder))
+                throw new Exception("Y lệnh không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.Symptom))
+                throw new Exception("Triệu chứng không được để trống!");
+            if (!medicalRecordDTO.Pulse.HasValue)
+                throw new Exception("Mạch không được để trống!");
+            if (!medicalRecordDTO.RespiratoryRate.HasValue)
+                throw new Exception("Nhịp thở không được để trống!");
+            if (!medicalRecordDTO.Temperature.HasValue)
+                throw new Exception("Nhiệt độ không được để trống!");
+            if (!medicalRecordDTO.Height.HasValue)
+                throw new Exception("Chiều cao không được để trống!");
+            if (!medicalRecordDTO.Weight.HasValue)
+                throw new Exception("Cân nặng không được để trống!");
+            if (string.IsNullOrWhiteSpace(medicalRecordDTO.BloodPressure))
+                throw new Exception("Huyết áp không được để trống!");
+
+            // 2. Validate ngưỡng sinh lý
+            if (medicalRecordDTO.Pulse.HasValue && (medicalRecordDTO.Pulse < 30 || medicalRecordDTO.Pulse > 200))
+                throw new Exception("Mạch phải nằm trong khoảng 30 bpm đến 200 bpm!");
+            if (medicalRecordDTO.RespiratoryRate.HasValue && (medicalRecordDTO.RespiratoryRate < 10 || medicalRecordDTO.RespiratoryRate > 60))
+                throw new Exception("Nhịp thở phải nằm trong khoảng 10 lần/phút đến 60 lần/phút!");
+            if (medicalRecordDTO.Temperature.HasValue && (medicalRecordDTO.Temperature < 33 || medicalRecordDTO.Temperature > 45))
+                throw new Exception("Nhiệt độ phải nằm trong khoảng 33°C đến 45°C!");
+            if (medicalRecordDTO.Height.HasValue && (medicalRecordDTO.Height < 30 || medicalRecordDTO.Height > 250))
+                throw new Exception("Chiều cao phải nằm trong khoảng 30 cm đến 250 cm!");
+            if (medicalRecordDTO.Weight.HasValue && (medicalRecordDTO.Weight < 1 || medicalRecordDTO.Weight > 300))
+                throw new Exception("Cân nặng phải nằm trong khoảng 1 kg đến 300 kg!");
+
+            // 3. Validate huyết áp
+            if (!string.IsNullOrWhiteSpace(medicalRecordDTO.BloodPressure) && !Regex.IsMatch(medicalRecordDTO.BloodPressure, @"^\d{1,3}/\d{1,3}$"))
+                throw new Exception("Huyết áp phải có định dạng 'số/số' (ví dụ: 120/80)!");
+
+
             var existingRecord = _medicalRecordHistoryRepository.GetMedicalRecordHistory(medicalRecordDTO.MedicalRecordHistoryId);
             if (existingRecord == null) return false;
 
