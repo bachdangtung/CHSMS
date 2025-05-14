@@ -6,6 +6,8 @@ namespace CHSMS.API.Services.Interfaces
     {
         List<MedicalRecordDTO> GetAllMedicalRecords();
         List<MedicalRecordDTO> GetAllMedicalRecordsByPatientName(string? patientName, string? healthInsurance);
-        bool AddMedicalRecordHistory(MedicalRecordDTO medicalRecordDTO);
+        MedicalRecordDTO? GetMedicalRecord(int medicalRecordId);
+        bool AddMedicalRecord(MedicalRecordDTO medicalRecordDTO);
+        bool UpdateMedicalRecord(MedicalRecordDTO medicalRecordDTO);
     }
 }

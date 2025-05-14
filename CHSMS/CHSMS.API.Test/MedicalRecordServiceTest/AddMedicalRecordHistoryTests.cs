@@ -26,7 +26,7 @@ namespace CHSMS.API.Test.MedicalRecordServiceTest
                 .Returns(false);
 
             // Act
-            var result = _service.AddMedicalRecordHistory(recordDTO);
+            var result = _service.AddMedicalRecord(recordDTO);
 
             // Assert
             Assert.False(result);
@@ -44,7 +44,7 @@ namespace CHSMS.API.Test.MedicalRecordServiceTest
                 .Returns(true);
 
             // Act
-            var result = _service.AddMedicalRecordHistory(recordDTO);
+            var result = _service.AddMedicalRecord(recordDTO);
 
             // Assert
             Assert.True(result);

@@ -31,14 +31,37 @@ namespace CHSMS.API.Controllers.MedicalRecord
             return Ok(records);
         }
 
+        [HttpGet("Get/{id}")]
+        public IActionResult GetMedicalRecord(int id)
+        {
+            var record = _medicalRecordService.GetMedicalRecord(id);
+            if (record == null)
+                return NotFound();
+            return Ok(record);
+        }
+
         [HttpPost("Add")]
         public IActionResult AddMedicalRecord([FromBody] MedicalRecordDTO medicalRecordDTO)
         {
             try
             {
-                var result = _medicalRecordService.AddMedicalRecordHistory(medicalRecordDTO);
+                var result = _medicalRecordService.AddMedicalRecord(medicalRecordDTO);
 
                 return Ok(new { message = "Thêm bệnh nhân thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        [HttpPut("Update")]
+        public IActionResult UpdateMedicalRecord([FromBody] MedicalRecordDTO medicalRecordDTO)
+        {
+            try
+            {
+                var result = _medicalRecordService.UpdateMedicalRecord(medicalRecordDTO);
+                return Ok(new { message = "Cập nhật bệnh án thành công!" });
             }
             catch (Exception ex)
             {

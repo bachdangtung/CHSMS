@@ -79,7 +79,7 @@ namespace CHSMS.API.Controllers.MedicalRecord
             try
             {
                 var result = _medicalRecordHistoryService.UpdateMedicalRecordHistory(medicalRecordDTO);
-                return Ok(new { message = "Cập nhật bệnh án thành công!" });
+                return Ok(new { message = "Cập nhật lịch sử bệnh án thành công!" });
             }
             catch (Exception ex)
             {
