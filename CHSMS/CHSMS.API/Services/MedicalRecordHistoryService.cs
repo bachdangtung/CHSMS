@@ -50,7 +50,6 @@ namespace CHSMS.API.Services
                     Height = record.Height,
                     Weight = record.Weight,
                     MedicalRecordHistoryCode = record.MedicalRecordHistoryCode,
-                    InsuranceExemption = record.InsuranceExemption,
                     PatientCategory = record.PatientCategory,
                     DiseaseProgress = record.DiseaseProgress,
                     DiseaseStage = record.DiseaseStage,
@@ -97,7 +96,6 @@ namespace CHSMS.API.Services
                 Height = record.Height,
                 Weight = record.Weight,
                 MedicalRecordHistoryCode = record.MedicalRecordHistoryCode,
-                InsuranceExemption = record.InsuranceExemption,
                 PatientCategory = record.PatientCategory,
                 DiseaseProgress = record.DiseaseProgress,
                 DiseaseStage = record.DiseaseStage,
@@ -139,7 +137,6 @@ namespace CHSMS.API.Services
                     Height = record.Height,
                     Weight = record.Weight,
                     MedicalRecordHistoryCode = record.MedicalRecordHistoryCode,
-                    InsuranceExemption = record.InsuranceExemption,
                     PatientCategory = record.PatientCategory,
                     DiseaseProgress = record.DiseaseProgress,
                     DiseaseStage = record.DiseaseStage,
@@ -185,7 +182,6 @@ namespace CHSMS.API.Services
                     Height = record.Height,
                     Weight = record.Weight,
                     MedicalRecordHistoryCode = record.MedicalRecordHistoryCode,
-                    InsuranceExemption = record.InsuranceExemption,
                     PatientCategory = record.PatientCategory,
                     DiseaseProgress = record.DiseaseProgress,
                     DiseaseStage = record.DiseaseStage,
@@ -262,7 +258,6 @@ namespace CHSMS.API.Services
                 Weight = medicalRecordDTO.Weight,
                 Note = medicalRecordDTO.Note,
                 MedicalRecordHistoryCode = medicalRecordDTO.MedicalRecordHistoryCode,
-                InsuranceExemption = medicalRecordDTO.InsuranceExemption,
                 PatientCategory = medicalRecordDTO.PatientCategory,
                 DiseaseProgress = medicalRecordDTO.DiseaseProgress,
                 DiseaseStage = medicalRecordDTO.DiseaseStage,
@@ -314,7 +309,7 @@ namespace CHSMS.API.Services
                 throw new Exception("Nhiệt độ phải nằm trong khoảng 33°C đến 45°C!");
             if (medicalRecordDTO.Height.HasValue && (medicalRecordDTO.Height < 30 || medicalRecordDTO.Height > 250))
                 throw new Exception("Chiều cao phải nằm trong khoảng 30 cm đến 250 cm!");
-            if (medicalRecordDTO.Weight.HasValue && (medicalRecordDTO.Weight < 1 || medicalRecordDTO.Weight > 300))
+            if (medicalRecordDTO.Weight.HasValue && (medicalRecordDTO.Weight < 1 || medicalRecordDTO.Weight > 400))
                 throw new Exception("Cân nặng phải nằm trong khoảng 1 kg đến 300 kg!");
 
             // 3. Validate huyết áp
@@ -340,7 +335,6 @@ namespace CHSMS.API.Services
             existingRecord.Weight = medicalRecordDTO.Weight;
             existingRecord.Note = medicalRecordDTO.Note;
             existingRecord.MedicalRecordHistoryCode = medicalRecordDTO.MedicalRecordHistoryCode;
-            existingRecord.InsuranceExemption = medicalRecordDTO.InsuranceExemption;
             existingRecord.PatientCategory = medicalRecordDTO.PatientCategory;
             existingRecord.DiseaseProgress = medicalRecordDTO.DiseaseProgress;
             existingRecord.DiseaseStage = medicalRecordDTO.DiseaseStage;
