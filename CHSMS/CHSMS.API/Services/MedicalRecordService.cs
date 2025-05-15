@@ -117,7 +117,7 @@ namespace CHSMS.API.Services
             if (dobDate < minDob)
                 throw new Exception("Tuổi bệnh nhân không hợp lệ (tối đa 150 tuổi)!");
 
-            // 3. Validate số điện thoại
+            // 3. Validate sdt
             if (!string.IsNullOrWhiteSpace(medicalRecordDTO.PhoneNumber) && !Regex.IsMatch(medicalRecordDTO.PhoneNumber, @"^[0-9]{10,11}$"))
                 throw new Exception("Số điện thoại phải có 10-11 chữ số!");
 
@@ -125,11 +125,33 @@ namespace CHSMS.API.Services
             if (!string.IsNullOrWhiteSpace(medicalRecordDTO.Email) && !Regex.IsMatch(medicalRecordDTO.Email, @"^[^\s@]+@[^\s@]+\.[^\s@]+$"))
                 throw new Exception("Email không hợp lệ (vd: email@domain.com)!");
 
-            // 5. Validate mã BHYT
+            // 5. Kiểm tra trùng sdt
+            if (!string.IsNullOrWhiteSpace(medicalRecordDTO.PhoneNumber))
+            {
+                var existingRecords = _medicalRecordRepository.GetAllMedicalRecords();
+                var isDuplicatePhone = existingRecords.Any(record =>
+                    !string.IsNullOrWhiteSpace(record.PhoneNumber) &&
+                    record.PhoneNumber.Trim() == medicalRecordDTO.PhoneNumber.Trim());
+                if (isDuplicatePhone)
+                    throw new Exception("Số điện thoại đã tồn tại!");
+            }
+
+            // 6. Kiểm tra trùng email
+            if (!string.IsNullOrWhiteSpace(medicalRecordDTO.Email))
+            {
+                var existingRecords = _medicalRecordRepository.GetAllMedicalRecords();
+                var isDuplicateEmail = existingRecords.Any(record =>
+                    !string.IsNullOrWhiteSpace(record.Email) &&
+                    record.Email.Trim().ToLower() == medicalRecordDTO.Email.Trim().ToLower());
+                if (isDuplicateEmail)
+                    throw new Exception("Email đã tồn tại!");
+            }
+
+            // 7. Validate mã BHYT
             if (!string.IsNullOrWhiteSpace(medicalRecordDTO.HealthInsurance) && !Regex.IsMatch(medicalRecordDTO.HealthInsurance, @"^[A-Za-z]{2}[0-9]{13}$"))
                 throw new Exception("Số bảo hiểm y tế phải có 15 ký tự (2 chữ cái đầu + 13 số)!");
 
-            // 6. Kiểm tra trùng mã BHYT
+            // 8. Kiểm tra trùng mã BHYT
             if (!string.IsNullOrWhiteSpace(medicalRecordDTO.HealthInsurance))
             {
                 var existingRecords = _medicalRecordRepository.GetAllMedicalRecords();
@@ -139,6 +161,8 @@ namespace CHSMS.API.Services
                 if (isDuplicate)
                     throw new Exception("Số bảo hiểm y tế đã tồn tại!");
             }
+
+
 
             var record = new MedicalRecord
             {
@@ -176,7 +200,7 @@ namespace CHSMS.API.Services
             if (string.IsNullOrWhiteSpace(medicalRecordDTO.Job))
                 throw new Exception("Nghề nghiệp không được để trống!");
 
-            // 2. Validate ngày sinh (Dob)
+            // 2. Validate ngày sinh 
             if (!medicalRecordDTO.Dob.HasValue)
                 throw new Exception("Ngày sinh không được để trống!");
             var dobDate = medicalRecordDTO.Dob.Value.Date;
@@ -187,7 +211,7 @@ namespace CHSMS.API.Services
             if (dobDate < minDob)
                 throw new Exception("Tuổi bệnh nhân không hợp lệ (tối đa 150 tuổi)!");
 
-            // 3. Validate số điện thoại
+            // 3. Validate sdt
             if (!string.IsNullOrWhiteSpace(medicalRecordDTO.PhoneNumber) && !Regex.IsMatch(medicalRecordDTO.PhoneNumber, @"^[0-9]{10,11}$"))
                 throw new Exception("Số điện thoại phải có 10-11 chữ số!");
 
@@ -195,11 +219,35 @@ namespace CHSMS.API.Services
             if (!string.IsNullOrWhiteSpace(medicalRecordDTO.Email) && !Regex.IsMatch(medicalRecordDTO.Email, @"^[^\s@]+@[^\s@]+\.[^\s@]+$"))
                 throw new Exception("Email không hợp lệ (vd: email@domain.com)!");
 
-            // 5. Validate mã BHYT
+            // 5. Kiểm tra trùng sdt (trừ bản ghi hiện tại)
+            if (!string.IsNullOrWhiteSpace(medicalRecordDTO.PhoneNumber))
+            {
+                var existingRecords = _medicalRecordRepository.GetAllMedicalRecords();
+                var isDuplicatePhone = existingRecords.Any(record =>
+                    !string.IsNullOrWhiteSpace(record.PhoneNumber) &&
+                    record.PhoneNumber.Trim() == medicalRecordDTO.PhoneNumber.Trim() &&
+                    record.MedicalRecordId != medicalRecordDTO.MedicalRecordId);
+                if (isDuplicatePhone)
+                    throw new Exception("Số điện thoại đã tồn tại!");
+            }
+
+            // 6. Kiểm tra trùng email (trừ bản ghi hiện tại)
+            if (!string.IsNullOrWhiteSpace(medicalRecordDTO.Email))
+            {
+                var existingRecords = _medicalRecordRepository.GetAllMedicalRecords();
+                var isDuplicateEmail = existingRecords.Any(record =>
+                    !string.IsNullOrWhiteSpace(record.Email) &&
+                    record.Email.Trim().ToLower() == medicalRecordDTO.Email.Trim().ToLower() &&
+                    record.MedicalRecordId != medicalRecordDTO.MedicalRecordId);
+                if (isDuplicateEmail)
+                    throw new Exception("Email đã tồn tại!");
+            }
+
+            // 7. Validate mã BHYT
             if (!string.IsNullOrWhiteSpace(medicalRecordDTO.HealthInsurance) && !Regex.IsMatch(medicalRecordDTO.HealthInsurance, @"^[A-Za-z]{2}[0-9]{13}$"))
                 throw new Exception("Số bảo hiểm y tế phải có 15 ký tự (2 chữ cái đầu + 13 số)!");
 
-            // 6. Kiểm tra trùng mã BHYT (trừ bản ghi hiện tại)
+            // 8. Kiểm tra trùng mã BHYT (trừ bản ghi hiện tại)
             if (!string.IsNullOrWhiteSpace(medicalRecordDTO.HealthInsurance))
             {
                 var existingRecords = _medicalRecordRepository.GetAllMedicalRecords();
@@ -214,7 +262,7 @@ namespace CHSMS.API.Services
             var existingRecord = _medicalRecordRepository.GetMedicalRecord(medicalRecordDTO.MedicalRecordId);
             if (existingRecord == null) return false;
 
-            // Gán các trường có thể được cập nhật (nếu muốn, có thể check null để chỉ update khi có giá trị)
+            // Gán các trường có thể được cập nhật 
             existingRecord.PatientName = medicalRecordDTO.PatientName;
             existingRecord.Gender = medicalRecordDTO.Gender;
             existingRecord.Dob = medicalRecordDTO.Dob;
