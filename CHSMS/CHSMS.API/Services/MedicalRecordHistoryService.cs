@@ -322,9 +322,6 @@ namespace CHSMS.API.Services
                 throw new Exception("Huyết áp phải có định dạng 'số/số' (ví dụ: 120/80)!");
 
 
-            var existingRecord = _medicalRecordHistoryRepository.GetMedicalRecordHistory(medicalRecordDTO.MedicalRecordHistoryId);
-            if (existingRecord == null) return false;
-
             // Gán các trường có thể được cập nhật (nếu muốn, có thể check null để chỉ update khi có giá trị)
             existingRecord.Address = medicalRecordDTO.Address;
             existingRecord.MedicalRecordId = medicalRecordDTO.PatientId;

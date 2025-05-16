@@ -264,8 +264,6 @@ namespace CHSMS.API.Services
                     throw new Exception("Số bảo hiểm y tế đã tồn tại!");
             }
 
-            var existingRecord = _medicalRecordRepository.GetMedicalRecord(medicalRecordDTO.MedicalRecordId);
-            if (existingRecord == null) return false;
 
             // Gán các trường có thể được cập nhật 
             existingRecord.PatientName = medicalRecordDTO.PatientName;
