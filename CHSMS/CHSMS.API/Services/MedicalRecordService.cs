@@ -186,6 +186,11 @@ namespace CHSMS.API.Services
 
         public bool UpdateMedicalRecord(MedicalRecordDTO medicalRecordDTO)
         {
+            // Kiểm tra ID bệnh án tồn tại
+            var existingRecord = _medicalRecordRepository.GetMedicalRecord(medicalRecordDTO.MedicalRecordId);
+            if (existingRecord == null)
+                throw new Exception("Bệnh án không tồn tại!");
+
             // 1. Validate các trường bắt buộc
             if (string.IsNullOrWhiteSpace(medicalRecordDTO.PatientName))
                 throw new Exception("Tên bệnh nhân không được để trống!");

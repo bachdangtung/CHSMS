@@ -272,6 +272,11 @@ namespace CHSMS.API.Services
 
         public bool UpdateMedicalRecordHistory(MedicalRecordHistoryDTO medicalRecordDTO)
         {
+            // Kiểm tra lịch sử bệnh án tồn tại
+            var existingRecord = _medicalRecordHistoryRepository.GetMedicalRecordHistory(medicalRecordDTO.MedicalRecordHistoryId);
+            if (existingRecord == null)
+                throw new Exception("Lịch sử bệnh án không tồn tại!");
+
             // 1. Validate các trường bắt buộc
             if (string.IsNullOrWhiteSpace(medicalRecordDTO.MedicalRecordHistoryCode))
                 throw new Exception("Mã bệnh án không được để trống!");
