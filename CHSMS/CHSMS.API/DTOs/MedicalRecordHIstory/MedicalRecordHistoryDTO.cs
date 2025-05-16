@@ -8,6 +8,7 @@ namespace CHSMS.API.DTOs.MedicalRecord
     public class MedicalRecordHistoryDTO
     {
         public int MedicalRecordHistoryId { get; set; }
+        [Required(ErrorMessage = "ID bệnh án không được để trống!")]
         public int PatientId { get; set; }
         public int? UserId { get; set; }
         public string? DoctorName { get; set; }

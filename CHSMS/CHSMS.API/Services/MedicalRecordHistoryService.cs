@@ -1,5 +1,6 @@
 ﻿using CHSMS.API.DTOs.MedicalRecord;
 using CHSMS.API.Models;
+using CHSMS.API.Repositories;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services.Interfaces;
 using System.Text.RegularExpressions;
@@ -11,10 +12,15 @@ namespace CHSMS.API.Services
         private readonly IMedicalRecordHistoryRepository _medicalRecordHistoryRepository;
         private readonly IUserRepository _userRepository;
 
-        public MedicalRecordHistoryService(IMedicalRecordHistoryRepository medicalRecordHistoryRepository, IUserRepository userRepository)
+        private readonly IMedicalRecordRepository _medicalRecordRepository;
+
+
+        public MedicalRecordHistoryService(IMedicalRecordHistoryRepository medicalRecordHistoryRepository, IUserRepository userRepository
+            , IMedicalRecordRepository medicalRecordRepository)
         {
             _medicalRecordHistoryRepository = medicalRecordHistoryRepository;
             _userRepository = userRepository;
+            _medicalRecordRepository = medicalRecordRepository;
         }
 
 
@@ -196,6 +202,10 @@ namespace CHSMS.API.Services
 
         public bool AddMedicalRecordHistory(int userId, MedicalRecordHistoryDTO medicalRecordDTO)
         {
+            //  Kiểm tra bệnh án tồn tại
+            var existingMedicalRecord = _medicalRecordRepository.GetMedicalRecord(medicalRecordDTO.PatientId);
+            if (existingMedicalRecord == null)
+                throw new Exception("Bệnh án không tồn tại!");
 
             //  Validate ngưỡng sinh lý
             if (medicalRecordDTO.Pulse.HasValue && (medicalRecordDTO.Pulse < 30 || medicalRecordDTO.Pulse > 200))
