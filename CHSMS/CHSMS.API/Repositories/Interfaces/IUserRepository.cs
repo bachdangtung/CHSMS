@@ -10,8 +10,8 @@ namespace CHSMS.API.Repositories.Interfaces
         Task<User?> GetByUserNameAsync(string userName);
         Task<User?> GetByIdAsync(int id);
         Task<User?> GetByPhoneNumber(string phone);
-        void Update(User updatedUser);
-        void Add(User newUser);
+        Task UpdateAsync(User updatedUser);
+        Task AddAsync(User newUser);
         Task<User?> GetByResetTokenAsync(ResetPasswordDto resetPasswordDto);
         Task<IEnumerable<User>> GetAllAsync();
         Task<IEnumerable<User>> GetAllAsync(Expression<Func<User, bool>>? filter = null);

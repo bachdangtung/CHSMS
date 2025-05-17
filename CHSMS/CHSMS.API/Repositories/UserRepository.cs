@@ -29,18 +29,22 @@ namespace CHSMS.API.Repositories
         {
             return await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(u => u.UserId == id);
         }
+
         public async Task<User?> GetByPhoneNumber(string phone)
         {
             return await _context.Users.Include(r => r.Role).FirstOrDefaultAsync(u => u.PhoneNumber == phone);
         }
-        public void Update(User updatedUser)
+
+        public async Task UpdateAsync(User updatedUser)
         {
             _context.Users.Update(updatedUser);
+            await _context.SaveChangesAsync(); // Save changes here
         }
 
-        public void Add(User newUser)
+        public async Task AddAsync(User newUser)
         {
             _context.Users.Add(newUser);
+            await _context.SaveChangesAsync(); // Save changes here
         }
 
         public async Task<User?> GetByResetTokenAsync(ResetPasswordDto resetPasswordDto)

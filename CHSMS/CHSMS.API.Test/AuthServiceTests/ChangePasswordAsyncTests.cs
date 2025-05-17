@@ -1,5 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using AutoMapper;
+﻿using AutoMapper;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
@@ -17,8 +16,8 @@ public class ChangePasswordAsyncTests
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<IEmailService> _emailServiceMock;
     private readonly Mock<IMapper> _mapperMock;
-    private readonly Mock<SEP_TestContext> _contextMock;
     private readonly AuthService _authService;
+
     public ChangePasswordAsyncTests()
     {
         _userRepositoryMock = new Mock<IUserRepository>();
@@ -26,10 +25,9 @@ public class ChangePasswordAsyncTests
         _configurationMock = new Mock<IConfiguration>();
         _emailServiceMock = new Mock<IEmailService>();
         _mapperMock = new Mock<IMapper>();
-        _contextMock = new Mock<SEP_TestContext>();
 
         // Setup configuration values
-        _configurationMock.Setup(c => c["Jwt:Key"]).Returns("This Is A Super Long Secret Key With More Than Enough Length For HS512");
+        _configurationMock.Setup(c => c["Jwt:Key"]).Returns("ThisIsASuperLongSecretKeyWithMoreThanEnoughLengthForHS512");
         _configurationMock.Setup(c => c["Jwt:Issuer"]).Returns("TestIssuer");
         _configurationMock.Setup(c => c["Jwt:Audience"]).Returns("TestAudience");
         _configurationMock.Setup(c => c["Jwt:ExpiryInMinutes"]).Returns("30");
@@ -40,10 +38,9 @@ public class ChangePasswordAsyncTests
             _roleRepositoryMock.Object,
             _configurationMock.Object,
             _emailServiceMock.Object,
-            _mapperMock.Object,
-            _contextMock.Object);
+            _mapperMock.Object);
     }
-    
+
     [Fact]
     public async Task ChangePasswordAsync_UserNotFound_ReturnsFalse()
     {
@@ -80,8 +77,10 @@ public class ChangePasswordAsyncTests
         var user = TestHelper.CreateTestUser();
         _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
             .ReturnsAsync(user);
-        _userRepositoryMock.Setup(u => u.Update(It.IsAny<User>()));
-        _contextMock.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
+
+        // Mock UpdateAsync (which handles saving internally)
+        _userRepositoryMock.Setup(u => u.UpdateAsync(It.IsAny<User>()))
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _authService.ChangePasswordAsync(1, "password", "newpassword");
@@ -89,7 +88,8 @@ public class ChangePasswordAsyncTests
         // Assert
         Assert.True(result);
         Assert.True(BCrypt.Net.BCrypt.Verify("newpassword", user.Password));
-        _userRepositoryMock.Verify(u => u.Update(It.IsAny<User>()), Times.Once());
-        _contextMock.Verify(c => c.SaveChangesAsync(default), Times.Once());
+
+        // Verify UpdateAsync was called (no need to check SaveChanges)
+        _userRepositoryMock.Verify(u => u.UpdateAsync(It.IsAny<User>()), Times.Once());
     }
 }
