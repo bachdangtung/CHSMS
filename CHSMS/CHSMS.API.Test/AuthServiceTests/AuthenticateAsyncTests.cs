@@ -2,6 +2,7 @@
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
+using CHSMS.API.Tests.AuthServiceTests;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using NETCore.MailKit.Core;

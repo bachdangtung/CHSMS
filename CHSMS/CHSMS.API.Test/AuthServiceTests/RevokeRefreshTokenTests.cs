@@ -16,7 +16,7 @@ public class RevokeRefreshTokenTests
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<IEmailService> _emailServiceMock;
     private readonly Mock<IMapper> _mapperMock;
-    private readonly Mock<SEP_TestContext> _contextMock;
+
     private readonly AuthService _authService;
     public RevokeRefreshTokenTests()
     {
@@ -25,7 +25,6 @@ public class RevokeRefreshTokenTests
         _configurationMock = new Mock<IConfiguration>();
         _emailServiceMock = new Mock<IEmailService>();
         _mapperMock = new Mock<IMapper>();
-        _contextMock = new Mock<SEP_TestContext>();
 
         // Setup configuration values
         _configurationMock.Setup(c => c["Jwt:Key"]).Returns("This Is A Super Long Secret Key With More Than Enough Length For HS512");
@@ -39,8 +38,7 @@ public class RevokeRefreshTokenTests
             _roleRepositoryMock.Object,
             _configurationMock.Object,
             _emailServiceMock.Object,
-            _mapperMock.Object,
-            _contextMock.Object);
+            _mapperMock.Object);
     }
     [Fact]
     public async Task RevokeRefreshToken_UserNotFound_ReturnsFalse()
@@ -65,8 +63,7 @@ public class RevokeRefreshTokenTests
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(1);
         _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
             .ReturnsAsync(user);
-        _userRepositoryMock.Setup(u => u.Update(It.IsAny<User>()));
-        _contextMock.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
+        _userRepositoryMock.Setup(u => u.UpdateAsync(It.IsAny<User>()));
 
         // Act
         var result = await _authService.RevokeRefreshToken(1);
@@ -75,8 +72,7 @@ public class RevokeRefreshTokenTests
         Assert.True(result);
         Assert.Null(user.RefreshToken);
         Assert.Null(user.RefreshTokenExpiry);
-        _userRepositoryMock.Verify(u => u.Update(It.IsAny<User>()), Times.Once());
-        _contextMock.Verify(c => c.SaveChangesAsync(default), Times.Once());
+        _userRepositoryMock.Verify(u => u.UpdateAsync(It.IsAny<User>()), Times.Once());
     }
-    
+
 }
