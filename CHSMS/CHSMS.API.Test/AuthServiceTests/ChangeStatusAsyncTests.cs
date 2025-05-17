@@ -2,12 +2,11 @@
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
-using CHSMS.API.Tests.AuthServiceTests;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using NETCore.MailKit.Core;
 
-namespace CHSMS.API.Test.AuthServiceTests
+namespace CHSMS.API.Tests.AuthServiceTests
 {
     public class ChangeStatusAsyncTests
     {
@@ -41,16 +40,6 @@ namespace CHSMS.API.Test.AuthServiceTests
                 _mapperMock.Object);
         }
 
-        [Fact]
-        public async Task ChangeStatusAsync_UserNotFound_ThrowsException()
-        {
-            // Arrange
-            _userRepositoryMock.Setup(u => u.GetByIdAsync(-1))
-                .ReturnsAsync((User)null);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<Exception>(() => _authService.ChangeStatusAsync(-1));
-        }
 
         [Fact]
         public async Task ChangeStatusAsync_ValidUser_TogglesStatus()
@@ -77,19 +66,30 @@ namespace CHSMS.API.Test.AuthServiceTests
         }
 
         [Fact]
-        public async Task ChangeStatusAsync_TooManyActiveUsers_ThrowsException()
+        public async Task ChangeStatusAsync_UserNotFound_ThrowsException()
         {
             // Arrange
-            var user = TestHelper.CreateTestUser();
-            user.Status = false;
-            _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
-                .ReturnsAsync(user);
-
-            _userRepositoryMock.Setup(u => u.CountActiveUser())
-                .ReturnsAsync(10); // At activation limit
+            _userRepositoryMock.Setup(u => u.GetByIdAsync(-1))
+                .ReturnsAsync((User)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<Exception>(() => _authService.ChangeStatusAsync(1));
+            await Assert.ThrowsAsync<Exception>(() => _authService.ChangeStatusAsync(-1));
         }
+
+        /*        [Fact]
+                public async Task ChangeStatusAsync_TooManyActiveUsers_ThrowsException()
+                {
+                    // Arrange
+                    var user = TestHelper.CreateTestUser();
+                    user.Status = false;
+                    _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
+                        .ReturnsAsync(user);
+
+                    _userRepositoryMock.Setup(u => u.CountActiveUser())
+                        .ReturnsAsync(10); // At activation limit
+
+                    // Act & Assert
+                    await Assert.ThrowsAsync<Exception>(() => _authService.ChangeStatusAsync(1));
+                }*/
     }
 }

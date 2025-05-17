@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using NETCore.MailKit.Core;
 
-namespace CHSMS.API.Test.AuthServiceTests;
+namespace CHSMS.API.Tests.AuthServiceTests;
 
 public class HashPasswordTests
 {

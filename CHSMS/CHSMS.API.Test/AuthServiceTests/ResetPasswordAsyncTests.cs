@@ -3,12 +3,11 @@ using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
-using CHSMS.API.Tests.AuthServiceTests;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using NETCore.MailKit.Core;
 
-namespace CHSMS.API.Test.AuthServiceTests;
+namespace CHSMS.API.Tests.AuthServiceTests;
 
 public class ResetPasswordAsyncTests
 {
@@ -43,10 +42,36 @@ public class ResetPasswordAsyncTests
     }
 
     [Fact]
-    public async Task ResetPasswordAsync_InvalidToken_ReturnsFalse()
+    public async Task ResetPasswordAsync_ValidToken_ResetsPasswordAndReturnsTrue()
     {
         // Arrange
-        var dto = new ResetPasswordDto { Token = "invalid", UserId = 1, NewPassword = "newpassword" };
+        var user = TestHelper.CreateTestUser();
+        user.ResetToken = "Token";
+        user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+        var dto = new ResetPasswordDto { Token = "Token", UserId = 1, NewPassword = "NewPassword123@" };
+        _userRepositoryMock.Setup(u => u.GetByResetTokenAsync(dto))
+            .ReturnsAsync(user);
+        _userRepositoryMock.Setup(u => u.UpdateAsync(It.IsAny<User>()));
+
+        // Act
+        var result = await _authService.ResetPasswordAsync(dto);
+
+        // Assert
+        Assert.True(result);
+        Assert.True(BCrypt.Net.BCrypt.Verify("NewPassword123@", user.Password));
+        Assert.Null(user.ResetToken);
+        Assert.Null(user.ResetTokenExpiry);
+        _userRepositoryMock.Verify(u => u.UpdateAsync(It.IsAny<User>()), Times.Once());
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_UserNotExist_ReturnsFalse()
+    {
+        // Arrange
+        var user = TestHelper.CreateTestUser();
+        user.ResetToken = "Token";
+        user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
+        var dto = new ResetPasswordDto { Token = "Token", UserId = -1, NewPassword = "NewPassword123@" };
         _userRepositoryMock.Setup(u => u.GetByResetTokenAsync(dto))
             .ReturnsAsync((User)null);
 
@@ -62,9 +87,9 @@ public class ResetPasswordAsyncTests
     {
         // Arrange
         var user = TestHelper.CreateTestUser();
-        user.ResetToken = "token";
+        user.ResetToken = "Token";
         user.ResetTokenExpiry = DateTime.UtcNow.AddHours(-1);
-        var dto = new ResetPasswordDto { Token = "token", UserId = 1, NewPassword = "newpassword" };
+        var dto = new ResetPasswordDto { Token = "Token", UserId = 1, NewPassword = "NewPassword123@" };
         _userRepositoryMock.Setup(u => u.GetByResetTokenAsync(dto))
             .ReturnsAsync(user);
 
@@ -76,13 +101,10 @@ public class ResetPasswordAsyncTests
     }
 
     [Fact]
-    public async Task ResetPasswordAsync_UserNotExist_ReturnsFalse()
+    public async Task ResetPasswordAsync_InvalidToken_ReturnsFalse()
     {
         // Arrange
-        var user = TestHelper.CreateTestUser();
-        user.ResetToken = "token";
-        user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
-        var dto = new ResetPasswordDto { Token = "token", UserId = -1, NewPassword = "newpassword" };
+        var dto = new ResetPasswordDto { Token = "WrongToken", UserId = 1, NewPassword = "NewPassword123@" };
         _userRepositoryMock.Setup(u => u.GetByResetTokenAsync(dto))
             .ReturnsAsync((User)null);
 
@@ -93,15 +115,16 @@ public class ResetPasswordAsyncTests
         Assert.False(result);
     }
 
+
     [Fact]
     public async Task ResetPasswordAsync_InactiveUser_ReturnsFalse()
     {
         // Arrange
         var user = TestHelper.CreateTestUser();
         user.Status = false;
-        user.ResetToken = "token";
+        user.ResetToken = "Token";
         user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
-        var dto = new ResetPasswordDto { Token = "token", UserId = 1, NewPassword = "newpassword" };
+        var dto = new ResetPasswordDto { Token = "Token", UserId = 1, NewPassword = "NewPassword123@" };
         _userRepositoryMock.Setup(u => u.GetByResetTokenAsync(dto))
             .ReturnsAsync(user);
         _userRepositoryMock.Setup(u => u.UpdateAsync(It.IsAny<User>()));
@@ -113,26 +136,4 @@ public class ResetPasswordAsyncTests
         Assert.False(result);
     }
 
-    [Fact]
-    public async Task ResetPasswordAsync_ValidToken_ResetsPasswordAndReturnsTrue()
-    {
-        // Arrange
-        var user = TestHelper.CreateTestUser();
-        user.ResetToken = "token";
-        user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
-        var dto = new ResetPasswordDto { Token = "token", UserId = 1, NewPassword = "newpassword" };
-        _userRepositoryMock.Setup(u => u.GetByResetTokenAsync(dto))
-            .ReturnsAsync(user);
-        _userRepositoryMock.Setup(u => u.UpdateAsync(It.IsAny<User>()));
-
-        // Act
-        var result = await _authService.ResetPasswordAsync(dto);
-
-        // Assert
-        Assert.True(result);
-        Assert.True(BCrypt.Net.BCrypt.Verify("newpassword", user.Password));
-        Assert.Null(user.ResetToken);
-        Assert.Null(user.ResetTokenExpiry);
-        _userRepositoryMock.Verify(u => u.UpdateAsync(It.IsAny<User>()), Times.Once());
-    }
 }

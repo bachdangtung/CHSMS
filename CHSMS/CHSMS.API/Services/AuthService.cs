@@ -54,7 +54,7 @@ namespace CHSMS.API.Services
             return await GenerateTokenPair(user);
         }
 
-        private async Task<TokenPairDto> GenerateTokenPair(User user)
+        public async Task<TokenPairDto> GenerateTokenPair(User user)
         {
             var accessToken = GenerateJwtToken(user);
             var refreshToken = GenerateRefreshToken();
@@ -74,7 +74,7 @@ namespace CHSMS.API.Services
             };
         }
 
-        private string GenerateRefreshToken()
+        public string GenerateRefreshToken()
         {
             var randomNumber = new byte[64];
             using var rng = RandomNumberGenerator.Create();

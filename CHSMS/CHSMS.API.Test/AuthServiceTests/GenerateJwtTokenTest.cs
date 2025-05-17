@@ -7,7 +7,7 @@ using Moq;
 using NETCore.MailKit.Core;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace CHSMS.API.Test.AuthServiceTests;
+namespace CHSMS.API.Tests.AuthServiceTests;
 
 public class GenerateJwtTokenTest
 {

@@ -2,12 +2,11 @@
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
-using CHSMS.API.Tests.AuthServiceTests;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using NETCore.MailKit.Core;
 
-namespace CHSMS.API.Test.AuthServiceTests;
+namespace CHSMS.API.Tests.AuthServiceTests;
 
 public class RequestResetPasswordAsyncTests
 {
@@ -39,6 +38,29 @@ public class RequestResetPasswordAsyncTests
             _configurationMock.Object,
             _emailServiceMock.Object,
             _mapperMock.Object);
+    }
+
+
+    [Fact]
+    public async Task RequestResetPasswordAsync_ValidEmail_SendsEmailAndReturnsTrue()
+    {
+        // Arrange
+        var user = TestHelper.CreateTestUser();
+        _userRepositoryMock.Setup(u => u.GetByEmailAsync("test@example.com"))
+            .ReturnsAsync(user);
+        _userRepositoryMock.Setup(u => u.UpdateAsync(It.IsAny<User>()));
+        _emailServiceMock.Setup(e => e.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), null))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _authService.RequestResetPasswordAsync("test@example.com");
+
+        // Assert
+        Assert.True(result);
+        Assert.NotNull(user.ResetToken);
+        Assert.True(user.ResetTokenExpiry > DateTime.UtcNow);
+        _userRepositoryMock.Verify(u => u.UpdateAsync(It.IsAny<User>()), Times.Once());
+        _emailServiceMock.Verify(e => e.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), true, null), Times.Once());
     }
 
     [Fact]
@@ -74,25 +96,4 @@ public class RequestResetPasswordAsyncTests
         Assert.False(result);
     }
 
-    [Fact]
-    public async Task RequestResetPasswordAsync_ValidEmail_SendsEmailAndReturnsTrue()
-    {
-        // Arrange
-        var user = TestHelper.CreateTestUser();
-        _userRepositoryMock.Setup(u => u.GetByEmailAsync("test@example.com"))
-            .ReturnsAsync(user);
-        _userRepositoryMock.Setup(u => u.UpdateAsync(It.IsAny<User>()));
-        _emailServiceMock.Setup(e => e.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), null))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _authService.RequestResetPasswordAsync("test@example.com");
-
-        // Assert
-        Assert.True(result);
-        Assert.NotNull(user.ResetToken);
-        Assert.True(user.ResetTokenExpiry > DateTime.UtcNow);
-        _userRepositoryMock.Verify(u => u.UpdateAsync(It.IsAny<User>()), Times.Once());
-        _emailServiceMock.Verify(e => e.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), true, null), Times.Once());
-    }
 }

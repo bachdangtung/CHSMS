@@ -2,13 +2,12 @@
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
-using CHSMS.API.Tests.AuthServiceTests;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using NETCore.MailKit.Core;
 
-namespace CHSMS.API.Test.AuthServiceTests;
+namespace CHSMS.API.Tests.AuthServiceTests;
 
 public class RefreshTokenAsyncTests
 {
@@ -41,100 +40,6 @@ public class RefreshTokenAsyncTests
             _emailServiceMock.Object,
             _mapperMock.Object);
     }
-    [Fact]
-    public async Task RefreshTokenAsync_InvalidTokenFormat_ReturnsNull()
-    {
-        // Arrange
-        var invalidToken = "invalidToken";
-
-        // Act
-        var result = await _authService.RefreshTokenAsync(invalidToken, "refreshtoken");
-
-        // Assert
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task RefreshTokenAsync_InvalidToken_ThrowsSecurityTokenException()
-    {
-        // Arrange
-        var invalidToken = TestHelper.GenerateJwtTokenForTest(1, null, null, "This Is A Super Wrong Secret Key With More Than Enough Length For HS512");
-
-        // Act & Assert
-        await Assert.ThrowsAnyAsync<SecurityTokenException>(() =>
-            _authService.RefreshTokenAsync(invalidToken, "refreshtoken"));
-    }
-
-    [Fact]
-    public async Task RefreshTokenAsync_UserNotFound_ReturnsNull()
-    {
-        // Arrange
-        var token = TestHelper.GenerateJwtTokenForTest(1);
-        _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
-            .ReturnsAsync((User)null);
-
-        // Act
-        var result = await _authService.RefreshTokenAsync(token, "refreshtoken");
-
-        // Assert
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task RefreshTokenAsync_InactiveUser_ReturnsNull()
-    {
-        // Arrange
-        var user = TestHelper.CreateTestUser();
-        user.RefreshToken = "refreshtoken";
-        user.Status = false;
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(1);
-        var token = TestHelper.GenerateJwtTokenForTest(1);
-        _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
-            .ReturnsAsync(user);
-        _userRepositoryMock.Setup(u => u.UpdateAsync(It.IsAny<User>()));
-
-        // Act
-        var result = await _authService.RefreshTokenAsync(token, "refreshtoken");
-
-        // Assert
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task RefreshTokenAsync_InvalidRefreshToken_ReturnsNull()
-    {
-        // Arrange
-        var user = TestHelper.CreateTestUser();
-        user.RefreshToken = "wrongrefreshtoken";
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(1);
-        var token = TestHelper.GenerateJwtTokenForTest(1);
-        _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        // Act
-        var result = await _authService.RefreshTokenAsync(token, "refreshtoken");
-
-        // Assert
-        Assert.Null(result);
-    }
-
-    [Fact]
-    public async Task RefreshTokenAsync_ExpiredRefreshToken_ReturnsNull()
-    {
-        // Arrange
-        var user = TestHelper.CreateTestUser();
-        user.RefreshToken = "refreshtoken";
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(-1);
-        var token = TestHelper.GenerateJwtTokenForTest(1);
-        _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        // Act
-        var result = await _authService.RefreshTokenAsync(token, "refreshtoken");
-
-        // Assert
-        Assert.Null(result);
-    }
 
     [Fact]
     public async Task RefreshTokenAsync_ValidToken_ReturnsNewTokenPair()
@@ -158,4 +63,101 @@ public class RefreshTokenAsyncTests
         Assert.True(result.RefreshTokenExpiry > DateTime.UtcNow);
         _userRepositoryMock.Verify(u => u.UpdateAsync(It.IsAny<User>()), Times.Once());
     }
+
+    [Fact]
+    public async Task RefreshTokenAsync_UserNotFound_ReturnsNull()
+    {
+        // Arrange
+        var token = TestHelper.GenerateJwtTokenForTest(-1);
+        _userRepositoryMock.Setup(u => u.GetByIdAsync(-1))
+            .ReturnsAsync((User)null);
+
+        // Act
+        var result = await _authService.RefreshTokenAsync(token, "refreshtoken");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+
+    [Fact]
+    public async Task RefreshTokenAsync_ExpiredRefreshToken_ReturnsNull()
+    {
+        // Arrange
+        var user = TestHelper.CreateTestUser();
+        user.RefreshToken = "refreshtoken";
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(-1);
+        var token = TestHelper.GenerateJwtTokenForTest(1);
+        _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
+            .ReturnsAsync(user);
+
+        // Act
+        var result = await _authService.RefreshTokenAsync(token, "refreshtoken");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_InvalidToken_ThrowsSecurityTokenException()
+    {
+        // Arrange
+        var invalidToken = TestHelper.GenerateJwtTokenForTest(1, null, null, "This Is A Super Wrong Secret Key With More Than Enough Length For HS512");
+
+        // Act & Assert
+        await Assert.ThrowsAnyAsync<SecurityTokenException>(() =>
+            _authService.RefreshTokenAsync(invalidToken, "refreshtoken"));
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_InactiveUser_ReturnsNull()
+    {
+        // Arrange
+        var user = TestHelper.CreateTestUser();
+        user.RefreshToken = "refreshtoken";
+        user.Status = false;
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(1);
+        var token = TestHelper.GenerateJwtTokenForTest(1);
+        _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
+            .ReturnsAsync(user);
+        _userRepositoryMock.Setup(u => u.UpdateAsync(It.IsAny<User>()));
+
+        // Act
+        var result = await _authService.RefreshTokenAsync(token, "refreshtoken");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_InvalidTokenFormat_ReturnsNull()
+    {
+        // Arrange
+        var invalidToken = "invalidToken";
+
+        // Act
+        var result = await _authService.RefreshTokenAsync(invalidToken, "refreshtoken");
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task RefreshTokenAsync_InvalidRefreshToken_ReturnsNull()
+    {
+        // Arrange
+        var user = TestHelper.CreateTestUser();
+        user.RefreshToken = "wrongrefreshtoken";
+        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(1);
+        var token = TestHelper.GenerateJwtTokenForTest(1);
+        _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
+            .ReturnsAsync(user);
+
+        // Act
+        var result = await _authService.RefreshTokenAsync(token, "refreshtoken");
+
+        // Assert
+        Assert.Null(result);
+    }
+
 }
