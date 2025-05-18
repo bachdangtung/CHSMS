@@ -1,110 +1,152 @@
-﻿using CHSMS.API.DTOs.MedicalRecord;
-using CHSMS.API.Models;
-using CHSMS.API.Repositories.Interfaces;
-using CHSMS.API.Services;
-using Moq;
+﻿using CHSMS.API.Models;
+using CHSMS.API.Tests.Services;
 
 namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
 {
-    public class GetMedicalRecordHistoryByPatientIdTests
+    public class GetMedicalRecordHistoryByPatientIdTests : MedicalRecordHistoryServiceTestBase
     {
-        private readonly Mock<IMedicalRecordHistoryRepository> _repositoryMock;
-        private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly MedicalRecordHistoryService _service;
-
-        public GetMedicalRecordHistoryByPatientIdTests()
+        public class MedicalRecordHistoryService_GetByPatientIdTests : MedicalRecordHistoryServiceTestBase
         {
-            _repositoryMock = new Mock<IMedicalRecordHistoryRepository>();
-            _userRepositoryMock = new Mock<IUserRepository>();
-            _service = new MedicalRecordHistoryService(_repositoryMock.Object, _userRepositoryMock.Object);
-        }
+            private readonly MedicalRecordHistory _testHistory;
+            private readonly DateTime _startDate = new DateTime(2024, 12, 12);
+            private readonly DateTime _endDate = new DateTime(2025, 12, 12);
+            private readonly DateTime _recordDate = new DateTime(2025, 1, 1);
 
-        [Fact]
-        public void GetMedicalRecordHistoryByPatientId_ReturnsCorrectDTOs()
-        {
-            // Arrange
-            var mockRecords = TestHelper.CreateDefaultMedicalRecordHistories()
-                .Where(r => r.MedicalRecordId == 101).ToList();
+            public MedicalRecordHistoryService_GetByPatientIdTests()
+            {
+                _testHistory = new MedicalRecordHistory
+                {
+                    MedicalRecordHistoryId = 1,
+                    MedicalRecordId = 1,
+                    Date = _recordDate,
+                    User = new User { Fullname = "Huyen" }
+                };
+            }
 
-            _repositoryMock.Setup(r => r.GetMedicalRecordHistoryByPatientId(101, null, null, null))
-                .Returns(mockRecords);
+            [Fact] // Test case 1: All filters null
+            public void GetMedicalRecordHistoryByPatientId_AllFiltersNull_ReturnsAllRecords()
+            {
+                // Arrange
+                var histories = new List<MedicalRecordHistory> { _testHistory };
+                _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoryByPatientId(1, null, null, null))
+                    .Returns(histories);
 
-            // Act
-            var result = _service.GetMedicalRecordHistoryByPatientId(101, null, null, null);
+                // Act
+                var result = _service.GetMedicalRecordHistoryByPatientId(1, null, null, null);
 
-            // Assert
-            Assert.Single(result);
-            Assert.Equal(1, result[0].MedicalRecordHistoryId);
-            Assert.Equal("John Doe", result[0].PatientName);
-        }
+                // Assert
+                Assert.Single(result);
+                Assert.Equal(1, result[0].MedicalRecordHistoryId);
+            }
 
-        [Fact]
-        public void GetMedicalRecordHistoryByPatientId_WithDateFilter_ReturnsFilteredDTOs()
-        {
-            // Arrange
-            var startDate = DateTime.Now.AddDays(-2);
-            var endDate = DateTime.Now;
-            var mockRecords = TestHelper.CreateDefaultMedicalRecordHistories()
-                .Where(r => r.MedicalRecordId == 101 && r.Date >= startDate && r.Date <= endDate).ToList();
+            [Fact] // Test case 2: Valid PatientId, startDate only
+            public void GetMedicalRecordHistoryByPatientId_WithStartDate_ReturnsFilteredRecords()
+            {
+                // Arrange
+                var histories = new List<MedicalRecordHistory> { _testHistory };
+                _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoryByPatientId(1, _startDate, null, null))
+                    .Returns(histories);
 
-            _repositoryMock.Setup(r => r.GetMedicalRecordHistoryByPatientId(101, startDate, endDate, null))
-                .Returns(mockRecords);
+                // Act
+                var result = _service.GetMedicalRecordHistoryByPatientId(1, _startDate, null, null);
 
-            // Act
-            var result = _service.GetMedicalRecordHistoryByPatientId(101, startDate, endDate, null);
+                // Assert
+                Assert.Single(result);
+                Assert.Equal(_recordDate, result[0].RecordDate);
+            }
 
-            // Assert
-            Assert.Single(result);
-            Assert.Equal(1, result[0].MedicalRecordHistoryId);
-        }
+            [Fact] // Test case 3: Valid PatientId, endDate only
+            public void GetMedicalRecordHistoryByPatientId_WithEndDate_ReturnsFilteredRecords()
+            {
+                // Arrange
+                var histories = new List<MedicalRecordHistory> { _testHistory };
+                _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoryByPatientId(1, null, _endDate, null))
+                    .Returns(histories);
 
-        [Fact]
-        public void GetMedicalRecordHistoryByPatientId_WithDoctorNameFilter_ReturnsFilteredDTOs()
-        {
-            // Arrange
-            string doctorName = "Dr. Smith";
-            var mockRecords = TestHelper.CreateDefaultMedicalRecordHistories()
-                .Where(r => r.MedicalRecordId == 101 && r.User.UserName == doctorName).ToList();
+                // Act
+                var result = _service.GetMedicalRecordHistoryByPatientId(1, null, _endDate, null);
 
-            _repositoryMock.Setup(r => r.GetMedicalRecordHistoryByPatientId(101, null, null, doctorName))
-                .Returns(mockRecords);
+                // Assert
+                Assert.Single(result);
+                Assert.Equal(_recordDate, result[0].RecordDate);
+            }
 
-            // Act
-            var result = _service.GetMedicalRecordHistoryByPatientId(101, null, null, doctorName);
+            [Fact] // Test case 4: Valid PatientId, doctorName only
+            public void GetMedicalRecordHistoryByPatientId_WithDoctorName_ReturnsFilteredRecords()
+            {
+                // Arrange
+                var histories = new List<MedicalRecordHistory> { _testHistory };
+                _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoryByPatientId(1, null, null, "Huyen"))
+                    .Returns(histories);
 
-            // Assert
-            Assert.Single(result);
-            Assert.Equal("Dr. Smith", result[0].DoctorName);
-        }
+                // Act
+                var result = _service.GetMedicalRecordHistoryByPatientId(1, null, null, "Huyen");
 
-        [Fact]
-        public void GetMedicalRecordHistoryByPatientId_IdNotExist_ReturnsEmptyList()
-        {
-            // Arrange
-            int nonExistentId = 999;
-            _repositoryMock.Setup(r => r.GetMedicalRecordHistoryByPatientId(nonExistentId, null, null, null))
-                .Returns(new List<MedicalRecordHistory>());
+                // Assert
+                Assert.Single(result);
+                Assert.Equal("Huyen", result[0].Fullname);
+            }
 
-            // Act
-            var result = _service.GetMedicalRecordHistoryByPatientId(nonExistentId, null, null, null);
+            [Fact] // Test case 5: Valid PatientId, startDate and endDate
+            public void GetMedicalRecordHistoryByPatientId_WithDateRange_ReturnsFilteredRecords()
+            {
+                // Arrange
+                var histories = new List<MedicalRecordHistory> { _testHistory };
+                _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoryByPatientId(1, _startDate, _endDate, null))
+                    .Returns(histories);
 
-            // Assert
-            Assert.Empty(result);
-            Assert.IsType<List<MedicalRecordHistoryDTO>>(result);
-        }
+                // Act
+                var result = _service.GetMedicalRecordHistoryByPatientId(1, _startDate, _endDate, null);
 
-        [Fact]
-        public void GetMedicalRecordHistoryByPatientId_EmptyDatabase_ReturnsEmptyList()
-        {
-            // Arrange
-            _repositoryMock.Setup(r => r.GetMedicalRecordHistoryByPatientId(It.IsAny<int>(), null, null, null))
-                .Returns(new List<MedicalRecordHistory>());
+                // Assert
+                Assert.Single(result);
+                Assert.True(result[0].RecordDate >= _startDate && result[0].RecordDate <= _endDate);
+            }
 
-            // Act
-            var result = _service.GetMedicalRecordHistoryByPatientId(101, null, null, null);
+            [Fact] // Test case 6: Valid PatientId, all filters
+            public void GetMedicalRecordHistoryByPatientId_WithAllFilters_ReturnsFilteredRecords()
+            {
+                // Arrange
+                var histories = new List<MedicalRecordHistory> { _testHistory };
+                _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoryByPatientId(1, _startDate, _endDate, "Huyen"))
+                    .Returns(histories);
 
-            // Assert
-            Assert.Empty(result);
+                // Act
+                var result = _service.GetMedicalRecordHistoryByPatientId(1, _startDate, _endDate, "Huyen");
+
+                // Assert
+                Assert.Single(result);
+                Assert.Equal("Huyen", result[0].Fullname);
+                Assert.True(result[0].RecordDate >= _startDate && result[0].RecordDate <= _endDate);
+            }
+
+            [Fact] // Edge case: Invalid PatientId
+            public void GetMedicalRecordHistoryByPatientId_InvalidPatientId_ReturnsEmptyList()
+            {
+                // Arrange
+                _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoryByPatientId(-1, null, null, null))
+                    .Returns(new List<MedicalRecordHistory>());
+
+                // Act
+                var result = _service.GetMedicalRecordHistoryByPatientId(-1, null, null, null);
+
+                // Assert
+                Assert.Empty(result);
+            }
+
+            [Fact] // Edge case: No matching records
+            public void GetMedicalRecordHistoryByPatientId_NoMatchingRecords_ReturnsEmptyList()
+            {
+                // Arrange
+                _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoryByPatientId(1, _startDate, _endDate, "NonExisting"))
+                    .Returns(new List<MedicalRecordHistory>());
+
+                // Act
+                var result = _service.GetMedicalRecordHistoryByPatientId(1, _startDate, _endDate, "NonExisting");
+
+                // Assert
+                Assert.Empty(result);
+            }
         }
     }
 }

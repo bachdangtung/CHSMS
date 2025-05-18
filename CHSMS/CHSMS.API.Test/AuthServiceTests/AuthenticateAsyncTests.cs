@@ -26,7 +26,7 @@ namespace CHSMS.API.Tests.AuthServiceTests
             _mapperMock = new Mock<IMapper>();
 
             // Setup configuration values
-            _configurationMock.Setup(c => c["Jwt:Key"]).Returns("ThisIsASuperLongSecretKeyWithMoreThanEnoughLengthForHS512");
+            _configurationMock.Setup(c => c["Jwt:Key"]).Returns("This Is A Super Long Secret Key With More Than Enough Length For HS512");
             _configurationMock.Setup(c => c["Jwt:Issuer"]).Returns("TestIssuer");
             _configurationMock.Setup(c => c["Jwt:Audience"]).Returns("TestAudience");
             _configurationMock.Setup(c => c["Jwt:ExpiryInMinutes"]).Returns("30");

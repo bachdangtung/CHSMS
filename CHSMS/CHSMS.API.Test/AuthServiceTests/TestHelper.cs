@@ -12,7 +12,7 @@ public class TestHelper
     {
 
     }
-    public static User CreateTestUser(int id = 1, string roleName = "User")
+    public static User CreateTestUser(int id = 1, string roleName = "Doctor")
     {
         return new User
         {
@@ -20,7 +20,7 @@ public class TestHelper
             UserName = "testuser",
             Email = "test@example.com",
             Fullname = "Test User",
-            Password = BCrypt.Net.BCrypt.HashPassword("password"),
+            Password = BCrypt.Net.BCrypt.HashPassword("Password123@"),
             Status = true,
             Role = new Role { RoleName = roleName },
             RoleId = 1,

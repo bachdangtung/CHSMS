@@ -1,65 +1,107 @@
 ﻿using CHSMS.API.Models;
-using CHSMS.API.Repositories.Interfaces;
-using CHSMS.API.Services;
-using Moq;
 
-namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
+namespace CHSMS.API.Tests.Services
 {
-    public class GetMedicalRecordHistoriesByFilterTests
+    public class MedicalRecordHistoryService_FilterTests : MedicalRecordHistoryServiceTestBase
     {
-        private readonly Mock<IMedicalRecordHistoryRepository> _repositoryMock;
-        private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly MedicalRecordHistoryService _service;
-
-        public GetMedicalRecordHistoriesByFilterTests()
-        {
-            _repositoryMock = new Mock<IMedicalRecordHistoryRepository>();
-            _userRepositoryMock = new Mock<IUserRepository>();
-            _service = new MedicalRecordHistoryService(_repositoryMock.Object, _userRepositoryMock.Object);
-        }
-
         [Fact]
-        public void GetMedicalRecordHistoriesByFilter_ReturnsFilteredDTOs()
+        public void GetMedicalRecordHistoriesByFilter_BothDoctorNameAndPatientName_ReturnsFilteredResults()
         {
             // Arrange
-            var mockRecords = TestHelper.CreateDefaultMedicalRecordHistories()
-                .Where(r => r.User.UserName == "Dr. Smith" && r.MedicalRecord.PatientName.Contains("John")).ToList();
+            var testHistory = CreateTestMedicalRecordHistory();
+            testHistory.User = new User { Fullname = "Huven", UserName = "doctor1" };
+            testHistory.MedicalRecord = new MedicalRecord { PatientName = "Van" };
 
-            _repositoryMock.Setup(r => r.GetMedicalRecordHistoriesByFilter("Dr. Smith", "John"))
-                .Returns(mockRecords);
+            var expectedResult = new List<MedicalRecordHistory> { testHistory };
+
+            _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoriesByFilter("Huven", "Van"))
+                .Returns(expectedResult);
 
             // Act
-            var result = _service.GetMedicalRecordHistoriesByFilter("Dr. Smith", "John");
+            var result = _service.GetMedicalRecordHistoriesByFilter("Huven", "Van");
 
             // Assert
             Assert.Single(result);
-            Assert.Equal(1, result[0].MedicalRecordHistoryId);
-            Assert.Equal("John Doe", result[0].PatientName);
+            Assert.Equal("Huven", result[0].Fullname);
+            Assert.Equal("Van", result[0].PatientName);
+        }
+
+        [Fact]
+        public void GetMedicalRecordHistoriesByFilter_OnlyDoctorName_ReturnsFilteredResults()
+        {
+            // Arrange
+            var testHistory = CreateTestMedicalRecordHistory();
+            testHistory.User = new User { Fullname = "Huven", UserName = "doctor1" };
+            testHistory.MedicalRecord = new MedicalRecord { PatientName = "Van" };
+
+            var expectedResult = new List<MedicalRecordHistory> { testHistory };
+
+            _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoriesByFilter("Huven", null))
+                .Returns(expectedResult);
+
+            // Act
+            var result = _service.GetMedicalRecordHistoriesByFilter("Huven", null);
+
+            // Assert
+            Assert.Single(result);
+            Assert.Equal("Huven", result[0].Fullname);
+        }
+
+        [Fact]
+        public void GetMedicalRecordHistoriesByFilter_OnlyPatientName_ReturnsFilteredResults()
+        {
+            // Arrange
+            var testHistory = CreateTestMedicalRecordHistory();
+            testHistory.User = new User { Fullname = "Huven", UserName = "doctor1" };
+            testHistory.MedicalRecord = new MedicalRecord { PatientName = "Van" };
+
+            var expectedResult = new List<MedicalRecordHistory> { testHistory };
+
+            _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoriesByFilter(null, "Van"))
+                .Returns(expectedResult);
+
+            // Act
+            var result = _service.GetMedicalRecordHistoriesByFilter(null, "Van");
+
+            // Assert
+            Assert.Single(result);
+            Assert.Equal("Van", result[0].PatientName);
+        }
+
+        [Fact]
+        public void GetMedicalRecordHistoriesByFilter_NoFilters_ReturnsAllResults()
+        {
+            // Arrange
+            var testHistory1 = CreateTestMedicalRecordHistory();
+            testHistory1.User = new User { Fullname = "Huven", UserName = "doctor1" };
+            testHistory1.MedicalRecord = new MedicalRecord { PatientName = "Van" };
+
+            var testHistory2 = CreateTestMedicalRecordHistory();
+            testHistory2.MedicalRecordHistoryId = 2;
+            testHistory2.User = new User { Fullname = "John", UserName = "doctor2" };
+            testHistory2.MedicalRecord = new MedicalRecord { PatientName = "Doe" };
+
+            var expectedResult = new List<MedicalRecordHistory> { testHistory1, testHistory2 };
+
+            _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoriesByFilter(null, null))
+                .Returns(expectedResult);
+
+            // Act
+            var result = _service.GetMedicalRecordHistoriesByFilter(null, null);
+
+            // Assert
+            Assert.Equal(2, result.Count);
         }
 
         [Fact]
         public void GetMedicalRecordHistoriesByFilter_NoMatches_ReturnsEmptyList()
         {
             // Arrange
-            _repositoryMock.Setup(r => r.GetMedicalRecordHistoriesByFilter("Dr. Unknown", "Unknown"))
+            _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoriesByFilter("NonExisting", "Patient"))
                 .Returns(new List<MedicalRecordHistory>());
 
             // Act
-            var result = _service.GetMedicalRecordHistoriesByFilter("Dr. Unknown", "Unknown");
-
-            // Assert
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public void GetMedicalRecordHistoriesByFilter_EmptyDatabase_ReturnsEmptyList()
-        {
-            // Arrange
-            _repositoryMock.Setup(r => r.GetMedicalRecordHistoriesByFilter(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(new List<MedicalRecordHistory>());
-
-            // Act
-            var result = _service.GetMedicalRecordHistoriesByFilter("Dr. Smith", "John");
+            var result = _service.GetMedicalRecordHistoriesByFilter("NonExisting", "Patient");
 
             // Assert
             Assert.Empty(result);

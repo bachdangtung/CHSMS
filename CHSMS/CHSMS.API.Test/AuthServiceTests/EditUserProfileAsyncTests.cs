@@ -110,6 +110,7 @@ namespace CHSMS.API.Tests.AuthServiceTests
             var userId = 1;
             var existingUser = TestHelper.CreateTestUser(userId);
             var otherUser = TestHelper.CreateTestUser(2);
+            otherUser.PhoneNumber = "9876543210";
             var updateDto = new EditUserProfileDto { PhoneNumber = "9876543210" };
 
             _userRepositoryMock.Setup(u => u.GetByIdAsync(userId))

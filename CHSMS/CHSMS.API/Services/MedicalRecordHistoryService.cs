@@ -1,6 +1,5 @@
 ﻿using CHSMS.API.DTOs.MedicalRecord;
 using CHSMS.API.Models;
-using CHSMS.API.Repositories;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services.Interfaces;
 using System.Text.RegularExpressions;
@@ -302,12 +301,6 @@ namespace CHSMS.API.Services
 
             return _medicalRecordHistoryRepository.UpdateMedicalRecordHistory(existingRecord);
         }
-
-
-        /*        public bool DeleteMedicalRecordHistory(int medicalRecordId)
-                {
-                    return _medicalRecordHistoryRepository.DeleteMedicalRecordHistory(medicalRecordId);
-                }*/
 
         public int GetTodayMedicalRecordHistoryCount()
         {

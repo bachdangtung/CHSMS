@@ -23,16 +23,16 @@ namespace CHSMS.API.Test.MedicalRecordServiceTest
             var patientName = "John";
             var filteredRecords = testRecords.FindAll(r => r.PatientName.Contains(patientName));
 
-            _mockRepository.Setup(repo => repo.GetMedicalRecordsByPatientName(patientName)).Returns(filteredRecords);
+            _mockRepository.Setup(repo => repo.GetMedicalRecordsByPatientName(patientName, null)).Returns(filteredRecords);
 
             // Act
-            var result = _service.GetAllMedicalRecordsByPatientName(patientName);
+            var result = _service.GetAllMedicalRecordsByPatientName(patientName, null);
 
             // Assert
             Assert.NotNull(result);
             Assert.Single(result);
             TestHelper.VerifyMedicalRecordMatchesDTO(filteredRecords[0], result[0]);
-            _mockRepository.Verify(repo => repo.GetMedicalRecordsByPatientName(patientName), Times.Once);
+            _mockRepository.Verify(repo => repo.GetMedicalRecordsByPatientName(patientName, null), Times.Once);
         }
 
         [Fact]
@@ -40,16 +40,16 @@ namespace CHSMS.API.Test.MedicalRecordServiceTest
         {
             // Arrange
             var patientName = "NonExistent";
-            _mockRepository.Setup(repo => repo.GetMedicalRecordsByPatientName(patientName))
+            _mockRepository.Setup(repo => repo.GetMedicalRecordsByPatientName(patientName, null))
                 .Returns(new List<MedicalRecord>());
 
             // Act
-            var result = _service.GetAllMedicalRecordsByPatientName(patientName);
+            var result = _service.GetAllMedicalRecordsByPatientName(patientName, null);
 
             // Assert
             Assert.NotNull(result);
             Assert.Empty(result);
-            _mockRepository.Verify(repo => repo.GetMedicalRecordsByPatientName(patientName), Times.Once);
+            _mockRepository.Verify(repo => repo.GetMedicalRecordsByPatientName(patientName, null), Times.Once);
         }
 
         [Fact]
@@ -59,16 +59,16 @@ namespace CHSMS.API.Test.MedicalRecordServiceTest
             string patientName = null;
             var testRecords = TestHelper.CreateTestMedicalRecords();
 
-            _mockRepository.Setup(repo => repo.GetMedicalRecordsByPatientName(patientName))
+            _mockRepository.Setup(repo => repo.GetMedicalRecordsByPatientName(patientName, null))
                 .Returns(testRecords);
 
             // Act
-            var result = _service.GetAllMedicalRecordsByPatientName(patientName);
+            var result = _service.GetAllMedicalRecordsByPatientName(patientName, null);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(testRecords.Count, result.Count);
-            _mockRepository.Verify(repo => repo.GetMedicalRecordsByPatientName(patientName), Times.Once);
+            _mockRepository.Verify(repo => repo.GetMedicalRecordsByPatientName(patientName, null), Times.Once);
         }
     }
 

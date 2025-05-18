@@ -1,28 +1,14 @@
-﻿using CHSMS.API.Repositories.Interfaces;
-using CHSMS.API.Services;
-using Moq;
+﻿using CHSMS.API.Tests.Services;
 
 namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
 {
-    public class GetTodayMedicalRecordHistoryCountTests
+    public class GetTodayMedicalRecordHistoryCountTests : MedicalRecordHistoryServiceTestBase
     {
-        private readonly Mock<IMedicalRecordHistoryRepository> _repositoryMock;
-        private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly MedicalRecordHistoryService _service;
-
-        public GetTodayMedicalRecordHistoryCountTests()
-        {
-            _repositoryMock = new Mock<IMedicalRecordHistoryRepository>();
-            _userRepositoryMock = new Mock<IUserRepository>();
-            _service = new MedicalRecordHistoryService(_repositoryMock.Object, _userRepositoryMock.Object);
-        }
-
         [Fact]
-        public void GetTodayMedicalRecordHistoryCount_ReturnsCorrectCount()
+        public void GetTodayMedicalRecordHistoryCount_5Rcecord_ReturnsCorrectCount()
         {
             // Arrange
-            _repositoryMock.Setup(r => r.CountTodayMedicalRecordHistories())
-                .Returns(5);
+            _mockHistoryRepo.Setup(x => x.CountTodayMedicalRecordHistories()).Returns(5);
 
             // Act
             var result = _service.GetTodayMedicalRecordHistoryCount();
@@ -32,17 +18,16 @@ namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
         }
 
         [Fact]
-        public void GetTodayMedicalRecordHistoryCount_NoRecords_ReturnsZero()
+        public void GetTodayMedicalRecordHistoryCount_NoRcecord_ReturnsCorrectCount()
         {
             // Arrange
-            _repositoryMock.Setup(r => r.CountTodayMedicalRecordHistories())
-                .Returns(0);
+            _mockHistoryRepo.Setup(x => x.CountTodayMedicalRecordHistories()).Returns(0);
 
             // Act
             var result = _service.GetTodayMedicalRecordHistoryCount();
 
             // Assert
-            Assert.Equal(0, result);
+            Assert.Equal(5, result);
         }
     }
 }

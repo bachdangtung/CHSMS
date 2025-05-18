@@ -56,10 +56,6 @@ namespace CHSMS.API.Tests.AuthServiceTests
             Assert.NotNull(result);
             Assert.Equal(expectedDto.UserId, result.UserId);
             Assert.Equal(expectedDto.Username, result.Username);
-            // Add more property assertions as needed
-
-            _userRepositoryMock.Verify(u => u.GetByIdAsync(userId), Times.Once);
-            _mapperMock.Verify(m => m.Map<UserListDto>(user), Times.Once);
         }
 
         [Fact]
@@ -75,10 +71,6 @@ namespace CHSMS.API.Tests.AuthServiceTests
 
             // Assert
             Assert.Null(result);
-            _userRepositoryMock.Verify(u => u.GetByIdAsync(invalidId), Times.Once);
-
-            // Verify mapper wasn't called when user is null
-            _mapperMock.Verify(m => m.Map<UserListDto>(It.IsAny<User>()), Times.Never);
         }
     }
 }

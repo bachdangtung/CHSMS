@@ -326,7 +326,7 @@ namespace CHSMS.API.Services
             var phoneExist = await _userRepository.GetByPhoneNumber(updatedUser.PhoneNumber);
             if (phoneExist != null && phoneExist.UserId != userId)
             {
-                throw new Exception("   ");
+                throw new Exception("Số điện thoại đã tồn tại");
             }
             user.Fullname = updatedUser.Fullname;
             user.Email = updatedUser.Email;

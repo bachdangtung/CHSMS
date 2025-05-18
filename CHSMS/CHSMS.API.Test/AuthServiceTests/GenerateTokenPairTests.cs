@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using NETCore.MailKit.Core;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace CHSMS.API.Tests.AuthServiceTests
 {
@@ -22,7 +21,7 @@ namespace CHSMS.API.Tests.AuthServiceTests
             _configurationMock = new Mock<IConfiguration>();
 
             // Setup configuration values
-            _configurationMock.Setup(c => c["Jwt:Key"]).Returns("ThisIsASuperLongSecretKeyWithMoreThanEnoughLengthForHS512");
+            _configurationMock.Setup(c => c["Jwt:Key"]).Returns("This Is A Super Long Secret Key With More Than Enough Length For HS512");
             _configurationMock.Setup(c => c["Jwt:Issuer"]).Returns("TestIssuer");
             _configurationMock.Setup(c => c["Jwt:Audience"]).Returns("TestAudience");
             _configurationMock.Setup(c => c["Jwt:ExpiryInMinutes"]).Returns("30");
@@ -70,7 +69,11 @@ namespace CHSMS.API.Tests.AuthServiceTests
             Assert.Equal("TestIssuer", token.Issuer);
             Assert.Equal("TestAudience", token.Audiences.First());
             Assert.Contains(token.Claims, c => c.Type == "Id" && c.Value == user.UserId.ToString());
-            Assert.Contains(token.Claims, c => c.Type == ClaimTypes.Email && c.Value == user.Email);
+            Assert.Contains(token.Claims, c => c.Type == "email" && c.Value == user.Email);
+            Assert.Contains(token.Claims, c => c.Type == "name" && c.Value == user.Fullname);
+            Assert.Contains(token.Claims, c => c.Type == "role" && c.Value == user.Role.RoleName);
+
+
         }
     }
 }

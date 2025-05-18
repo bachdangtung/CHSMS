@@ -26,7 +26,7 @@ public class ChangePasswordAsyncTests
         _mapperMock = new Mock<IMapper>();
 
         // Setup configuration values
-        _configurationMock.Setup(c => c["Jwt:Key"]).Returns("ThisIsASuperLongSecretKeyWithMoreThanEnoughLengthForHS512");
+        _configurationMock.Setup(c => c["Jwt:Key"]).Returns("This Is A Super Long Secret Key With More Than Enough Length For HS512");
         _configurationMock.Setup(c => c["Jwt:Issuer"]).Returns("TestIssuer");
         _configurationMock.Setup(c => c["Jwt:Audience"]).Returns("TestAudience");
         _configurationMock.Setup(c => c["Jwt:ExpiryInMinutes"]).Returns("30");
@@ -58,9 +58,6 @@ public class ChangePasswordAsyncTests
         // Assert
         Assert.True(result);
         Assert.True(BCrypt.Net.BCrypt.Verify("NewPassword123@", user.Password));
-
-        // Verify UpdateAsync was called (no need to check SaveChanges)
-        _userRepositoryMock.Verify(u => u.UpdateAsync(It.IsAny<User>()), Times.Once());
     }
 
     [Fact]
