@@ -23,6 +23,7 @@ namespace CHSMS.API.Models
         public string? Job { get; set; }
         public bool? Status { get; set; }
         public string? Note { get; set; }
+        public DateTime? DateCreated { get; set; }
 
         public virtual ICollection<MedicalRecordHistory> MedicalRecordHistories { get; set; }
     }
