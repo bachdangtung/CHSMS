@@ -10,14 +10,12 @@ namespace CHSMS.API.Services
 {
     public class MedicineService : IMedicineService
     {
-        private readonly SEP_TestContext _context;
         private readonly IMedicineRepository _medicineRepository;
         private readonly ILogger<MedicineService> _logger;
 
-        public MedicineService(IMedicineRepository medicineRepository, SEP_TestContext context, ILogger<MedicineService> logger)
+        public MedicineService(IMedicineRepository medicineRepository, ILogger<MedicineService> logger)
         {
             _medicineRepository = medicineRepository;
-            _context = context;
             _logger = logger;
         }
 
@@ -588,8 +586,7 @@ namespace CHSMS.API.Services
                 {
                     throw new Exception("Medical supply inventory statistic is not valid");
                 }
-                else
-                if ((list.Count > 0) && (list.Any(x => x.MedicineInventoryId == medicineInventoryStatistic.MedicineInventoryId) == true))
+                else if ((list.Count > 0) && (list.Any(x => x.MedicineInventoryId == medicineInventoryStatistic.MedicineInventoryId) == true))
                 {
                     throw new Exception("Vật tư này đã tồn tại trong danh sách kiểm kê");
                 }

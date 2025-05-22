@@ -1,92 +1,129 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using AutoMapper;
+﻿using AutoMapper;
 using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
-using CHSMS.API.Tests.AuthServiceTests;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using NETCore.MailKit.Core;
 
-namespace CHSMS.API.Test.AuthServiceTests;
-
-public class EditUserProfileAsyncTests
+namespace CHSMS.API.Tests.AuthServiceTests
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
-    private readonly Mock<IRoleRepository> _roleRepositoryMock;
-    private readonly Mock<IConfiguration> _configurationMock;
-    private readonly Mock<IEmailService> _emailServiceMock;
-    private readonly Mock<IMapper> _mapperMock;
-    private readonly Mock<SEP_TestContext> _contextMock;
-    private readonly AuthService _authService;
-    public EditUserProfileAsyncTests()
+    public class EditUserProfileAsyncTests
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
-        _roleRepositoryMock = new Mock<IRoleRepository>();
-        _configurationMock = new Mock<IConfiguration>();
-        _emailServiceMock = new Mock<IEmailService>();
-        _mapperMock = new Mock<IMapper>();
-        _contextMock = new Mock<SEP_TestContext>();
+        private readonly Mock<IUserRepository> _userRepositoryMock;
+        private readonly AuthService _authService;
 
-        // Setup configuration values
-        _configurationMock.Setup(c => c["Jwt:Key"]).Returns("This Is A Super Long Secret Key With More Than Enough Length For HS512");
-        _configurationMock.Setup(c => c["Jwt:Issuer"]).Returns("TestIssuer");
-        _configurationMock.Setup(c => c["Jwt:Audience"]).Returns("TestAudience");
-        _configurationMock.Setup(c => c["Jwt:ExpiryInMinutes"]).Returns("30");
-        _configurationMock.Setup(c => c["Jwt:RefreshTokenExpiryInDays"]).Returns("7");
+        public EditUserProfileAsyncTests()
+        {
+            _userRepositoryMock = new Mock<IUserRepository>();
 
-        _authService = new AuthService(
-            _userRepositoryMock.Object,
-            _roleRepositoryMock.Object,
-            _configurationMock.Object,
-            _emailServiceMock.Object,
-            _mapperMock.Object,
-            _contextMock.Object);
+            // Only mock dependencies that are actually used
+            _authService = new AuthService(
+                _userRepositoryMock.Object,
+                Mock.Of<IRoleRepository>(),
+                Mock.Of<IConfiguration>(),
+                Mock.Of<IEmailService>(),
+                Mock.Of<IMapper>());
+        }
+
+        [Fact]
+        public async Task EditUserProfileAsync_ValidUpdate_ReturnsTrue()
+        {
+            // Arrange
+            var userId = 1;
+            var existingUser = TestHelper.CreateTestUser(userId);
+            var updateDto = new EditUserProfileDto
+            {
+                Fullname = "Updated Name",
+                Email = "updated@example.com",
+                PhoneNumber = "0987654321",
+                Address = "Updated Address",
+                Gender = "Female",
+                Dob = new DateTime(1995, 1, 1)
+            };
+
+            _userRepositoryMock.Setup(u => u.GetByIdAsync(userId))
+                .ReturnsAsync(existingUser);
+            _userRepositoryMock.Setup(u => u.GetByEmailAsync(updateDto.Email))
+                .ReturnsAsync((User)null);
+            _userRepositoryMock.Setup(u => u.GetByPhoneNumber(updateDto.PhoneNumber))
+                .ReturnsAsync((User)null);
+            _userRepositoryMock.Setup(u => u.UpdateAsync(It.IsAny<User>()))
+                .Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _authService.EditUserProfileAsync(userId, updateDto);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(updateDto.Fullname, existingUser.Fullname);
+            Assert.Equal(updateDto.Email, existingUser.Email);
+            Assert.Equal(updateDto.PhoneNumber, existingUser.PhoneNumber);
+            Assert.Equal(updateDto.Address, existingUser.Address);
+            Assert.Equal(updateDto.Gender, existingUser.Gender);
+            Assert.Equal(updateDto.Dob, existingUser.Dob);
+
+            _userRepositoryMock.Verify(u => u.UpdateAsync(existingUser), Times.Once);
+        }
+
+        [Fact]
+        public async Task EditUserProfileAsync_UserNotFound_ThrowsException()
+        {
+            // Arrange
+            var userId = -1;
+            var updateDto = new EditUserProfileDto();
+
+            _userRepositoryMock.Setup(u => u.GetByIdAsync(userId))
+                .ReturnsAsync((User)null);
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                _authService.EditUserProfileAsync(userId, updateDto));
+            Assert.Equal("Người dùng không tồn tại", ex.Message);
+        }
+
+        [Fact]
+        public async Task EditUserProfileAsync_EmailExists_ThrowsException()
+        {
+            // Arrange
+            var userId = 1;
+            var existingUser = TestHelper.CreateTestUser(userId);
+            var otherUser = TestHelper.CreateTestUser(2);
+            var updateDto = new EditUserProfileDto { Email = "test@example.com" };
+
+            _userRepositoryMock.Setup(u => u.GetByIdAsync(userId))
+                .ReturnsAsync(existingUser);
+            _userRepositoryMock.Setup(u => u.GetByEmailAsync(updateDto.Email))
+                .ReturnsAsync(otherUser);
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                _authService.EditUserProfileAsync(userId, updateDto));
+            Assert.Equal("Email đã tồn tại", ex.Message);
+        }
+
+        [Fact]
+        public async Task EditUserProfileAsync_PhoneExists_ThrowsException()
+        {
+            // Arrange
+            var userId = 1;
+            var existingUser = TestHelper.CreateTestUser(userId);
+            var otherUser = TestHelper.CreateTestUser(2);
+            otherUser.PhoneNumber = "9876543210";
+            var updateDto = new EditUserProfileDto { PhoneNumber = "9876543210" };
+
+            _userRepositoryMock.Setup(u => u.GetByIdAsync(userId))
+                .ReturnsAsync(existingUser);
+            _userRepositoryMock.Setup(u => u.GetByEmailAsync(It.IsAny<string>()))
+                .ReturnsAsync((User)null);
+            _userRepositoryMock.Setup(u => u.GetByPhoneNumber(updateDto.PhoneNumber))
+                .ReturnsAsync(otherUser);
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<Exception>(() =>
+                _authService.EditUserProfileAsync(userId, updateDto));
+            Assert.Equal("Số điện thoại đã tồn tại", ex.Message);
+        }
     }
-            [Fact]
-            public async Task EditUserProfileAsync_UserNotFound_ThrowsException()
-            {
-                // Arrange
-                var dto = new EditUserProfileDto();
-                _userRepositoryMock.Setup(u => u.GetByIdAsync(999))
-                    .ReturnsAsync((User)null);
-    
-                // Act & Assert
-                await Assert.ThrowsAsync<Exception>(() => _authService.EditUserProfileAsync(999, dto));
-            }
-    
-            [Fact]
-            public async Task EditUserProfileAsync_ValidInput_UpdatesUser()
-            {
-                // Arrange
-                var user = TestHelper.CreateTestUser();
-                var dto = new EditUserProfileDto
-                {
-                    Fullname = "Updated Name",
-                    Email = "updated@example.com",
-                    PhoneNumber = "0987654321",
-                    Address = "Updated Address",
-                    Gender = "Female",
-                    Dob = new DateTime(1995, 5, 5)
-                };
-                _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
-                    .ReturnsAsync(user);
-                _userRepositoryMock.Setup(u => u.Update(It.IsAny<User>()));
-                _contextMock.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-    
-                // Act
-                var result = await _authService.EditUserProfileAsync(1, dto);
-    
-                // Assert
-                Assert.True(result);
-                Assert.Equal(dto.Fullname, user.Fullname);
-                Assert.Equal(dto.Email, user.Email);
-                Assert.Equal(dto.PhoneNumber, user.PhoneNumber);
-                Assert.Equal(dto.Address, user.Address);
-                Assert.Equal(dto.Gender, user.Gender);
-                Assert.Equal(dto.Dob, user.Dob);
-                _userRepositoryMock.Verify(u => u.Update(It.IsAny<User>()), Times.Once());
-                _contextMock.Verify(c => c.SaveChangesAsync(default), Times.Once());
-            }
 }

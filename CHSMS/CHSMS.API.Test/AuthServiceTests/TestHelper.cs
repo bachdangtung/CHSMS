@@ -1,8 +1,8 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using CHSMS.API.Models;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using CHSMS.API.Models;
-using Microsoft.IdentityModel.Tokens;
 
 namespace CHSMS.API.Tests.AuthServiceTests;
 
@@ -10,9 +10,9 @@ public class TestHelper
 {
     public TestHelper()
     {
-        
+
     }
-    public static User CreateTestUser(int id = 1, string roleName = "User")
+    public static User CreateTestUser(int id = 1, string roleName = "Doctor")
     {
         return new User
         {
@@ -20,17 +20,17 @@ public class TestHelper
             UserName = "testuser",
             Email = "test@example.com",
             Fullname = "Test User",
-            Password = BCrypt.Net.BCrypt.HashPassword("password"),
+            Password = BCrypt.Net.BCrypt.HashPassword("Password123@"),
             Status = true,
             Role = new Role { RoleName = roleName },
             RoleId = 1,
-            PhoneNumber = "1234567890",
+            PhoneNumber = "0123456789",
             Address = "Test Address",
             Gender = "Male",
             Dob = new DateTime(1990, 1, 1)
         };
     }
-    
+
     public static string GenerateJwtTokenForTest(int userId, DateTime? notBefore = null, DateTime? expires = null, string? wrongKey = null)
     {
         var handler = new JwtSecurityTokenHandler();

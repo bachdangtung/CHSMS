@@ -26,15 +26,13 @@ namespace CHSMS.API.Services
             IRoleRepository roleRepository,
             IConfiguration configuration,
             IEmailService emailService,
-            IMapper mapper,
-            SEP_TestContext context)
+            IMapper mapper)
         {
             _userRepository = userRepository;
             _roleRepository = roleRepository;
             _configuration = configuration;
             _emailService = emailService;
             _mapper = mapper;
-            _context = context;
         }
 
         public async Task<TokenPairDto?> AuthenticateAsync(string userName, string password)
@@ -56,7 +54,7 @@ namespace CHSMS.API.Services
             return await GenerateTokenPair(user);
         }
 
-        private async Task<TokenPairDto> GenerateTokenPair(User user)
+        public async Task<TokenPairDto> GenerateTokenPair(User user)
         {
             var accessToken = GenerateJwtToken(user);
             var refreshToken = GenerateRefreshToken();
@@ -66,8 +64,7 @@ namespace CHSMS.API.Services
 
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = refreshTokenExpiry;
-            _userRepository.Update(user);
-            await _context.SaveChangesAsync();
+            await _userRepository.UpdateAsync(user);
 
             return new TokenPairDto
             {
@@ -77,7 +74,7 @@ namespace CHSMS.API.Services
             };
         }
 
-        private string GenerateRefreshToken()
+        public string GenerateRefreshToken()
         {
             var randomNumber = new byte[64];
             using var rng = RandomNumberGenerator.Create();
@@ -143,8 +140,7 @@ namespace CHSMS.API.Services
             user.RefreshToken = null;
             user.RefreshTokenExpiry = null;
 
-            _userRepository.Update(user);
-            await _context.SaveChangesAsync();
+            await _userRepository.UpdateAsync(user);
 
             return true;
         }
@@ -202,8 +198,8 @@ namespace CHSMS.API.Services
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
 
-            _userRepository.Update(user);
-            await _context.SaveChangesAsync();
+            await _userRepository.UpdateAsync(user);
+
             return true;
         }
 
@@ -216,8 +212,8 @@ namespace CHSMS.API.Services
             string resetToken = Guid.NewGuid().ToString();
             user.ResetToken = resetToken;
             user.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
-            _userRepository.Update(user);
-            await _context.SaveChangesAsync();
+
+            await _userRepository.UpdateAsync(user);
 
             string resetLink = $"http://127.0.0.1:5500/pages/authen/reset-password.html?token={resetToken}&id={user.UserId}";
             await _emailService.SendAsync(email, "Password Reset Request",
@@ -236,8 +232,7 @@ namespace CHSMS.API.Services
             user.ResetToken = null;
             user.ResetTokenExpiry = null;
 
-            _userRepository.Update(user);
-            await _context.SaveChangesAsync();
+            await _userRepository.UpdateAsync(user);
 
             return true;
         }
@@ -271,8 +266,7 @@ namespace CHSMS.API.Services
             user.Status = true;
             user.Password = BCrypt.Net.BCrypt.HashPassword(randomPassword);
 
-            _userRepository.Add(user);
-            await _context.SaveChangesAsync();
+            await _userRepository.AddAsync(user);
 
             string emailBody = $"Tài khoản của bạn đã được tạo:<br><br>" +
                                $"<strong>Tên đăng nhập:</strong> {user.UserName}<br>" +
@@ -300,8 +294,7 @@ namespace CHSMS.API.Services
             }
 
             user.Status = !user.Status;
-            _userRepository.Update(user);
-            await _context.SaveChangesAsync();
+            await _userRepository.UpdateAsync(user);
 
             return true;
         }
@@ -333,7 +326,7 @@ namespace CHSMS.API.Services
             var phoneExist = await _userRepository.GetByPhoneNumber(updatedUser.PhoneNumber);
             if (phoneExist != null && phoneExist.UserId != userId)
             {
-                throw new Exception("   ");
+                throw new Exception("Số điện thoại đã tồn tại");
             }
             user.Fullname = updatedUser.Fullname;
             user.Email = updatedUser.Email;
@@ -342,8 +335,7 @@ namespace CHSMS.API.Services
             user.Gender = updatedUser.Gender;
             user.Dob = updatedUser.Dob;
 
-            _userRepository.Update(user);
-            await _context.SaveChangesAsync();
+            await _userRepository.UpdateAsync(user);
 
             return true;
         }

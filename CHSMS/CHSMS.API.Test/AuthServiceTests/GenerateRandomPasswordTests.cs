@@ -1,16 +1,11 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Linq.Expressions;
-using AutoMapper;
-using CHSMS.API.DTOs.User;
-using CHSMS.API.Models;
+﻿using AutoMapper;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
-using CHSMS.API.Tests.AuthServiceTests;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using NETCore.MailKit.Core;
 
-namespace CHSMS.API.Test.AuthServiceTests;
+namespace CHSMS.API.Tests.AuthServiceTests;
 
 public class GenerateRandomPasswordTests
 {
@@ -19,7 +14,7 @@ public class GenerateRandomPasswordTests
     private readonly Mock<IConfiguration> _configurationMock;
     private readonly Mock<IEmailService> _emailServiceMock;
     private readonly Mock<IMapper> _mapperMock;
-    private readonly Mock<SEP_TestContext> _contextMock;
+
     private readonly AuthService _authService;
     public GenerateRandomPasswordTests()
     {
@@ -28,7 +23,6 @@ public class GenerateRandomPasswordTests
         _configurationMock = new Mock<IConfiguration>();
         _emailServiceMock = new Mock<IEmailService>();
         _mapperMock = new Mock<IMapper>();
-        _contextMock = new Mock<SEP_TestContext>();
 
         // Setup configuration values
         _configurationMock.Setup(c => c["Jwt:Key"]).Returns("This Is A Super Long Secret Key With More Than Enough Length For HS512");
@@ -42,10 +36,9 @@ public class GenerateRandomPasswordTests
             _roleRepositoryMock.Object,
             _configurationMock.Object,
             _emailServiceMock.Object,
-            _mapperMock.Object,
-            _contextMock.Object);
+            _mapperMock.Object);
     }
-    
+
     [Theory]
     [InlineData(7)]
     [InlineData(33)]
@@ -54,7 +47,7 @@ public class GenerateRandomPasswordTests
         // Act & Assert
         Assert.Throws<ArgumentException>(() => _authService.GenerateRandomPassword(length));
     }
-    
+
     [Fact]
     public void GenerateRandomPassword_ValidLength_GeneratesPassword()
     {

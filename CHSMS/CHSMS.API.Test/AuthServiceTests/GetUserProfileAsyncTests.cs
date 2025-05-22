@@ -1,64 +1,76 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using AutoMapper;
+﻿using AutoMapper;
 using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
-using CHSMS.API.Tests.AuthServiceTests;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using NETCore.MailKit.Core;
 
-namespace CHSMS.API.Test.AuthServiceTests;
-
-public class GetUserProfileAsyncTests
+namespace CHSMS.API.Tests.AuthServiceTests
 {
-    private readonly Mock<IUserRepository> _userRepositoryMock;
-    private readonly Mock<IRoleRepository> _roleRepositoryMock;
-    private readonly Mock<IConfiguration> _configurationMock;
-    private readonly Mock<IEmailService> _emailServiceMock;
-    private readonly Mock<IMapper> _mapperMock;
-    private readonly Mock<SEP_TestContext> _contextMock;
-    private readonly AuthService _authService;
-    public GetUserProfileAsyncTests()
+    public class GetUserProfileAsyncTests
     {
-        _userRepositoryMock = new Mock<IUserRepository>();
-        _roleRepositoryMock = new Mock<IRoleRepository>();
-        _configurationMock = new Mock<IConfiguration>();
-        _emailServiceMock = new Mock<IEmailService>();
-        _mapperMock = new Mock<IMapper>();
-        _contextMock = new Mock<SEP_TestContext>();
+        private readonly Mock<IUserRepository> _userRepositoryMock;
+        private readonly Mock<IMapper> _mapperMock;
+        private readonly AuthService _authService;
 
-        // Setup configuration values
-        _configurationMock.Setup(c => c["Jwt:Key"]).Returns("This Is A Super Long Secret Key With More Than Enough Length For HS512");
-        _configurationMock.Setup(c => c["Jwt:Issuer"]).Returns("TestIssuer");
-        _configurationMock.Setup(c => c["Jwt:Audience"]).Returns("TestAudience");
-        _configurationMock.Setup(c => c["Jwt:ExpiryInMinutes"]).Returns("30");
-        _configurationMock.Setup(c => c["Jwt:RefreshTokenExpiryInDays"]).Returns("7");
+        public GetUserProfileAsyncTests()
+        {
+            _userRepositoryMock = new Mock<IUserRepository>();
+            _mapperMock = new Mock<IMapper>();
 
-        _authService = new AuthService(
-            _userRepositoryMock.Object,
-            _roleRepositoryMock.Object,
-            _configurationMock.Object,
-            _emailServiceMock.Object,
-            _mapperMock.Object,
-            _contextMock.Object);
-    }
-    [Fact]
-    public async Task GetUserProfileAsync_ReturnsMappedUser()
-    {
-        // Arrange
-        var user = TestHelper.CreateTestUser();
-        var dto = new UserListDto { UserId = 1, Username = "testuser" };
-        _userRepositoryMock.Setup(u => u.GetByIdAsync(1))
-            .ReturnsAsync(user);
-        _mapperMock.Setup(m => m.Map<UserListDto>(user))
-            .Returns(dto);
+            // Only need to mock dependencies that are actually used by GetUserProfileAsync
+            _authService = new AuthService(
+                _userRepositoryMock.Object,
+                Mock.Of<IRoleRepository>(),  // Not used in this method
+                Mock.Of<IConfiguration>(),   // Not used in this method
+                Mock.Of<IEmailService>(),    // Not used in this method
+                _mapperMock.Object);
+        }
 
-        // Act
-        var result = await _authService.GetUserProfileAsync(1);
+        [Fact]
+        public async Task GetUserProfileAsync_ValidId_ReturnsMappedUser()
+        {
+            // Arrange
+            var userId = 1;
+            var user = TestHelper.CreateTestUser(userId);
+            var expectedDto = new UserListDto
+            {
+                UserId = userId,
+                Username = user.UserName,
+                Fullname = user.Fullname,
+                Email = user.Email
+                // Include other relevant properties
+            };
 
-        // Assert
-        Assert.Equal(dto, result);
+            _userRepositoryMock.Setup(u => u.GetByIdAsync(userId))
+                .ReturnsAsync(user);
+            _mapperMock.Setup(m => m.Map<UserListDto>(user))
+                .Returns(expectedDto);
+
+            // Act
+            var result = await _authService.GetUserProfileAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedDto.UserId, result.UserId);
+            Assert.Equal(expectedDto.Username, result.Username);
+        }
+
+        [Fact]
+        public async Task GetUserProfileAsync_InvalidId_ReturnsNull()
+        {
+            // Arrange
+            var invalidId = -1;
+            _userRepositoryMock.Setup(u => u.GetByIdAsync(invalidId))
+                .ReturnsAsync((User)null);
+
+            // Act
+            var result = await _authService.GetUserProfileAsync(invalidId);
+
+            // Assert
+            Assert.Null(result);
+        }
     }
 }

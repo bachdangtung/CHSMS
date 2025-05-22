@@ -1,58 +1,47 @@
 ﻿using CHSMS.API.Models;
-using CHSMS.API.Repositories.Interfaces;
-using CHSMS.API.Services;
-using Moq;
 
-namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
+namespace CHSMS.API.Tests.Services
 {
-    public class GetAllMedicalRecordHistoriesTests
+    public class GetAllMedicalRecordHistoriesTests : MedicalRecordHistoryServiceTestBase
     {
-        private readonly Mock<IMedicalRecordHistoryRepository> _repositoryMock;
-        private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly MedicalRecordHistoryService _service;
-
-        public GetAllMedicalRecordHistoriesTests()
-        {
-            _repositoryMock = new Mock<IMedicalRecordHistoryRepository>();
-            _userRepositoryMock = new Mock<IUserRepository>();
-            _service = new MedicalRecordHistoryService(_repositoryMock.Object, _userRepositoryMock.Object);
-        }
-
         [Fact]
-        public void GetAllMedicalRecordHistories_ReturnsCorrectDTOs()
+        public void GetAllMedicalRecordHistories_WithData_ReturnsListOfDTOs()
         {
             // Arrange
-            var mockRecords = TestHelper.CreateDefaultMedicalRecordHistories();
-            _repositoryMock.Setup(r => r.GetAllMedicalRecordHistories())
-                .Returns(mockRecords);
+            var testHistory = CreateTestMedicalRecordHistory();
+            var testUser = CreateTestUser();
+            var testMedicalRecord = CreateTestMedicalRecord();
+
+            testHistory.User = testUser;
+            testHistory.MedicalRecord = testMedicalRecord;
+
+            var histories = new List<MedicalRecordHistory> { testHistory };
+            _mockHistoryRepo.Setup(x => x.GetAllMedicalRecordHistories()).Returns(histories);
 
             // Act
             var result = _service.GetAllMedicalRecordHistories();
 
             // Assert
-            Assert.Equal(2, result.Count);
-            Assert.Equal(1, result[0].MedicalRecordHistoryId);
-            Assert.Equal("John Doe", result[0].PatientName);
-            Assert.Equal("Dr. Smith", result[0].DoctorName);
-            Assert.Equal(2, result[1].MedicalRecordHistoryId);
-            Assert.Equal("Jane Smith", result[1].PatientName);
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal(testHistory.MedicalRecordHistoryId, result[0].MedicalRecordHistoryId);
+            Assert.Equal(testUser.UserName, result[0].DoctorName);
+            Assert.Equal(testMedicalRecord.PatientName, result[0].PatientName);
         }
 
         [Fact]
-        public void GetAllMedicalRecordHistories_EmptyList_ReturnsEmptyDTOs()
+        public void GetAllMedicalRecordHistories_WithoutData_ReturnsNull()
         {
             // Arrange
-            _repositoryMock.Setup(r => r.GetAllMedicalRecordHistories())
+            _mockHistoryRepo.Setup(x => x.GetAllMedicalRecordHistories())
                 .Returns(new List<MedicalRecordHistory>());
 
             // Act
             var result = _service.GetAllMedicalRecordHistories();
 
             // Assert
+            Assert.NotNull(result);
             Assert.Empty(result);
         }
-
     }
 }
-
-

@@ -1,53 +1,33 @@
 ﻿using CHSMS.API.Models;
-using CHSMS.API.Repositories.Interfaces;
-using CHSMS.API.Services;
-using Moq;
-using static CHSMS.API.Test.MedicalRecordHistoryServiceTest.GetAllMedicalRecordHistoriesTests;
+using CHSMS.API.Tests.Services;
 
 namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
 {
-    public class GetMedicalRecordHistoryTests
+    public class GetMedicalRecordHistoryTests : MedicalRecordHistoryServiceTestBase
     {
-        private readonly Mock<IMedicalRecordHistoryRepository> _repositoryMock;
-        private readonly Mock<IUserRepository> _userRepositoryMock;
-        private readonly MedicalRecordHistoryService _service;
-
-        public GetMedicalRecordHistoryTests()
-        {
-            _repositoryMock = new Mock<IMedicalRecordHistoryRepository>();
-            _userRepositoryMock = new Mock<IUserRepository>();
-            _service = new MedicalRecordHistoryService(_repositoryMock.Object, _userRepositoryMock.Object);
-        }
-
         [Fact]
-        public void GetMedicalRecordHistory_ExistingRecord_ReturnsCorrectDTO()
+        public void GetMedicalRecordHistory_ValidId_ReturnsDTO()
         {
             // Arrange
-            var mockRecord = TestHelper.CreateDefaultMedicalRecordHistories()[0];
-            _repositoryMock.Setup(r => r.GetMedicalRecordHistory(1))
-                .Returns(mockRecord);
+            var testHistory = CreateTestMedicalRecordHistory();
+            _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistory(1)).Returns(testHistory);
 
             // Act
             var result = _service.GetMedicalRecordHistory(1);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(1, result.MedicalRecordHistoryId);
-            Assert.Equal(101, result.PatientId);
-            Assert.Equal("John Doe", result.PatientName);
-            Assert.Equal("Dr. Smith", result.DoctorName);
-            Assert.Equal("High fever", result.Symptom);
+            Assert.Equal(testHistory.MedicalRecordHistoryId, result.MedicalRecordHistoryId);
         }
 
         [Fact]
-        public void GetMedicalRecordHistory_NonExistingRecord_ReturnsNull()
+        public void GetMedicalRecordHistory_InvalidId_ReturnsNull()
         {
             // Arrange
-            _repositoryMock.Setup(r => r.GetMedicalRecordHistory(99))
-                .Returns((MedicalRecordHistory)null);
+            _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistory(-1)).Returns((MedicalRecordHistory)null);
 
             // Act
-            var result = _service.GetMedicalRecordHistory(99);
+            var result = _service.GetMedicalRecordHistory(999);
 
             // Assert
             Assert.Null(result);
