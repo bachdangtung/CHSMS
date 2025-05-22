@@ -318,5 +318,12 @@ namespace CHSMS.API.Repositories
                 .ToList();
         }
 
+        public bool isExistMedicalSupplyInventory(int medicalSupplyInventoryId, string batch, string cer)
+        {
+            var result = _context.MedicalSupplyInventories
+                .Where(x => x.MedicalSupplyId == medicalSupplyInventoryId && x.BatchNumber.Equals(batch) && x.CertificateNumber.Equals(cer))
+                .FirstOrDefault();
+            return result != null;
+        }
     }
 }

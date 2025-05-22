@@ -184,6 +184,7 @@ namespace CHSMS.API.Controllers.MedicalSupply
                         ExpiryDate = item2.ExpiryDate.Value,
                         BidNumber = item.BidNumber.Value,
                         TransactionDate = item2.TransactionDate.Value,
+                        CertificateNumber = item2.CertificateNumber
                     });
                 }
             }
@@ -220,11 +221,30 @@ namespace CHSMS.API.Controllers.MedicalSupply
             return Ok(result);
         }
         [HttpGet("ImportHistory")]
-        public IActionResult ImportHistory(DateTime from, DateTime to)
+        public IActionResult ImportHistory(DateTime? from, DateTime? to)
         {
-            var list = _medicalSupplyService.GetMedicalSupplyImportHistory(from, to);
-            if (list == null)
+            var listMSI = _medicalSupplyService.GetMedicalSupplyImportHistory(from.Value, to.Value);
+            var listMS = _medicalSupplyService.GetAllMedicalSupplies();
+            if (listMSI == null)
                 return NotFound();
+
+            List<object> list = new List<object>();
+            foreach (var item in listMSI)
+            {
+                list.Add(new
+                {
+                    medicalSupplyName = listMS.Find(x => x.MedicalSupplyId == item.MedicalSupplyId).MedicalSupplyName,
+                    batchNumber= item.BatchNumber,
+                    quantity = item.ImportQuantity,
+                    transactionDate = item.TransactionDate,
+                    manufactureDate = item.ManufactureDate,
+                    expiryDate = item.ExpiryDate,
+                    note = item.Note,
+                    certificateNumber = item.CertificateNumber,
+                    receiverId = item.ReceiverId,
+                });
+
+            }
             return Ok(list);
         }
         [HttpGet("GetInventoryStatistic")]
@@ -260,10 +280,17 @@ namespace CHSMS.API.Controllers.MedicalSupply
         [HttpPut("UpdateInventoryStatistic")]
         public IActionResult UpdateInventoryStatistic([FromBody] List<MSIStatisticDTO> mSIStatisticDTO)
         {
-            var result = _medicalSupplyService.UpdateMedicalSupplyInventoryStatistic(mSIStatisticDTO);
-            if (result == false)
-                return BadRequest();
-            return Ok();
+            try
+            {
+                var result = _medicalSupplyService.UpdateMedicalSupplyInventoryStatistic(mSIStatisticDTO);
+                if (result == false)
+                    return BadRequest();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         [HttpDelete("DeleteInventoryStatistic")]
         public IActionResult DeleteInventoryStatistic(int id)
