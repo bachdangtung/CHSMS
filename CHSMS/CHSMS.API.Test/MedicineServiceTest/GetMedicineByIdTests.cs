@@ -9,16 +9,14 @@ namespace CHSMS.API.Test.MedicineServiceTest
     public class GetMedicineByIdTests
     {
         private readonly Mock<IMedicineRepository> _medicineRepositoryMock;
-        private readonly Mock<SEP_TestContext> _contextMock;
         private readonly Mock<ILogger<MedicineService>> _loggerMock;
         private readonly MedicineService _service;
 
         public GetMedicineByIdTests()
         {
             _medicineRepositoryMock = new Mock<IMedicineRepository>();
-            _contextMock = new Mock<SEP_TestContext>();
             _loggerMock = new Mock<ILogger<MedicineService>>();
-            _service = new MedicineService(_medicineRepositoryMock.Object, _contextMock.Object, _loggerMock.Object);
+            _service = new MedicineService(_medicineRepositoryMock.Object, _loggerMock.Object);
         }
 
         [Fact]
@@ -43,10 +41,10 @@ namespace CHSMS.API.Test.MedicineServiceTest
         public void GetMedicineById_ReturnsNullWhenNotFound()
         {
             // Arrange
-            _medicineRepositoryMock.Setup(repo => repo.GetMedicine(1)).Returns((Medicine)null);
+            _medicineRepositoryMock.Setup(repo => repo.GetMedicine(-1)).Returns((Medicine)null);
 
             // Act
-            var result = _service.GetMedicineById(1);
+            var result = _service.GetMedicineById(-1);
 
             // Assert
             Assert.Null(result);

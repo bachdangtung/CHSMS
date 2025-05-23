@@ -1,5 +1,4 @@
-﻿using CHSMS.API.Models;
-using CHSMS.API.Repositories.Interfaces;
+﻿using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -8,30 +7,155 @@ namespace CHSMS.API.Test.MedicineServiceTest
 {
     public class GetAddOnMedicineInventoryTests
     {
-        private readonly Mock<IMedicineRepository> _medicineRepositoryMock;
-        private readonly Mock<SEP_TestContext> _contextMock;
-        private readonly Mock<ILogger<MedicineService>> _loggerMock;
+        private readonly Mock<IMedicineRepository> _mockRepo;
         private readonly MedicineService _service;
 
         public GetAddOnMedicineInventoryTests()
         {
-            _medicineRepositoryMock = new Mock<IMedicineRepository>();
-            _contextMock = new Mock<SEP_TestContext>();
-            _loggerMock = new Mock<ILogger<MedicineService>>();
-            _service = new MedicineService(_medicineRepositoryMock.Object, _contextMock.Object, _loggerMock.Object);
+            _mockRepo = new Mock<IMedicineRepository>();
+            var mockLogger = new Mock<ILogger<MedicineService>>();
+            _service = new MedicineService(_mockRepo.Object, mockLogger.Object);
         }
 
         [Fact]
-        public void GetAddOnMedicineInventory_ReturnsQuantity()
+        public void GetAddOnMedicineInventory_ValidIdWithNullDates_ReturnsCorrectQuantity()
         {
             // Arrange
-            _medicineRepositoryMock.Setup(repo => repo.GetAddOnMedicineInventory(1, It.IsAny<DateTime?>(), It.IsAny<DateTime?>())).Returns(100.0);
+            int medicineId = 1;
+            DateTime? from = null;
+            DateTime? to = null;
+            double expectedQuantity = 100;
+
+            _mockRepo.Setup(x => x.GetAddOnMedicineInventory(medicineId, from, to))
+                .Returns(expectedQuantity);
 
             // Act
-            var result = _service.GetAddOnMedicineInventory(1, DateTime.Now.AddDays(-10), DateTime.Now);
+            var result = _service.GetAddOnMedicineInventory(medicineId, from, to);
 
             // Assert
-            Assert.Equal(100.0, result);
+            Assert.Equal(expectedQuantity, result);
+            _mockRepo.Verify(x => x.GetAddOnMedicineInventory(medicineId, from, to), Times.Once);
+        }
+
+        [Fact]
+        public void GetAddOnMedicineInventory_ValidIdWithFromDate_ReturnsCorrectQuantity()
+        {
+            // Arrange
+            int medicineId = 1;
+            DateTime? from = new DateTime(2025, 3, 3);
+            DateTime? to = null;
+            double expectedQuantity = 50;
+
+            _mockRepo.Setup(x => x.GetAddOnMedicineInventory(medicineId, from, to))
+                .Returns(expectedQuantity);
+
+            // Act
+            var result = _service.GetAddOnMedicineInventory(medicineId, from, to);
+
+            // Assert
+            Assert.Equal(expectedQuantity, result);
+            _mockRepo.Verify(x => x.GetAddOnMedicineInventory(medicineId, from, to), Times.Once);
+        }
+
+        [Fact]
+        public void GetAddOnMedicineInventory_ValidIdWithToDate_ReturnsCorrectQuantity()
+        {
+            // Arrange
+            int medicineId = 1;
+            DateTime? from = null;
+            DateTime? to = new DateTime(2025, 4, 4);
+            double expectedQuantity = 75;
+
+            _mockRepo.Setup(x => x.GetAddOnMedicineInventory(medicineId, from, to))
+                .Returns(expectedQuantity);
+
+            // Act
+            var result = _service.GetAddOnMedicineInventory(medicineId, from, to);
+
+            // Assert
+            Assert.Equal(expectedQuantity, result);
+            _mockRepo.Verify(x => x.GetAddOnMedicineInventory(medicineId, from, to), Times.Once);
+        }
+
+        [Fact]
+        public void GetAddOnMedicineInventory_ValidIdWithBothDates_ReturnsCorrectQuantity()
+        {
+            // Arrange
+            int medicineId = 1;
+            DateTime? from = new DateTime(2025, 3, 3);
+            DateTime? to = new DateTime(2025, 5, 5);
+            double expectedQuantity = 100;
+
+            _mockRepo.Setup(x => x.GetAddOnMedicineInventory(medicineId, from, to))
+                .Returns(expectedQuantity);
+
+            // Act
+            var result = _service.GetAddOnMedicineInventory(medicineId, from, to);
+
+            // Assert
+            Assert.Equal(expectedQuantity, result);
+            _mockRepo.Verify(x => x.GetAddOnMedicineInventory(medicineId, from, to), Times.Once);
+        }
+
+        [Fact]
+        public void GetAddOnMedicineInventory_InvalidId_ReturnsZero()
+        {
+            // Arrange
+            int medicineId = -1;
+            DateTime? from = null;
+            DateTime? to = null;
+            double expectedQuantity = 0;
+
+            _mockRepo.Setup(x => x.GetAddOnMedicineInventory(medicineId, from, to))
+                .Returns(expectedQuantity);
+
+            // Act
+            var result = _service.GetAddOnMedicineInventory(medicineId, from, to);
+
+            // Assert
+            Assert.Equal(expectedQuantity, result);
+            _mockRepo.Verify(x => x.GetAddOnMedicineInventory(medicineId, from, to), Times.Once);
+        }
+
+        [Fact]
+        public void GetAddOnMedicineInventory_RepositoryReturnsNegative_ReturnsZero()
+        {
+            // Arrange
+            int medicineId = 1;
+            DateTime? from = null;
+            DateTime? to = null;
+            double repositoryReturn = -50;
+
+            _mockRepo.Setup(x => x.GetAddOnMedicineInventory(medicineId, from, to))
+                .Returns(repositoryReturn);
+
+            // Act
+            var result = _service.GetAddOnMedicineInventory(medicineId, from, to);
+
+            // Assert
+            Assert.Equal(0, result);
+            _mockRepo.Verify(x => x.GetAddOnMedicineInventory(medicineId, from, to), Times.Once);
+        }
+
+        [Fact]
+        public void GetAddOnMedicineInventory_FromDateAfterToDate_ReturnsZero()
+        {
+            // Arrange
+            int medicineId = 1;
+            DateTime? from = new DateTime(2025, 5, 5);
+            DateTime? to = new DateTime(2025, 3, 3);
+            double expectedQuantity = 0;
+
+            // We don't expect the repository to be called in this case
+            _mockRepo.Setup(x => x.GetAddOnMedicineInventory(medicineId, from, to))
+                .Returns(expectedQuantity);
+
+            // Act
+            var result = _service.GetAddOnMedicineInventory(medicineId, from, to);
+
+            // Assert
+            Assert.Equal(expectedQuantity, result);
+            _mockRepo.Verify(x => x.GetAddOnMedicineInventory(medicineId, from, to), Times.Never);
         }
     }
 }

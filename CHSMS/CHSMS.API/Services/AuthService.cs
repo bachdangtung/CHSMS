@@ -19,7 +19,6 @@ namespace CHSMS.API.Services
         private readonly IRoleRepository _roleRepository;
         private readonly IEmailService _emailService;
         private readonly IMapper _mapper;
-        private readonly SEP_TestContext _context;
 
         public AuthService(
             IUserRepository userRepository,

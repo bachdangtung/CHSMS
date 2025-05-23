@@ -36,7 +36,7 @@ namespace CHSMS.API.Services.Interfaces
         List<MedicineInventoryDetailDTO> GetMedicineInventoryByMedicineId(int medicineId);
         int ConsumeMedicine(ConsumeMedicineDTO consumeMedicineDTO);
         Dictionary<MedicineDTO, double> ConsumeReport(DateTime? from, DateTime? to);
-        object GetExpiryMedicineInventory(int medicineId, DateTime? from, DateTime? to);
+        double GetExpiryMedicineInventory(int medicineId, DateTime? from, DateTime? to);
         double GetAddOnMedicineInventory(int id, DateTime? from, DateTime? to);
         List<MedicineConsumption> ConsumptionDetail(int id, DateTime? from, DateTime? to);
         List<MedicineConsumption> ConsumptionHistory(DateTime? from, DateTime? to);

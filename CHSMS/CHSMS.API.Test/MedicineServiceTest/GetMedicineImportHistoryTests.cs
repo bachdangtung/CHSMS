@@ -9,51 +9,107 @@ namespace CHSMS.API.Test.MedicineServiceTest
     public class GetMedicineImportHistoryTests
     {
         private readonly Mock<IMedicineRepository> _medicineRepositoryMock;
-        private readonly Mock<SEP_TestContext> _contextMock;
         private readonly Mock<ILogger<MedicineService>> _loggerMock;
-        private readonly MedicineService _service;
+        private readonly MedicineService _medicineService;
 
         public GetMedicineImportHistoryTests()
         {
             _medicineRepositoryMock = new Mock<IMedicineRepository>();
-            _contextMock = new Mock<SEP_TestContext>();
             _loggerMock = new Mock<ILogger<MedicineService>>();
-            _service = new MedicineService(_medicineRepositoryMock.Object, _contextMock.Object, _loggerMock.Object);
+            _medicineService = new MedicineService(_medicineRepositoryMock.Object, _loggerMock.Object);
         }
 
         [Fact]
-        public void GetMedicineImportHistory_ReturnsInventories()
+        public void GetMedicineImportHistory_ValidDateRange_ReturnsMedicineInventories()
         {
             // Arrange
-            var inventories = new List<MedicineInventory>
+            var fromDate = new DateTime(2025, 5, 1);
+            var toDate = new DateTime(2025, 5, 20);
+
+            var expectedInventories = new List<MedicineInventory>
+        {
+            new MedicineInventory
             {
-                TestHelper.CreateMedicineInventory(1),
-                TestHelper.CreateMedicineInventory(2)
-            };
-            var fromDate = DateTime.Now.AddDays(-10);
-            var toDate = DateTime.Now;
-            _medicineRepositoryMock.Setup(repo => repo.GetMedicineImportHistory(fromDate, toDate)).Returns(inventories);
+                MedicineInventoryId = 1,
+                MedicineId = 101,
+                TransactionDate = new DateTime(2025, 5, 10),
+                Quantity = 100,
+                BatchNumber = "BATCH001"
+            },
+            new MedicineInventory
+            {
+                MedicineInventoryId = 2,
+                MedicineId = 102,
+                TransactionDate = new DateTime(2025, 5, 15),
+                Quantity = 200,
+                BatchNumber = "BATCH002"
+            }
+        };
+
+            _medicineRepositoryMock
+                .Setup(repo => repo.GetMedicineImportHistory(fromDate, toDate))
+                .Returns(expectedInventories);
 
             // Act
-            var result = _service.GetMedicineImportHistory(fromDate, toDate);
+            var result = _medicineService.GetMedicineImportHistory(fromDate, toDate);
 
             // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedInventories, result);
             Assert.Equal(2, result.Count);
-            Assert.Equal(1, result[0].MedicineInventoryId);
+            _medicineRepositoryMock.Verify(repo => repo.GetMedicineImportHistory(fromDate, toDate), Times.Once());
         }
 
         [Fact]
-        public void GetMedicineImportHistory_ReturnsNullWhenInvalidDates()
+        public void GetMedicineImportHistory_FromDateGreaterThanToDate_ReturnsNull()
         {
             // Arrange
-            var fromDate = DateTime.Now.AddDays(1);
-            var toDate = DateTime.Now;
+            var fromDate = new DateTime(2025, 5, 20);
+            var toDate = new DateTime(2025, 5, 10);
 
             // Act
-            var result = _service.GetMedicineImportHistory(fromDate, toDate);
+            var result = _medicineService.GetMedicineImportHistory(fromDate, toDate);
 
             // Assert
             Assert.Null(result);
+            _medicineRepositoryMock.Verify(repo => repo.GetMedicineImportHistory(It.IsAny<DateTime>(), It.IsAny<DateTime>()), Times.Never());
+        }
+
+        [Fact]
+        public void GetMedicineImportHistory_FromDateInFuture_ReturnsNull()
+        {
+            // Arrange
+            var fromDate = new DateTime(2026, 5, 20);
+            var toDate = new DateTime(2026, 5, 30);
+
+
+            // Act
+            var result = _medicineService.GetMedicineImportHistory(fromDate, toDate);
+
+            // Assert
+            Assert.Null(result);
+            _medicineRepositoryMock.Verify(repo => repo.GetMedicineImportHistory(It.IsAny<DateTime>(), It.IsAny<DateTime>()), Times.Never());
+        }
+
+        [Fact]
+        public void GetMedicineImportHistory_EmptyResultFromRepository_ReturnsEmptyList()
+        {
+            // Arrange
+            var fromDate = new DateTime(2025, 5, 1);
+            var toDate = new DateTime(2025, 5, 20);
+
+            var emptyInventories = new List<MedicineInventory>();
+            _medicineRepositoryMock
+                .Setup(repo => repo.GetMedicineImportHistory(fromDate, toDate))
+                .Returns(emptyInventories);
+
+            // Act
+            var result = _medicineService.GetMedicineImportHistory(fromDate, toDate);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+            _medicineRepositoryMock.Verify(repo => repo.GetMedicineImportHistory(fromDate, toDate), Times.Once());
         }
     }
 }

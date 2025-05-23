@@ -9,16 +9,14 @@ namespace CHSMS.API.Test.MedicineServiceTest
     public class SearchMedicineByNameTests
     {
         private readonly Mock<IMedicineRepository> _medicineRepositoryMock;
-        private readonly Mock<SEP_TestContext> _contextMock;
         private readonly Mock<ILogger<MedicineService>> _loggerMock;
         private readonly MedicineService _service;
 
         public SearchMedicineByNameTests()
         {
             _medicineRepositoryMock = new Mock<IMedicineRepository>();
-            _contextMock = new Mock<SEP_TestContext>();
             _loggerMock = new Mock<ILogger<MedicineService>>();
-            _service = new MedicineService(_medicineRepositoryMock.Object, _contextMock.Object, _loggerMock.Object);
+            _service = new MedicineService(_medicineRepositoryMock.Object, _loggerMock.Object);
         }
 
         [Fact]
@@ -44,10 +42,10 @@ namespace CHSMS.API.Test.MedicineServiceTest
         public void SearchMedicineByName_ReturnsEmptyListWhenNoMatches()
         {
             // Arrange
-            _medicineRepositoryMock.Setup(repo => repo.SearchMedicineByName("Test")).Returns(new List<Medicine>());
+            _medicineRepositoryMock.Setup(repo => repo.SearchMedicineByName("Not")).Returns(new List<Medicine>());
 
             // Act
-            var result = _service.SearchMedicineByName("Test");
+            var result = _service.SearchMedicineByName("Not");
 
             // Assert
             Assert.Empty(result);

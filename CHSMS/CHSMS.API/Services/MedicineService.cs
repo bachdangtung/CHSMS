@@ -1,8 +1,6 @@
-﻿using CHSMS.API.DTOs.MedicalSupply;
-using CHSMS.API.DTOs.Medicine;
+﻿using CHSMS.API.DTOs.Medicine;
 using CHSMS.API.DTOs.User;
 using CHSMS.API.Models;
-using CHSMS.API.Repositories;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services.Interfaces;
 
@@ -175,7 +173,7 @@ namespace CHSMS.API.Services
             return _medicineRepository.GetMedicineImportHistory(fromDate, toDate);
         }
 
-        
+
 
         //Get one medical supply
         public MedicineDTO? GetMedicineById(int medicineId)
@@ -473,7 +471,7 @@ namespace CHSMS.API.Services
             return _medicineRepository.GetAddOnMedicineInventory(id, from, to);
         }
 
-        public object GetExpiryMedicineInventory(int medicineId, DateTime? from, DateTime? to)
+        public double GetExpiryMedicineInventory(int medicineId, DateTime? from, DateTime? to)
         {
             return _medicineRepository.GetNumberOfExpiredMedicineInventory(medicineId, from, to);
         }

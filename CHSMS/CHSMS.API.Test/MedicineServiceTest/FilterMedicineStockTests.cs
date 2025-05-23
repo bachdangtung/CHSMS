@@ -1,5 +1,4 @@
 ﻿using CHSMS.API.DTOs.Medicine;
-using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
 using Microsoft.Extensions.Logging;
@@ -10,16 +9,14 @@ namespace CHSMS.API.Test.MedicineServiceTest
     public class FilterMedicineStockTests
     {
         private readonly Mock<IMedicineRepository> _medicineRepositoryMock;
-        private readonly Mock<SEP_TestContext> _contextMock;
         private readonly Mock<ILogger<MedicineService>> _loggerMock;
         private readonly MedicineService _service;
 
         public FilterMedicineStockTests()
         {
             _medicineRepositoryMock = new Mock<IMedicineRepository>();
-            _contextMock = new Mock<SEP_TestContext>();
             _loggerMock = new Mock<ILogger<MedicineService>>();
-            _service = new MedicineService(_medicineRepositoryMock.Object, _contextMock.Object, _loggerMock.Object);
+            _service = new MedicineService(_medicineRepositoryMock.Object, _loggerMock.Object);
         }
 
         [Fact]

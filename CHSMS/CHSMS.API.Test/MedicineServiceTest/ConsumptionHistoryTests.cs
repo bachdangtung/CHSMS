@@ -8,49 +8,117 @@ namespace CHSMS.API.Test.MedicineServiceTest
 {
     public class ConsumptionHistoryTests
     {
-        private readonly Mock<IMedicineRepository> _medicineRepositoryMock;
-        private readonly Mock<SEP_TestContext> _contextMock;
-        private readonly Mock<ILogger<MedicineService>> _loggerMock;
+        private readonly Mock<IMedicineRepository> _mockRepo;
         private readonly MedicineService _service;
+        private readonly DateTime _testDate = new DateTime(2025, 4, 4);
 
         public ConsumptionHistoryTests()
         {
-            _medicineRepositoryMock = new Mock<IMedicineRepository>();
-            _contextMock = new Mock<SEP_TestContext>();
-            _loggerMock = new Mock<ILogger<MedicineService>>();
-            _service = new MedicineService(_medicineRepositoryMock.Object, _contextMock.Object, _loggerMock.Object);
+            _mockRepo = new Mock<IMedicineRepository>();
+            var mockLogger = new Mock<ILogger<MedicineService>>();
+            _service = new MedicineService(_mockRepo.Object, mockLogger.Object);
         }
 
         [Fact]
-        public void ConsumptionHistory_ReturnsConsumptionHistory()
+        public void ConsumptionHistory_BothDatesNull_ReturnsAllRecords()
         {
             // Arrange
-            var consumptions = new List<MedicineConsumption>
+            var expectedConsumptions = new List<MedicineConsumption>
             {
-                TestHelper.CreateMedicineConsumption(1, 1, 50),
-                TestHelper.CreateMedicineConsumption(2, 2, 25)
+                new MedicineConsumption { MedicineConsumptionId = 1, ConsumptionDate = _testDate }
             };
-            _medicineRepositoryMock.Setup(repo => repo.ConsumptionHistory(It.IsAny<DateTime?>(), It.IsAny<DateTime?>())).Returns(consumptions);
+
+            _mockRepo.Setup(x => x.ConsumptionHistory(null, null))
+                .Returns(expectedConsumptions);
 
             // Act
-            var result = _service.ConsumptionHistory(DateTime.Now.AddDays(-10), DateTime.Now);
+            var result = _service.ConsumptionHistory(null, null);
 
             // Assert
-            Assert.Equal(2, result.Count);
-            Assert.Equal(50, result[0].Amount);
+            Assert.Equal(expectedConsumptions, result);
+            _mockRepo.Verify(x => x.ConsumptionHistory(null, null), Times.Once);
         }
 
         [Fact]
-        public void ConsumptionHistory_ReturnsEmptyListWhenNoHistory()
+        public void ConsumptionHistory_FromDateOnly_ReturnsRecordsFromDate()
         {
             // Arrange
-            _medicineRepositoryMock.Setup(repo => repo.ConsumptionHistory(It.IsAny<DateTime?>(), It.IsAny<DateTime?>())).Returns(new List<MedicineConsumption>());
+            var fromDate = new DateTime(2025, 3, 3);
+            var expectedConsumptions = new List<MedicineConsumption>
+            {
+                new MedicineConsumption { MedicineConsumptionId = 1, ConsumptionDate = _testDate }
+            };
+
+            _mockRepo.Setup(x => x.ConsumptionHistory(fromDate, null))
+                .Returns(expectedConsumptions);
 
             // Act
-            var result = _service.ConsumptionHistory(DateTime.Now.AddDays(-10), DateTime.Now);
+            var result = _service.ConsumptionHistory(fromDate, null);
+
+            // Assert
+            Assert.Equal(expectedConsumptions, result);
+            _mockRepo.Verify(x => x.ConsumptionHistory(fromDate, null), Times.Once);
+        }
+
+        [Fact]
+        public void ConsumptionHistory_ToDateOnly_ReturnsRecordsUpToDate()
+        {
+            // Arrange
+            var toDate = new DateTime(2025, 5, 5);
+            var expectedConsumptions = new List<MedicineConsumption>
+            {
+                new MedicineConsumption { MedicineConsumptionId = 1, ConsumptionDate = _testDate }
+            };
+
+            _mockRepo.Setup(x => x.ConsumptionHistory(null, toDate))
+                .Returns(expectedConsumptions);
+
+            // Act
+            var result = _service.ConsumptionHistory(null, toDate);
+
+            // Assert
+            Assert.Equal(expectedConsumptions, result);
+            _mockRepo.Verify(x => x.ConsumptionHistory(null, toDate), Times.Once);
+        }
+
+        [Fact]
+        public void ConsumptionHistory_BothDatesProvided_ReturnsRecordsInRange()
+        {
+            // Arrange
+            var fromDate = new DateTime(2025, 3, 3);
+            var toDate = new DateTime(2025, 5, 5);
+            var expectedConsumptions = new List<MedicineConsumption>
+            {
+                new MedicineConsumption { MedicineConsumptionId = 1, ConsumptionDate = _testDate }
+            };
+
+            _mockRepo.Setup(x => x.ConsumptionHistory(fromDate, toDate))
+                .Returns(expectedConsumptions);
+
+            // Act
+            var result = _service.ConsumptionHistory(fromDate, toDate);
+
+            // Assert
+            Assert.Equal(expectedConsumptions, result);
+            _mockRepo.Verify(x => x.ConsumptionHistory(fromDate, toDate), Times.Once);
+        }
+
+        [Fact]
+        public void ConsumptionHistory_NoRecordsFound_ReturnsEmptyList()
+        {
+            // Arrange
+            var fromDate = new DateTime(2025, 3, 3);
+            var toDate = new DateTime(2025, 5, 5);
+
+            _mockRepo.Setup(x => x.ConsumptionHistory(fromDate, toDate))
+                .Returns(new List<MedicineConsumption>());
+
+            // Act
+            var result = _service.ConsumptionHistory(fromDate, toDate);
 
             // Assert
             Assert.Empty(result);
+            _mockRepo.Verify(x => x.ConsumptionHistory(fromDate, toDate), Times.Once);
         }
     }
 }

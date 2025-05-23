@@ -1,4 +1,5 @@
-﻿using CHSMS.API.Models;
+﻿using CHSMS.API.DTOs.Medicine;
+using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
 using Microsoft.Extensions.Logging;
@@ -9,74 +10,149 @@ namespace CHSMS.API.Test.MedicineServiceTest
     public class UpdateMedicineInventoryTests
     {
         private readonly Mock<IMedicineRepository> _medicineRepositoryMock;
-        private readonly Mock<SEP_TestContext> _contextMock;
         private readonly Mock<ILogger<MedicineService>> _loggerMock;
-        private readonly MedicineService _service;
+        private readonly MedicineService _medicineService;
 
         public UpdateMedicineInventoryTests()
         {
             _medicineRepositoryMock = new Mock<IMedicineRepository>();
-            _contextMock = new Mock<SEP_TestContext>();
             _loggerMock = new Mock<ILogger<MedicineService>>();
-            _service = new MedicineService(_medicineRepositoryMock.Object, _contextMock.Object, _loggerMock.Object);
+            _medicineService = new MedicineService(_medicineRepositoryMock.Object, _loggerMock.Object);
         }
 
         [Fact]
-        public void UpdateMedicineInventory_UpdatesSuccessfully()
+        public void UpdateMedicineInventory_ValidDTOAndUserId_Within24Hours_ReturnsTrue()
         {
             // Arrange
-            var inventory = TestHelper.CreateMedicineInventory(1, 1, 100);
-            inventory.TransactionDate = DateTime.Now.AddHours(-12);
-            inventory.ReceiverId = 1;
-            var dto = TestHelper.CreateMedicineInventoryUpdateDTO(1, 1, 75);
+            var medicineInventoryId = 1;
+            var userId = 1;
+            var transactionDate = DateTime.Now.AddHours(-23); // Within 24 hours
+            var medicineInventory = new MedicineInventory
+            {
+                MedicineInventoryId = medicineInventoryId,
+                ReceiverId = userId,
+                TransactionDate = transactionDate,
+                Quantity = 100,
+                ImportQuantity = 100,
+                ManufacturingDate = DateTime.Now.AddMonths(-6),
+                Note = "Initial note"
+            };
 
-            _medicineRepositoryMock.Setup(repo => repo.GetInventoryById(1)).Returns(inventory);
-            _medicineRepositoryMock.Setup(repo => repo.SaveChanges()).Returns(true);
+            var dto = new MedicineInventoryUpdateDTO
+            {
+                MedicineInventoryId = medicineInventoryId,
+                Quantity = 90,
+                ImportQuantity = 90,
+                ManufacturingDate = DateTime.Now.AddMonths(-5),
+                Note = "Updated note"
+            };
+
+            _medicineRepositoryMock
+                .Setup(repo => repo.GetInventoryById(medicineInventoryId))
+                .Returns(medicineInventory);
+            _medicineRepositoryMock
+                .Setup(repo => repo.SaveChanges())
+                .Returns(true);
 
             // Act
-            var result = _service.UpdateMedicineInventory(dto, 1);
+            var result = _medicineService.UpdateMedicineInventory(dto, userId);
 
             // Assert
             Assert.True(result);
-            Assert.Equal(75, inventory.Quantity);
-            Assert.Equal("Updated Note", inventory.Note);
+            _medicineRepositoryMock.Verify(repo => repo.SaveChanges(), Times.Once());
+            Assert.Equal(90, medicineInventory.Quantity);
+            Assert.Equal(90, medicineInventory.ImportQuantity);
+            Assert.Equal("Updated note", medicineInventory.Note);
         }
 
         [Fact]
-        public void UpdateMedicineInventory_ThrowsWhenInventoryNotFound()
+        public void UpdateMedicineInventory_InvalidMedicineInventoryId_ThrowsException()
         {
             // Arrange
-            var dto = TestHelper.CreateMedicineInventoryUpdateDTO(1, 1, 75);
-            _medicineRepositoryMock.Setup(repo => repo.GetInventoryById(1)).Returns((MedicineInventory)null);
+            var userId = 1;
+            var dto = new MedicineInventoryUpdateDTO
+            {
+                MedicineInventoryId = -1,
+                Quantity = 90,
+                ImportQuantity = 90,
+                ManufacturingDate = DateTime.Now.AddMonths(-5),
+                Note = "Updated note"
+            };
+
+            _medicineRepositoryMock
+                .Setup(repo => repo.GetInventoryById(-1))
+                .Returns((MedicineInventory)null);
 
             // Act & Assert
-            Assert.Throws<Exception>(() => _service.UpdateMedicineInventory(dto, 1));
+            var exception = Assert.Throws<Exception>(() => _medicineService.UpdateMedicineInventory(dto, userId));
+            Assert.Equal("Không tìm thấy bản ghi.", exception.Message);
+            _medicineRepositoryMock.Verify(repo => repo.SaveChanges(), Times.Never());
         }
 
         [Fact]
-        public void UpdateMedicineInventory_ThrowsWhenUnauthorizedUser()
+        public void UpdateMedicineInventory_UserIdMismatch_ThrowsException()
         {
             // Arrange
-            var inventory = TestHelper.CreateMedicineInventory(1, 1, 100);
-            var dto = TestHelper.CreateMedicineInventoryUpdateDTO(1, 1, 75);
-            _medicineRepositoryMock.Setup(repo => repo.GetInventoryById(1)).Returns(inventory);
+            var medicineInventoryId = 1;
+            var userId = -1; // Invalid userId
+            var transactionDate = DateTime.Now.AddHours(-23); // Within 24 hours
+            var medicineInventory = new MedicineInventory
+            {
+                MedicineInventoryId = medicineInventoryId,
+                ReceiverId = 1, // Different from userId
+                TransactionDate = transactionDate
+            };
+
+            var dto = new MedicineInventoryUpdateDTO
+            {
+                MedicineInventoryId = medicineInventoryId,
+                Quantity = 90,
+                ImportQuantity = 90,
+                ManufacturingDate = DateTime.Now.AddMonths(-5),
+                Note = "Updated note"
+            };
+
+            _medicineRepositoryMock
+                .Setup(repo => repo.GetInventoryById(medicineInventoryId))
+                .Returns(medicineInventory);
 
             // Act & Assert
-            Assert.Throws<Exception>(() => _service.UpdateMedicineInventory(dto, 2));
+            var exception = Assert.Throws<Exception>(() => _medicineService.UpdateMedicineInventory(dto, userId));
+            Assert.Equal("Bạn không có quyền sửa bản ghi này.", exception.Message);
+            _medicineRepositoryMock.Verify(repo => repo.SaveChanges(), Times.Never());
         }
 
         [Fact]
-        public void UpdateMedicineInventory_ThrowsWhenOver24Hours()
+        public void UpdateMedicineInventory_Over24Hours_ThrowsException()
         {
             // Arrange
-            var inventory = TestHelper.CreateMedicineInventory(1, 1, 100);
-            inventory.TransactionDate = DateTime.Now.AddHours(-25);
-            inventory.ReceiverId = 1;
-            var dto = TestHelper.CreateMedicineInventoryUpdateDTO(1, 1, 75);
-            _medicineRepositoryMock.Setup(repo => repo.GetInventoryById(1)).Returns(inventory);
+            var medicineInventoryId = 1;
+            var userId = 1;
+            var transactionDate = DateTime.Now.AddHours(-25); // Over 24 hours
+            var medicineInventory = new MedicineInventory
+            {
+                MedicineInventoryId = medicineInventoryId,
+                ReceiverId = userId,
+                TransactionDate = transactionDate
+            };
+
+            var dto = new MedicineInventoryUpdateDTO
+            {
+                MedicineInventoryId = medicineInventoryId,
+                Quantity = 90,
+                ImportQuantity = 90,
+                ManufacturingDate = DateTime.Now.AddMonths(-5),
+                Note = "Updated note"
+            };
+
+            _medicineRepositoryMock
+                .Setup(repo => repo.GetInventoryById(medicineInventoryId))
+                .Returns(medicineInventory);
 
             // Act & Assert
-            Assert.Throws<Exception>(() => _service.UpdateMedicineInventory(dto, 1));
+            var exception = Assert.Throws<Exception>(() => _medicineService.UpdateMedicineInventory(dto, userId));
+            Assert.Equal("Bản ghi đã quá 24 giờ, không thể chỉnh sửa.", exception.Message);
+            _medicineRepositoryMock.Verify(repo => repo.SaveChanges(), Times.Never());
         }
     }
 }
