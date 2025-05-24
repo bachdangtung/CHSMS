@@ -7,13 +7,13 @@ using Moq;
 
 namespace CHSMS.API.Test.MedicineServiceTest
 {
-    public class AddMedicalSupplyInventoryStatistic
+    public class AddMedicineInventoryStatisticTest
     {
         private readonly Mock<IMedicineRepository> _medicineRepositoryMock;
         private readonly Mock<ILogger<MedicineService>> _loggerMock;
         private readonly MedicineService _medicineService;
 
-        public AddMedicineInventoryListTests()
+        public AddMedicineInventoryStatisticTest()
         {
             _medicineRepositoryMock = new Mock<IMedicineRepository>();
             _loggerMock = new Mock<ILogger<MedicineService>>();
@@ -197,7 +197,7 @@ namespace CHSMS.API.Test.MedicineServiceTest
                 MedicineInventoryId = 1, // Duplicate MedicineInventoryId
                 Quantity = 90,
                 ActualQuantity = 85,
-                StatisticPerson = "User2",
+                StatisticPerson = 2,
                 StatisticDate = DateTime.Now
             }
         };

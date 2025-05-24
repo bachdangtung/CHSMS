@@ -644,12 +644,12 @@ namespace CHSMS.API.Services
             var obj = new MedicineInventoryStatistic
             {
                 MedicineInventoryStatisticsId = mIStatisticDTO.MedicineInventoryStatisticsId,
-                MedicineInventoryId = mIStatisticDTO.MedicineInventoryId,
-                Quantity = mIStatisticDTO.Quantity,
-                ActualQuantity = mIStatisticDTO.ActualQuantity,
-                StatisticPerson = mIStatisticDTO.StatisticPerson,
+                MedicineInventoryId = mIStatisticDTO.MedicineInventoryId.Value,
+                Quantity = mIStatisticDTO.Quantity.Value,
+                ActualQuantity = mIStatisticDTO.ActualQuantity.Value,
+                StatisticPerson = mIStatisticDTO.StatisticPerson.Value,
                 ConfirmPerson = mIStatisticDTO.ConfirmPerson,
-                StatisticDate = mIStatisticDTO.StatisticDate,
+                StatisticDate = mIStatisticDTO.StatisticDate.Value,
                 ConfirmDate = mIStatisticDTO.ConfirmDate,
                 IsUpdate = mIStatisticDTO.IsUpdate || false,
                 Note = mIStatisticDTO.Note,
