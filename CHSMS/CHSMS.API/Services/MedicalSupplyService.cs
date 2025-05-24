@@ -65,7 +65,14 @@ namespace CHSMS.API.Services
             {
                 if (GetMedicalSupplyById(item.MedicalSupplyId.Value) == null)
                 {
-                    throw new Exception("Medical Supply is not exist for " + item);
+                    throw new Exception("Vật tư với ID " + item.MedicalSupplyId.Value + " không tồn tại");
+                }else if (_medicalSupplyReposotory.isExistMedicalSupplyInventory(item.MedicalSupplyId.Value, item.BatchNumber, item.CertificateNumber))
+                {
+                    throw new Exception("Vật tư đã tồn tại trong kho");
+                }
+                if (item.Quantity <= 0)
+                {
+                    throw new Exception("Số lượng không hợp lệ");
                 }
                 var medicalSupply = new MedicalSupplyInventory
                 {
@@ -98,7 +105,7 @@ namespace CHSMS.API.Services
             {
                 throw new Exception("Medical supply inventory is not exist");
             }
-            if(medicalSupplyInventoryDTO.Quantity>medicalSupplyInventory.ImportQuantity)
+            if (medicalSupplyInventoryDTO.Quantity > medicalSupplyInventory.ImportQuantity)
             {
                 throw new Exception("Số lượng tồn không hợp lệ");
             }
@@ -113,9 +120,9 @@ namespace CHSMS.API.Services
                 ExpiryDate = medicalSupplyInventoryDTO.ExpiryDate,
                 ReceiverId = medicalSupplyInventoryDTO.ReceiverId,
                 Note = medicalSupplyInventoryDTO.Note,
-                TransactionType=medicalSupplyInventoryDTO.TransactionType,
-                BatchNumber=medicalSupplyInventoryDTO.BatchNumber,
-                ImportQuantity=medicalSupplyInventory.ImportQuantity
+                TransactionType = medicalSupplyInventoryDTO.TransactionType,
+                BatchNumber = medicalSupplyInventoryDTO.BatchNumber,
+                ImportQuantity = medicalSupplyInventory.ImportQuantity
             };
             medicalSupplyInventories.Add(MedicalSupplyInventory);
             if (!_medicalSupplyReposotory.UpdateMedicalSupplyInventory(medicalSupplyInventories)) return false;
@@ -229,7 +236,7 @@ namespace CHSMS.API.Services
 
         public List<MedicalSupplyConsumption> ConsumptionHistory(DateTime? from, DateTime? to)
         {
-            if(from == null )
+            if (from == null)
             {
                 from = DateTime.MinValue;
             }
@@ -268,7 +275,7 @@ namespace CHSMS.API.Services
             }
             if (medicalSupplyConsumption.Quantity < 0)
             {
-                return false ;
+                return false;
             }
             var numberUpdate = medicalSupplyConsumption.Quantity.Value - MSC.Amount.Value;
             medicalSupplyInventory.Quantity -= numberUpdate;
@@ -303,7 +310,7 @@ namespace CHSMS.API.Services
 
         public List<MedicalSupplyInventory>? GetMedicalSupplyImportHistory(DateTime? fromDate, DateTime? toDate)
         {
-            if (fromDate==null)
+            if (fromDate == null)
             {
                 fromDate = DateTime.MinValue;
             }
@@ -373,7 +380,7 @@ namespace CHSMS.API.Services
                 {
                     if (medicalSupplyInventoryStatistic.Quantity != medicalSupplyInventory.Quantity)
                     {
-                        throw new Exception("Số lượng tồn không đồng nhất so với hệ thống");
+                        throw new Exception("Số lượng hệ thống không khớp!");
                     }
                     medicalSupplyInventory.Quantity = medicalSupplyInventoryStatistic.ActualQuantity;
                     medicalSupplyInventories.Add(medicalSupplyInventory);

@@ -37,5 +37,6 @@ namespace CHSMS.API.Repositories.Interfaces
         bool UpdateMedicalSupplyInventoryStatistic(List<MedicalSupplyInventoryStatistic> medicalSupplyInventoryStatistic);
         List<MedicalSupplyInventoryStatistic>? GetMedicalSupplyInventoryStatisticsByStatisticDate(DateTime from, DateTime to);
         bool DeleteMedicalSupplyInventoryStatistic(MedicalSupplyInventoryStatistic medicalSupplyInventoryStatistic);
+        bool isExistMedicalSupplyInventory(int medicalSupplyInventoryId,string batch, string cer);
     }
 }
