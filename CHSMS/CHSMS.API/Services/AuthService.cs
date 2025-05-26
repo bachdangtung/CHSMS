@@ -214,7 +214,7 @@ namespace CHSMS.API.Services
 
             await _userRepository.UpdateAsync(user);
 
-            string resetLink = $"http://127.0.0.1:5500/pages/authen/reset-password.html?token={resetToken}&id={user.UserId}";
+            string resetLink = $"http://localhost:5500/pages/views/authen/reset-password.html?token={resetToken}&id={user.UserId}";
             await _emailService.SendAsync(email, "Password Reset Request",
                 $"Click the link to reset your password: <a href='{resetLink}'>Reset Password</a>", true);
 
