@@ -34,6 +34,7 @@ namespace CHSMS.API.DTOs.MedicalRecord
 
         public bool? Status { get; set; }
         public string? Note { get; set; }
+        public DateTime? DateCreated { get; set; }
 
     }
 }

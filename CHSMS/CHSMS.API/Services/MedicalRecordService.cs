@@ -34,7 +34,8 @@ namespace CHSMS.API.Services
                     Email = record.Email,
                     Job = record.Job,
                     Status = record.Status,
-                    Note = record.Note
+                    Note = record.Note,
+                    DateCreated = record.DateCreated,
                 };
                 medicalRecordDTOs.Add(recordDTO);
             }
@@ -60,7 +61,8 @@ namespace CHSMS.API.Services
                     Email = record.Email,
                     Job = record.Job,
                     Status = record.Status,
-                    Note = record.Note
+                    Note = record.Note,
+                    DateCreated = record.DateCreated,
                 };
                 medicalRecordDTOs.Add(recordDTO);
             }
@@ -86,7 +88,8 @@ namespace CHSMS.API.Services
                 Email = record.Email,
                 Job = record.Job,
                 Status = record.Status,
-                Note = record.Note
+                Note = record.Note,
+                DateCreated = record.DateCreated,
             };
         }
 
@@ -162,7 +165,8 @@ namespace CHSMS.API.Services
                 Email = medicalRecordDTO.Email,
                 Job = medicalRecordDTO.Job,
                 Status = medicalRecordDTO.Status,
-                Note = medicalRecordDTO.Note
+                Note = medicalRecordDTO.Note,
+                DateCreated = DateTime.Now,
             };
             if (!_medicalRecordRepository.AddMedicalRecordHistory(record)) return false;
             return true;
