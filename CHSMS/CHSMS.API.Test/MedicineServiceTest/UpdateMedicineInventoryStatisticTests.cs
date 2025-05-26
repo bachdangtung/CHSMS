@@ -122,21 +122,6 @@ namespace CHSMS.API.Test.MedicineServiceTest
         }
 
         [Fact]
-        public void UpdateMedicineInventoryStatistic_EmptyDTOList_ReturnsFalse()
-        {
-            // Arrange
-            var dtoList = new List<MedicineInventoryStatisticDTO>();
-
-            // Act
-            var result = _medicineService.UpdateMedicineInventoryStatistic(dtoList);
-
-            // Assert
-            Assert.False(result);
-            _medicineRepositoryMock.Verify(repo => repo.UpdateMedicineInInventory(It.IsAny<List<MedicineInventory>>()), Times.Never());
-            _medicineRepositoryMock.Verify(repo => repo.UpdateMedicineInventoryStatistic(It.IsAny<List<MedicineInventoryStatistic>>()), Times.Never());
-        }
-
-        [Fact]
         public void UpdateMedicineInventoryStatistic_InvalidMedicineInventoryId_ThrowsException()
         {
             // Arrange

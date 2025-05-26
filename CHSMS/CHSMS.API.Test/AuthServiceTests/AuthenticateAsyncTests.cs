@@ -48,7 +48,7 @@ namespace CHSMS.API.Tests.AuthServiceTests
                 .ReturnsAsync((User)null);
 
             // Act
-            var result = await _authService.AuthenticateAsync("nonexistent", "password");
+            var result = await _authService.AuthenticateAsync("nonexistent", "Password123@");
 
             // Assert
             Assert.Null(result);
@@ -63,7 +63,7 @@ namespace CHSMS.API.Tests.AuthServiceTests
                 .ReturnsAsync(user);
 
             // Act
-            var result = await _authService.AuthenticateAsync("testuser", "wrongpassword");
+            var result = await _authService.AuthenticateAsync("testuser", "WrongPassword123@");
 
             // Assert
             Assert.Null(result);
@@ -79,7 +79,7 @@ namespace CHSMS.API.Tests.AuthServiceTests
                 .ReturnsAsync(user);
 
             // Act
-            var result = await _authService.AuthenticateAsync("testuser", "password");
+            var result = await _authService.AuthenticateAsync("testuser", "Password123@");
 
             // Assert
             Assert.NotNull(result);
@@ -100,7 +100,7 @@ namespace CHSMS.API.Tests.AuthServiceTests
                 .Returns(Task.CompletedTask);
 
             // Act
-            var result = await _authService.AuthenticateAsync("testuser", "password");
+            var result = await _authService.AuthenticateAsync("testuser", "Password123@");
 
             // Assert
             Assert.NotNull(result);

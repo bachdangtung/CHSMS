@@ -3,7 +3,8 @@ using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
 
 namespace CHSMS.API.Test.ExternalPrescriptionTest
@@ -11,20 +12,27 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
     public class CreateExternalPrescriptionAsyncTests : IDisposable
     {
         private readonly Mock<IExternalPrescriptionRepository> _repositoryMock;
-        private readonly SEP_TestContext _dbContext;
+        private readonly Mock<SEP_TestContext> _dbContextMock;
+        private readonly Mock<DatabaseFacade> _databaseMock;
+        private readonly Mock<IDbContextTransaction> _transactionMock;
         private readonly ExternalPrescriptionService _service;
 
         public CreateExternalPrescriptionAsyncTests()
         {
             _repositoryMock = new Mock<IExternalPrescriptionRepository>();
+            _dbContextMock = new Mock<SEP_TestContext>(new DbContextOptions<SEP_TestContext>());
+            _databaseMock = new Mock<DatabaseFacade>(_dbContextMock.Object);
+            _transactionMock = new Mock<IDbContextTransaction>();
 
-            var options = new DbContextOptionsBuilder<SEP_TestContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-                .Options;
+            _dbContextMock.Setup(db => db.Database).Returns(_databaseMock.Object);
+            _databaseMock.Setup(db => db.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(_transactionMock.Object);
+            _transactionMock.Setup(t => t.CommitAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+            _transactionMock.Setup(t => t.RollbackAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
 
-            _dbContext = new SEP_TestContext(options);
-            _service = new ExternalPrescriptionService(_repositoryMock.Object, _dbContext);
+            _service = new ExternalPrescriptionService(_repositoryMock.Object, _dbContextMock.Object);
         }
 
         [Fact]
@@ -51,6 +59,8 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
             Assert.Equal(1, result);
             _repositoryMock.Verify(r => r.CreateExternalPrescriptionAsync(It.IsAny<ExternalPrescription>()), Times.Once());
             _repositoryMock.Verify(r => r.CreateExternalMedicinePrescriptionAsync(It.IsAny<MedicinePrescription>()), Times.Once());
+            _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once());
+            _transactionMock.Verify(t => t.RollbackAsync(It.IsAny<CancellationToken>()), Times.Never());
         }
 
         [Fact]
@@ -64,7 +74,9 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
             // Act & Assert
             var exception = await Assert.ThrowsAsync<Exception>(() =>
                 _service.CreateExternalPrescriptionAsync(userId, medicalRecordHistoryId, dto));
-            Assert.Contains("Ngày phát hành không được là ngày trong tương lai!", exception.Message);
+            Assert.Equal("Lỗi khi tạo đơn thuốc kê ngoài: Ngày phát hành không được là ngày trong tương lai!", exception.Message);
+            _transactionMock.Verify(t => t.RollbackAsync(It.IsAny<CancellationToken>()), Times.Once());
+            _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Never());
         }
 
         [Fact]
@@ -81,7 +93,9 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
             // Act & Assert
             var exception = await Assert.ThrowsAsync<Exception>(() =>
                 _service.CreateExternalPrescriptionAsync(userId, medicalRecordHistoryId, dto));
-            Assert.Contains("Một đơn thuốc không được chứa quá 10 loại thuốc!", exception.Message);
+            Assert.Equal("Lỗi khi tạo đơn thuốc kê ngoài: Một đơn thuốc không được chứa quá 10 loại thuốc!", exception.Message);
+            _transactionMock.Verify(t => t.RollbackAsync(It.IsAny<CancellationToken>()), Times.Once());
+            _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Never());
         }
 
         [Fact]
@@ -97,9 +111,11 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
                 .ReturnsAsync(CreateDefaultValidMedicines());
 
             // Act & Assert
-            var ex = await Assert.ThrowsAsync<Exception>(() =>
+            var exception = await Assert.ThrowsAsync<Exception>(() =>
                 _service.CreateExternalPrescriptionAsync(userId, medicalRecordHistoryId, dto));
-            Assert.Contains("bị trùng", ex.Message);
+            Assert.Equal("Lỗi khi tạo đơn thuốc kê ngoài: Có thuốc bị trùng trong đơn thuốc. Vui lòng kiểm tra lại!", exception.Message);
+            _transactionMock.Verify(t => t.RollbackAsync(It.IsAny<CancellationToken>()), Times.Once());
+            _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Never());
         }
 
         [Fact]
@@ -116,7 +132,9 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
             // Act & Assert
             var exception = await Assert.ThrowsAsync<Exception>(() =>
                 _service.CreateExternalPrescriptionAsync(userId, medicalRecordHistoryId, dto));
-            Assert.Contains("Không tìm thấy thuốc với ID: 1 hoặc thuốc không hoạt động!", exception.Message);
+            Assert.Equal("Lỗi khi tạo đơn thuốc kê ngoài: Không tìm thấy thuốc với ID: 1 hoặc thuốc không hoạt động!", exception.Message);
+            _transactionMock.Verify(t => t.RollbackAsync(It.IsAny<CancellationToken>()), Times.Once());
+            _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Never());
         }
 
         #region Helper
@@ -165,10 +183,8 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
         }
         #endregion
 
-
         public void Dispose()
         {
-            _dbContext.Dispose();
         }
     }
 }

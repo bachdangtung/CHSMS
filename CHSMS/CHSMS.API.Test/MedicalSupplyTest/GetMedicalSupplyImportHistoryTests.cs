@@ -9,21 +9,35 @@ namespace CHSMS.API.Test.MedicalSupplyTest
     {
         private readonly Mock<IMedicalSupplyRepository> _mockRepository;
         private readonly MedicalSupplyService _service;
+        private readonly DateTime _currentDate = new DateTime(2025, 5, 25, 8, 28, 0); // Current date: 25/5/2025 08:28
 
         public GetMedicalSupplyImportHistoryTests()
         {
             _mockRepository = new Mock<IMedicalSupplyRepository>();
             _service = new MedicalSupplyService(_mockRepository.Object);
+
+            // Setup preconditions: MedicalSupplyInventory records
+            var inventory1 = new MedicalSupplyInventory
+            {
+                SupplyInventoryId = 1,
+                TransactionDate = new DateTime(2025, 5, 10)
+            };
+            var inventory2 = new MedicalSupplyInventory
+            {
+                SupplyInventoryId = 2,
+                TransactionDate = new DateTime(2025, 5, 15)
+            };
+            _mockRepository.Setup(r => r.GetMedicalSupplyImportHistory(
+                new DateTime(2025, 5, 1), new DateTime(2025, 5, 20)))
+                .Returns(new List<MedicalSupplyInventory> { inventory1, inventory2 });
         }
 
         [Fact]
-        public void GetMedicalSupplyImportHistory_ReturnsHistory_WhenValidDateRange()
+        public void GetMedicalSupplyImportHistory_ValidDateRange_ReturnsInventoryList()
         {
             // Arrange
-            DateTime fromDate = DateTime.Now.AddDays(-30);
-            DateTime toDate = DateTime.Now;
-            var history = GetSampleInventories();
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyImportHistory(fromDate, toDate)).Returns(history);
+            DateTime? fromDate = new DateTime(2025, 5, 1);
+            DateTime? toDate = new DateTime(2025, 5, 20);
 
             // Act
             var result = _service.GetMedicalSupplyImportHistory(fromDate, toDate);
@@ -31,50 +45,66 @@ namespace CHSMS.API.Test.MedicalSupplyTest
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
-            Assert.Equal("BATCH-001", result[0].BatchNumber);
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyImportHistory(fromDate, toDate), Times.Once());
+            Assert.Contains(result, x => x.SupplyInventoryId == 1);
+            Assert.Contains(result, x => x.SupplyInventoryId == 2);
+            _mockRepository.Verify(r => r.GetMedicalSupplyImportHistory(
+                new DateTime(2025, 5, 1), new DateTime(2025, 5, 20)), Times.Once());
         }
 
         [Fact]
-        public void GetMedicalSupplyImportHistory_ReturnsNull_WhenInvalidDateRange()
+        public void GetMedicalSupplyImportHistory_FromDateAfterToDate_ReturnsNull()
         {
             // Arrange
-            DateTime fromDate = DateTime.Now.AddDays(1);
-            DateTime toDate = DateTime.Now;
+            DateTime? fromDate = new DateTime(2025, 5, 20);
+            DateTime? toDate = new DateTime(2025, 5, 10);
 
             // Act
             var result = _service.GetMedicalSupplyImportHistory(fromDate, toDate);
 
             // Assert
             Assert.Null(result);
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyImportHistory(It.IsAny<DateTime>(), It.IsAny<DateTime>()), Times.Never());
+            _mockRepository.Verify(r => r.GetMedicalSupplyImportHistory(It.IsAny<DateTime>(), It.IsAny<DateTime>()), Times.Never());
         }
 
         [Fact]
-        public void GetMedicalSupplyImportHistory_ReturnsEmptyList_WhenNoHistory()
+        public void GetMedicalSupplyImportHistory_FutureDateRange_ReturnsNull()
         {
             // Arrange
-            DateTime fromDate = DateTime.Now.AddDays(-30);
-            DateTime toDate = DateTime.Now;
-            var emptyList = new List<MedicalSupplyInventory>();
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyImportHistory(fromDate, toDate)).Returns(emptyList);
+            DateTime? fromDate = new DateTime(2026, 5, 20);
+            DateTime? toDate = new DateTime(2026, 5, 30);
+            _mockRepository.Setup(r => r.GetMedicalSupplyImportHistory(
+                new DateTime(2026, 5, 20), new DateTime(2026, 5, 30)))
+                .Returns(new List<MedicalSupplyInventory>());
+
+            // Act
+            var result = _service.GetMedicalSupplyImportHistory(fromDate, toDate);
+
+            // Assert
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void GetMedicalSupplyImportHistory_NullFromDate_UsesMinValue()
+        {
+            // Arrange
+            DateTime? fromDate = null;
+            DateTime? toDate = new DateTime(2025, 5, 20);
+            _mockRepository.Setup(r => r.GetMedicalSupplyImportHistory(
+                DateTime.MinValue, new DateTime(2025, 5, 20)))
+                .Returns(new List<MedicalSupplyInventory>
+                {
+                    new MedicalSupplyInventory { SupplyInventoryId = 1, TransactionDate = new DateTime(2025, 5, 10) },
+                    new MedicalSupplyInventory { SupplyInventoryId = 2, TransactionDate = new DateTime(2025, 5, 15) }
+                });
 
             // Act
             var result = _service.GetMedicalSupplyImportHistory(fromDate, toDate);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Empty(result);
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyImportHistory(fromDate, toDate), Times.Once());
-        }
-
-        private List<MedicalSupplyInventory> GetSampleInventories()
-        {
-            return new List<MedicalSupplyInventory>
-            {
-                new MedicalSupplyInventory { SupplyInventoryId = 1, MedicalSupplyId = 1, BatchNumber = "BATCH-001", Quantity = 50.0 },
-                new MedicalSupplyInventory { SupplyInventoryId = 2, MedicalSupplyId = 1, BatchNumber = "BATCH-002", Quantity = 100.0 }
-            };
+            Assert.Equal(2, result.Count);
+            _mockRepository.Verify(r => r.GetMedicalSupplyImportHistory(
+                DateTime.MinValue, new DateTime(2025, 5, 20)), Times.Once());
         }
     }
 }

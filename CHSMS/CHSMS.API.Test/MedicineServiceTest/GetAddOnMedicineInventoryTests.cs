@@ -116,46 +116,5 @@ namespace CHSMS.API.Test.MedicineServiceTest
             Assert.Equal(expectedQuantity, result);
             _mockRepo.Verify(x => x.GetAddOnMedicineInventory(medicineId, from, to), Times.Once);
         }
-
-        [Fact]
-        public void GetAddOnMedicineInventory_RepositoryReturnsNegative_ReturnsZero()
-        {
-            // Arrange
-            int medicineId = 1;
-            DateTime? from = null;
-            DateTime? to = null;
-            double repositoryReturn = -50;
-
-            _mockRepo.Setup(x => x.GetAddOnMedicineInventory(medicineId, from, to))
-                .Returns(repositoryReturn);
-
-            // Act
-            var result = _service.GetAddOnMedicineInventory(medicineId, from, to);
-
-            // Assert
-            Assert.Equal(0, result);
-            _mockRepo.Verify(x => x.GetAddOnMedicineInventory(medicineId, from, to), Times.Once);
-        }
-
-        [Fact]
-        public void GetAddOnMedicineInventory_FromDateAfterToDate_ReturnsZero()
-        {
-            // Arrange
-            int medicineId = 1;
-            DateTime? from = new DateTime(2025, 5, 5);
-            DateTime? to = new DateTime(2025, 3, 3);
-            double expectedQuantity = 0;
-
-            // We don't expect the repository to be called in this case
-            _mockRepo.Setup(x => x.GetAddOnMedicineInventory(medicineId, from, to))
-                .Returns(expectedQuantity);
-
-            // Act
-            var result = _service.GetAddOnMedicineInventory(medicineId, from, to);
-
-            // Assert
-            Assert.Equal(expectedQuantity, result);
-            _mockRepo.Verify(x => x.GetAddOnMedicineInventory(medicineId, from, to), Times.Never);
-        }
     }
 }

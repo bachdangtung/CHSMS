@@ -15,6 +15,7 @@ namespace CHSMS.API.Test.MedicineServiceTest
         public GetMedicineByMedicineInventoryIdTests()
         {
             _medicineRepositoryMock = new Mock<IMedicineRepository>();
+            _loggerMock = new Mock<ILogger<MedicineService>>(); // Initialize the logger mock
             _service = new MedicineService(_medicineRepositoryMock.Object, _loggerMock.Object);
         }
 
@@ -22,8 +23,15 @@ namespace CHSMS.API.Test.MedicineServiceTest
         public void GetMedicineByMedicineInventoryId_ReturnsMedicine()
         {
             // Arrange
-            var medicine = TestHelper.CreateMedicine(1);
-            _medicineRepositoryMock.Setup(repo => repo.GetMedicineByMedicineInventoryId(1)).Returns(medicine);
+            var medicine = new Medicine
+            {
+                MedicineId = 1,
+                MedicineName = "TestMedicine",
+                // Add other required properties
+            };
+
+            _medicineRepositoryMock.Setup(repo => repo.GetMedicineByMedicineInventoryId(1))
+                .Returns(medicine);
 
             // Act
             var result = _service.GetMedicineByMedicineInventoryId(1);
@@ -38,7 +46,8 @@ namespace CHSMS.API.Test.MedicineServiceTest
         public void GetMedicineByMedicineInventoryId_ReturnsNullWhenNotFound()
         {
             // Arrange
-            _medicineRepositoryMock.Setup(repo => repo.GetMedicineByMedicineInventoryId(1)).Returns((Medicine)null);
+            _medicineRepositoryMock.Setup(repo => repo.GetMedicineByMedicineInventoryId(1))
+                .Returns((Medicine)null);
 
             // Act
             var result = _service.GetMedicineByMedicineInventoryId(1);

@@ -58,6 +58,22 @@ public class GetUserListAsyncTests
         // Assert
         Assert.Equal(dtos, result);
     }
+
+    [Fact]
+    public async Task GetUserListAsync_ReturnsNull()
+    {
+
+        _userRepositoryMock.Setup(u => u.GetAllAsync())
+            .ReturnsAsync(new List<User>());
+
+
+        // Act
+        var result = await _authService.GetUserListAsync();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
     /*
         [Fact]
         public async Task GetUserListAsync_WithFilters_ReturnsFilteredUsers()

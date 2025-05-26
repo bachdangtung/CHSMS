@@ -32,8 +32,8 @@ namespace CHSMS.API.Test.MedicalRecordServiceTest
 
             // Assert
             Assert.Equal(2, result.Count);
-            Assert.Equal("John Doe", result[0].PatientName);
-            Assert.Equal("Jane Smith", result[1].PatientName);
+            Assert.Equal("Nguyễn Văn A", result[0].PatientName);
+            Assert.Equal("Nguyễn Văn B", result[1].PatientName);
         }
 
         [Fact]

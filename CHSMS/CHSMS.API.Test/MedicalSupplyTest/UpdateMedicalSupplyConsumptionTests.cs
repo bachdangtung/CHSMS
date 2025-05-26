@@ -15,209 +15,113 @@ namespace CHSMS.API.Test.MedicalSupplyTest
         {
             _mockRepository = new Mock<IMedicalSupplyRepository>();
             _service = new MedicalSupplyService(_mockRepository.Object);
+
+            // Setup preconditions
+            _mockRepository.Setup(r => r.GetSupplyConsumptionByID(1))
+                .Returns(new MedicalSupplyConsumption
+                {
+                    MsconsumptionId = 1,
+                    MedicalSupplyInventoryId = 1,
+                    Amount = 50,
+                    ConsumptionDate = DateTime.Now,
+                    Status = true
+                });
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryById(1))
+                .Returns(new MedicalSupplyInventory
+                {
+                    SupplyInventoryId = 1,
+                    MedicalSupplyId = 1,
+                    Quantity = 100,
+                    ImportQuantity = 100
+                });
         }
 
         [Fact]
-        public void UpdateMedicalSupplyConsumption_ReturnsTrue_WhenUpdateSucceeds()
+        public void UpdateMedicalSupplyConsumption_ValidDTO_ReturnsTrue()
         {
             // Arrange
             var dto = new ConsumpMSDTO
             {
                 ConsumpMSID = 1,
                 MedicalSupplyInventoryId = 1,
-                Quantity = 15.0,
+                Quantity = 60, // Increasing from 50 to 60
                 Status = true,
-                Note = "Updated consumption"
+                Note = "Updated"
             };
-            var consumption = new MedicalSupplyConsumption
-            {
-                MsconsumptionId = 1,
-                MedicalSupplyInventoryId = 1,
-                Amount = 10.0,
-                Status = true,
-                Note = "Initial consumption"
-            };
-            var inventory = new MedicalSupplyInventory
-            {
-                SupplyInventoryId = 1,
-                MedicalSupplyId = 1,
-                Quantity = 50.0
-            };
-            _mockRepository.Setup(repo => repo.GetSupplyConsumptionByID(1)).Returns(consumption);
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryById(1)).Returns(inventory);
-            _mockRepository.Setup(repo => repo.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>())).Returns(true);
-            _mockRepository.Setup(repo => repo.UpdateMedicalSupplyConsumption(It.IsAny<MedicalSupplyConsumption>())).Returns(true);
+
+            _mockRepository.Setup(r => r.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()))
+                .Returns(true);
+            _mockRepository.Setup(r => r.UpdateMedicalSupplyConsumption(It.IsAny<MedicalSupplyConsumption>()))
+                .Returns(true);
 
             // Act
             var result = _service.UpdateMedicalSupplyConsumption(dto);
 
             // Assert
             Assert.True(result);
-            Assert.Equal(45.0, inventory.Quantity); // 50 - (15 - 10)
-            Assert.Equal(15.0, consumption.Amount);
-            Assert.Equal(dto.Status, consumption.Status);
-            Assert.Equal(dto.Note, consumption.Note);
-            _mockRepository.Verify(repo => repo.GetSupplyConsumptionByID(1), Times.Once());
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyInventoryById(1), Times.Once());
-            _mockRepository.Verify(repo => repo.UpdateMedicalSupplyInventory(It.Is<List<MedicalSupplyInventory>>(list => list[0].Quantity == 45.0)), Times.Once());
-            _mockRepository.Verify(repo => repo.UpdateMedicalSupplyConsumption(It.Is<MedicalSupplyConsumption>(c => c.Amount == 15.0)), Times.Once());
+            _mockRepository.Verify(r => r.UpdateMedicalSupplyInventory(It.Is<List<MedicalSupplyInventory>>(list =>
+                list[0].SupplyInventoryId == 1 && list[0].Quantity == 90)), Times.Once());
+            _mockRepository.Verify(r => r.UpdateMedicalSupplyConsumption(It.Is<MedicalSupplyConsumption>(msc =>
+                msc.MsconsumptionId == 1 && msc.Amount == 60 && msc.Status == true && msc.Note == "Updated")), Times.Once());
         }
 
         [Fact]
-        public void UpdateMedicalSupplyConsumption_ReturnsFalse_WhenConsumptionNotFound()
+        public void UpdateMedicalSupplyConsumption_InvalidConsumpMSID_ReturnsFalse()
         {
             // Arrange
             var dto = new ConsumpMSDTO
             {
-                ConsumpMSID = 1,
+                ConsumpMSID = -1,
                 MedicalSupplyInventoryId = 1,
-                Quantity = 15.0
+                Quantity = 60,
+                Status = true,
+                Note = "Test"
             };
-            _mockRepository.Setup(repo => repo.GetSupplyConsumptionByID(1)).Returns((MedicalSupplyConsumption)null);
+
+            _mockRepository.Setup(r => r.GetSupplyConsumptionByID(-1))
+                .Returns((MedicalSupplyConsumption)null);
 
             // Act
             var result = _service.UpdateMedicalSupplyConsumption(dto);
 
             // Assert
             Assert.False(result);
-            _mockRepository.Verify(repo => repo.GetSupplyConsumptionByID(1), Times.Once());
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyInventoryById(It.IsAny<int>()), Times.Never());
-            _mockRepository.Verify(repo => repo.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Never());
-            _mockRepository.Verify(repo => repo.UpdateMedicalSupplyConsumption(It.IsAny<MedicalSupplyConsumption>()), Times.Never());
         }
 
         [Fact]
-        public void UpdateMedicalSupplyConsumption_ReturnsFalse_WhenInventoryNotFound()
+        public void UpdateMedicalSupplyConsumption_InvalidMedicalSupplyInventoryId_ReturnsFalse()
         {
             // Arrange
             var dto = new ConsumpMSDTO
             {
                 ConsumpMSID = 1,
-                MedicalSupplyInventoryId = 1,
-                Quantity = 15.0
+                MedicalSupplyInventoryId = -1,
+                Quantity = 60,
+                Status = true,
+                Note = "Test"
             };
-            var consumption = new MedicalSupplyConsumption
-            {
-                MsconsumptionId = 1,
-                MedicalSupplyInventoryId = 1,
-                Amount = 10.0
-            };
-            _mockRepository.Setup(repo => repo.GetSupplyConsumptionByID(1)).Returns(consumption);
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryById(1)).Returns((MedicalSupplyInventory)null);
+
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryById(-1))
+                .Returns((MedicalSupplyInventory)null);
 
             // Act
             var result = _service.UpdateMedicalSupplyConsumption(dto);
 
             // Assert
             Assert.False(result);
-            _mockRepository.Verify(repo => repo.GetSupplyConsumptionByID(1), Times.Once());
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyInventoryById(1), Times.Once());
-            _mockRepository.Verify(repo => repo.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Never());
-            _mockRepository.Verify(repo => repo.UpdateMedicalSupplyConsumption(It.IsAny<MedicalSupplyConsumption>()), Times.Never());
         }
 
         [Fact]
-        public void UpdateMedicalSupplyConsumption_ReturnsFalse_WhenQuantityResultsInNegativeInventory()
+        public void UpdateMedicalSupplyConsumption_NegativeQuantity_ReturnsFalse()
         {
             // Arrange
             var dto = new ConsumpMSDTO
             {
                 ConsumpMSID = 1,
                 MedicalSupplyInventoryId = 1,
-                Quantity = 60.0
-            };
-            var consumption = new MedicalSupplyConsumption
-            {
-                MsconsumptionId = 1,
-                MedicalSupplyInventoryId = 1,
-                Amount = 10.0
-            };
-            var inventory = new MedicalSupplyInventory
-            {
-                SupplyInventoryId = 1,
-                MedicalSupplyId = 1,
-                Quantity = 40.0
-            };
-            _mockRepository.Setup(repo => repo.GetSupplyConsumptionByID(1)).Returns(consumption);
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryById(1)).Returns(inventory);
-
-            // Act
-            var result = _service.UpdateMedicalSupplyConsumption(dto);
-
-            // Assert
-            Assert.False(result);
-            _mockRepository.Verify(repo => repo.GetSupplyConsumptionByID(1), Times.Once());
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyInventoryById(1), Times.Once());
-            _mockRepository.Verify(repo => repo.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Never());
-            _mockRepository.Verify(repo => repo.UpdateMedicalSupplyConsumption(It.IsAny<MedicalSupplyConsumption>()), Times.Never());
-        }
-
-        [Fact]
-        public void UpdateMedicalSupplyConsumption_ReturnsFalse_WhenDTOIsNull()
-        {
-            // Arrange
-            ConsumpMSDTO dto = null;
-
-            // Act
-            var result = _service.UpdateMedicalSupplyConsumption(dto);
-
-            // Assert
-            Assert.False(result);
-            _mockRepository.Verify(repo => repo.GetSupplyConsumptionByID(It.IsAny<int>()), Times.Never());
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyInventoryById(It.IsAny<int>()), Times.Never());
-            _mockRepository.Verify(repo => repo.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Never());
-            _mockRepository.Verify(repo => repo.UpdateMedicalSupplyConsumption(It.IsAny<MedicalSupplyConsumption>()), Times.Never());
-        }
-
-        [Fact]
-        public void UpdateMedicalSupplyConsumption_ThrowsException_WhenConsumpMSIDIsNull()
-        {
-            // Arrange
-            var dto = new ConsumpMSDTO
-            {
-                ConsumpMSID = null,
-                MedicalSupplyInventoryId = 1,
-                Quantity = 15.0
-            };
-
-            // Act & Assert
-            Assert.ThrowsAny<InvalidOperationException>(() => _service.UpdateMedicalSupplyConsumption(dto));
-            _mockRepository.Verify(repo => repo.GetSupplyConsumptionByID(It.IsAny<int>()), Times.Never());
-        }
-
-        [Fact]
-        public void UpdateMedicalSupplyConsumption_ThrowsException_WhenMedicalSupplyInventoryIdIsNull()
-        {
-            // Arrange
-            var dto = new ConsumpMSDTO
-            {
-                ConsumpMSID = 1,
-                MedicalSupplyInventoryId = null,
-                Quantity = 15.0
-            };
-            var consumption = new MedicalSupplyConsumption
-            {
-                MsconsumptionId = 1,
-                MedicalSupplyInventoryId = 1,
-                Amount = 10.0
-            };
-            _mockRepository.Setup(repo => repo.GetSupplyConsumptionByID(1)).Returns(consumption); // Mock trả về consumption
-
-            // Act & Assert
-            Assert.Throws<InvalidOperationException>(() => _service.UpdateMedicalSupplyConsumption(dto));
-            _mockRepository.Verify(repo => repo.GetSupplyConsumptionByID(1), Times.Once());
-        }
-
-
-        [Fact]
-        public void UpdateMedicalSupplyConsumption_ReturnsFalse_WhenQuantityIsNull()
-        {
-            // Arrange
-            var dto = new ConsumpMSDTO
-            {
-                ConsumpMSID = 1,
-                MedicalSupplyInventoryId = 1,
-                Quantity = null
+                Quantity = -1,
+                Status = true,
+                Note = "Test"
             };
 
             // Act
@@ -225,6 +129,28 @@ namespace CHSMS.API.Test.MedicalSupplyTest
 
             // Assert
             Assert.False(result);
+        }
+
+        [Fact]
+        public void UpdateMedicalSupplyConsumption_QuantityExceedsInventory_ReturnsFalse()
+        {
+            // Arrange
+            var dto = new ConsumpMSDTO
+            {
+                ConsumpMSID = 1,
+                MedicalSupplyInventoryId = 1,
+                Quantity = 200, // Exceeds available inventory (100)
+                Status = true,
+                Note = "Test"
+            };
+
+            // Act
+            var result = _service.UpdateMedicalSupplyConsumption(dto);
+
+            // Assert
+            Assert.False(result);
+            _mockRepository.Verify(r => r.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Never());
+            _mockRepository.Verify(r => r.UpdateMedicalSupplyConsumption(It.IsAny<MedicalSupplyConsumption>()), Times.Never());
         }
     }
 }

@@ -29,7 +29,7 @@ public class PrescriptionService : IPrescriptionService
         using var transaction = await _context.Database.BeginTransactionAsync();
 
         try
-        {   
+        {
             //  Kiểm tra Đơn thuốc không được rỗng
             if (!dto.MedicineConsumptions.Any())
                 throw new Exception("Đơn thuốc phải chứa ít nhất một loại thuốc!");
@@ -491,9 +491,3 @@ public class PrescriptionService : IPrescriptionService
     }
 
 }
-
-
-
-
-
-

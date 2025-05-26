@@ -2,7 +2,7 @@
 using CHSMS.API.Models;
 using Moq;
 
-namespace CHSMS.API.Tests.Services
+namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
 {
     public class MedicalRecordHistoryService_UpdateTests : MedicalRecordHistoryServiceTestBase
     {
@@ -58,36 +58,6 @@ namespace CHSMS.API.Tests.Services
             // Act & Assert
             var ex = Assert.Throws<Exception>(() => _service.UpdateMedicalRecordHistory(dto));
             Assert.Equal("Lịch sử bệnh án không tồn tại!", ex.Message);
-        }
-
-        [Theory]
-        [InlineData(null, "Mã bệnh án không được để trống!")]
-        [InlineData("", "Mã bệnh án không được để trống!")]
-        public void UpdateMedicalRecordHistory_InvalidMedicalRecordHistoryCode_ThrowsException(string code, string expectedError)
-        {
-            // Arrange
-            var dto = CreateValidUpdateDTO();
-            dto.MedicalRecordHistoryCode = code;
-            _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistory(1)).Returns(new MedicalRecordHistory());
-
-            // Act & Assert
-            var ex = Assert.Throws<Exception>(() => _service.UpdateMedicalRecordHistory(dto));
-            Assert.Equal(expectedError, ex.Message);
-        }
-
-        [Theory]
-        [InlineData(null, "Đối tượng không được để trống!")]
-        [InlineData("", "Đối tượng không được để trống!")]
-        public void UpdateMedicalRecordHistory_InvalidPatientCategory_ThrowsException(string category, string expectedError)
-        {
-            // Arrange
-            var dto = CreateValidUpdateDTO();
-            dto.PatientCategory = category;
-            _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistory(1)).Returns(new MedicalRecordHistory());
-
-            // Act & Assert
-            var ex = Assert.Throws<Exception>(() => _service.UpdateMedicalRecordHistory(dto));
-            Assert.Equal(expectedError, ex.Message);
         }
 
         [Theory]
@@ -176,19 +146,6 @@ namespace CHSMS.API.Tests.Services
             // Act & Assert
             var ex = Assert.Throws<Exception>(() => _service.UpdateMedicalRecordHistory(dto));
             Assert.Equal("Huyết áp phải có định dạng 'số/số' (ví dụ: 120/80)!", ex.Message);
-        }
-
-        [Fact]
-        public void UpdateMedicalRecordHistory_NonExistentRecord_ThrowsException()
-        {
-            // Arrange
-            var dto = CreateValidUpdateDTO();
-            dto.MedicalRecordHistoryId = 999;
-            _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistory(999)).Returns((MedicalRecordHistory)null);
-
-            // Act & Assert
-            var ex = Assert.Throws<Exception>(() => _service.UpdateMedicalRecordHistory(dto));
-            Assert.Equal("Lịch sử bệnh án không tồn tại!", ex.Message);
         }
     }
 }

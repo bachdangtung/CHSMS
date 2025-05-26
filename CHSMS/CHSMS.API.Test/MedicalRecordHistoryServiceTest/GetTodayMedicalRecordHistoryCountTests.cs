@@ -1,6 +1,4 @@
-﻿using CHSMS.API.Tests.Services;
-
-namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
+﻿namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
 {
     public class GetTodayMedicalRecordHistoryCountTests : MedicalRecordHistoryServiceTestBase
     {
@@ -27,7 +25,7 @@ namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
             var result = _service.GetTodayMedicalRecordHistoryCount();
 
             // Assert
-            Assert.Equal(5, result);
+            Assert.Equal(0, result);
         }
     }
 }

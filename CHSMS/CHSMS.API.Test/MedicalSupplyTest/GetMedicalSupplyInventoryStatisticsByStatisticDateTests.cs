@@ -14,67 +14,75 @@ namespace CHSMS.API.Test.MedicalSupplyTest
         {
             _mockRepository = new Mock<IMedicalSupplyRepository>();
             _service = new MedicalSupplyService(_mockRepository.Object);
+
+            // Setup precondition: MedicalSupplyInventoryStatistic with StatisticDate: 5/5/2025 exists
+            var statistic = new MedicalSupplyInventoryStatistic
+            {
+                Msisid = 1,
+                MsinventoryId = 1,
+                Quantity = 10,
+                ActualQuantity = 10,
+                StatisticPerson = 1,
+                StatisticDate = new DateTime(2025, 5, 5),
+                IsUpdate = false
+            };
+            _mockRepository.Setup(r => r.GetAllMedicalSupplyInventoryStatistics())
+                .Returns(new List<MedicalSupplyInventoryStatistic> { statistic });
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryStatisticsByStatisticDate(
+                It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+                .Returns((DateTime from, DateTime to) =>
+                    new List<MedicalSupplyInventoryStatistic> { statistic }.FindAll(s =>
+                        s.StatisticDate >= from && s.StatisticDate <= to));
         }
 
         [Fact]
-        public void GetMedicalSupplyInventoryStatisticsByStatisticDate_ReturnsStatistics_WhenValidDateRange()
-        {
-            // Arrange
-            DateTime? from = DateTime.Now.AddDays(-30);
-            DateTime? to = DateTime.Now;
-            var statistics = GetSampleStatistics();
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryStatisticsByStatisticDate(from.Value, to.Value)).Returns(statistics);
-
-            // Act
-            var result = _service.GetMedicalSupplyInventoryStatisticsByStatisticDate(from, to);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-            Assert.Equal(50.0, result[0].Quantity);
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyInventoryStatisticsByStatisticDate(from.Value, to.Value), Times.Once());
-        }
-
-        [Fact]
-        public void GetMedicalSupplyInventoryStatisticsByStatisticDate_ReturnsAllStatistics_WhenDatesAreNull()
+        public void GetMedicalSupplyInventoryStatisticsByStatisticDate_BothDatesNull_ReturnsAllStatistics()
         {
             // Arrange
             DateTime? from = null;
             DateTime? to = null;
-            var statistics = GetSampleStatistics();
-            _mockRepository.Setup(repo => repo.GetAllMedicalSupplyInventoryStatistics()).Returns(statistics);
 
             // Act
             var result = _service.GetMedicalSupplyInventoryStatisticsByStatisticDate(from, to);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-            _mockRepository.Verify(repo => repo.GetAllMedicalSupplyInventoryStatistics(), Times.Once());
+            Assert.Single(result);
+            Assert.Equal(new DateTime(2025, 5, 5), result[0].StatisticDate);
+            _mockRepository.Verify(r => r.GetAllMedicalSupplyInventoryStatistics(), Times.Once());
         }
 
         [Fact]
-        public void GetMedicalSupplyInventoryStatisticsByStatisticDate_ReturnsNull_WhenInvalidDateRange()
+        public void GetMedicalSupplyInventoryStatisticsByStatisticDate_ValidDateRange_ReturnsStatistics()
         {
             // Arrange
-            DateTime? from = DateTime.Now.AddDays(1);
-            DateTime? to = DateTime.Now;
+            DateTime? from = new DateTime(2025, 4, 4);
+            DateTime? to = new DateTime(2025, 5, 5);
+
+            // Act
+            var result = _service.GetMedicalSupplyInventoryStatisticsByStatisticDate(from, to);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal(new DateTime(2025, 5, 5), result[0].StatisticDate);
+            _mockRepository.Verify(r => r.GetMedicalSupplyInventoryStatisticsByStatisticDate(
+                new DateTime(2025, 4, 4), new DateTime(2025, 5, 5)), Times.Once());
+        }
+
+        [Fact]
+        public void GetMedicalSupplyInventoryStatisticsByStatisticDate_FromAfterToDate_ReturnsNull()
+        {
+            // Arrange
+            DateTime? from = new DateTime(2025, 5, 6);
+            DateTime? to = new DateTime(2025, 5, 5);
 
             // Act
             var result = _service.GetMedicalSupplyInventoryStatisticsByStatisticDate(from, to);
 
             // Assert
             Assert.Null(result);
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyInventoryStatisticsByStatisticDate(It.IsAny<DateTime>(), It.IsAny<DateTime>()), Times.Never());
-        }
-
-        private List<MedicalSupplyInventoryStatistic> GetSampleStatistics()
-        {
-            return new List<MedicalSupplyInventoryStatistic>
-            {
-                new MedicalSupplyInventoryStatistic { Msisid = 1, MsinventoryId = 1, Quantity = 50.0, ActualQuantity = 48.0, StatisticPerson = 101 },
-                new MedicalSupplyInventoryStatistic { Msisid = 2, MsinventoryId = 2, Quantity = 100.0, ActualQuantity = 95.0, StatisticPerson = 102 }
-            };
+            _mockRepository.Verify(r => r.GetMedicalSupplyInventoryStatisticsByStatisticDate(It.IsAny<DateTime>(), It.IsAny<DateTime>()), Times.Never());
         }
     }
 }

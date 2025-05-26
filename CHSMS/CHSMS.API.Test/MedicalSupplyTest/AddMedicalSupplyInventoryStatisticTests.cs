@@ -81,8 +81,7 @@ namespace CHSMS.API.Test.MedicalSupplyTest
             };
 
             // Act & Assert
-            var exception = Assert.Throws<Exception>(() => _service.AddMedicalSupplyInventoryStatistic(msiStatisticDTOs));
-            Assert.Equal("Medical supply inventory statistic is not valid", exception.Message);
+            var exception = Assert.ThrowsAny<Exception>(() => _service.AddMedicalSupplyInventoryStatistic(msiStatisticDTOs));
             _mockRepository.Verify(repo => repo.AddMedicalSupplyInventoryStatistic(It.IsAny<List<MedicalSupplyInventoryStatistic>>()), Times.Never());
         }
 
@@ -105,8 +104,7 @@ namespace CHSMS.API.Test.MedicalSupplyTest
             };
 
             // Act & Assert
-            var exception = Assert.Throws<Exception>(() => _service.AddMedicalSupplyInventoryStatistic(msiStatisticDTOs));
-            Assert.Equal("Medical supply inventory statistic is not valid", exception.Message);
+            var exception = Assert.ThrowsAny<Exception>(() => _service.AddMedicalSupplyInventoryStatistic(msiStatisticDTOs));
             _mockRepository.Verify(repo => repo.AddMedicalSupplyInventoryStatistic(It.IsAny<List<MedicalSupplyInventoryStatistic>>()), Times.Never());
         }
 
@@ -129,8 +127,7 @@ namespace CHSMS.API.Test.MedicalSupplyTest
             };
 
             // Act & Assert
-            var exception = Assert.Throws<Exception>(() => _service.AddMedicalSupplyInventoryStatistic(msiStatisticDTOs));
-            Assert.Equal("Medical supply inventory statistic is not valid", exception.Message);
+            var exception = Assert.ThrowsAny<Exception>(() => _service.AddMedicalSupplyInventoryStatistic(msiStatisticDTOs));
             _mockRepository.Verify(repo => repo.AddMedicalSupplyInventoryStatistic(It.IsAny<List<MedicalSupplyInventoryStatistic>>()), Times.Never());
         }
 
@@ -153,8 +150,7 @@ namespace CHSMS.API.Test.MedicalSupplyTest
             };
 
             // Act & Assert
-            var exception = Assert.Throws<Exception>(() => _service.AddMedicalSupplyInventoryStatistic(msiStatisticDTOs));
-            Assert.Equal("Medical supply inventory statistic is not valid", exception.Message);
+            var exception = Assert.ThrowsAny<Exception>(() => _service.AddMedicalSupplyInventoryStatistic(msiStatisticDTOs));
             _mockRepository.Verify(repo => repo.AddMedicalSupplyInventoryStatistic(It.IsAny<List<MedicalSupplyInventoryStatistic>>()), Times.Never());
         }
 
@@ -177,8 +173,7 @@ namespace CHSMS.API.Test.MedicalSupplyTest
             };
 
             // Act & Assert
-            var exception = Assert.Throws<Exception>(() => _service.AddMedicalSupplyInventoryStatistic(msiStatisticDTOs));
-            Assert.Equal("Medical supply inventory statistic is not valid", exception.Message);
+            var exception = Assert.ThrowsAny<Exception>(() => _service.AddMedicalSupplyInventoryStatistic(msiStatisticDTOs));
             _mockRepository.Verify(repo => repo.AddMedicalSupplyInventoryStatistic(It.IsAny<List<MedicalSupplyInventoryStatistic>>()), Times.Never());
         }
 

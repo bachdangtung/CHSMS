@@ -6,13 +6,13 @@ using Moq;
 
 namespace CHSMS.API.Test.MedicineServiceTest
 {
-    public class MedicineServiceGetAllMedicineInInventoryTests
+    public class GetAllMedicineInInventoryTests
     {
         private readonly Mock<IMedicineRepository> _medicineRepositoryMock;
         private readonly Mock<ILogger<MedicineService>> _loggerMock;
         private readonly MedicineService _service;
 
-        public MedicineServiceGetAllMedicineInInventoryTests()
+        public GetAllMedicineInInventoryTests()
         {
             _medicineRepositoryMock = new Mock<IMedicineRepository>();
             _loggerMock = new Mock<ILogger<MedicineService>>();

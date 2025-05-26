@@ -2,7 +2,7 @@
 using CHSMS.API.Models;
 using Moq;
 
-namespace CHSMS.API.Tests.Services
+namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
 {
     public class MedicalRecordHistoryService_AddTests : MedicalRecordHistoryServiceTestBase
     {
@@ -40,11 +40,12 @@ namespace CHSMS.API.Tests.Services
         }
 
         [Theory]
-        [InlineData(-1, "ID bệnh án không được để trống!")]
+        [InlineData(-1, "Bệnh án không tồn tại!")]
         public void AddMedicalRecordHistory_InvalidMedicalRecordId_ThrowsException(int patientId, string expectedError)
         {
             // Arrange
             var dto = CreateValidMedicalRecordHistoryDTO();
+            dto.MedicalRecordHistoryId = -1;
             dto.PatientId = patientId;
             _mockMedicalRecordRepo.Setup(x => x.GetMedicalRecord(patientId)).Returns((MedicalRecord)null);
 

@@ -1,6 +1,6 @@
 ﻿using CHSMS.API.Models;
 
-namespace CHSMS.API.Tests.Services
+namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
 {
     public class GetAllMedicalRecordHistoriesTests : MedicalRecordHistoryServiceTestBase
     {

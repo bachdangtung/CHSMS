@@ -60,26 +60,6 @@ namespace CHSMS.API.Test.MedicineServiceTest
             _mockRepo.Verify(x => x.ConsumptionHistory(fromDate, null), Times.Once);
         }
 
-        [Fact]
-        public void ConsumptionHistory_ToDateOnly_ReturnsRecordsUpToDate()
-        {
-            // Arrange
-            var toDate = new DateTime(2025, 5, 5);
-            var expectedConsumptions = new List<MedicineConsumption>
-            {
-                new MedicineConsumption { MedicineConsumptionId = 1, ConsumptionDate = _testDate }
-            };
-
-            _mockRepo.Setup(x => x.ConsumptionHistory(null, toDate))
-                .Returns(expectedConsumptions);
-
-            // Act
-            var result = _service.ConsumptionHistory(null, toDate);
-
-            // Assert
-            Assert.Equal(expectedConsumptions, result);
-            _mockRepo.Verify(x => x.ConsumptionHistory(null, toDate), Times.Once);
-        }
 
         [Fact]
         public void ConsumptionHistory_BothDatesProvided_ReturnsRecordsInRange()

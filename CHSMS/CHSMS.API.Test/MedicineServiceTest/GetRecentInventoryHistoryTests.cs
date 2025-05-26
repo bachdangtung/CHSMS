@@ -43,7 +43,7 @@ namespace CHSMS.API.Test.MedicineServiceTest
         public void GetRecentInventoryHistory_ReturnsEmptyListWhenNoInventories()
         {
             // Arrange
-            _medicineRepositoryMock.Setup(repo => repo.GetRecentInventoriesByUser(1)).Returns(new List<MedicineInventory>());
+            _medicineRepositoryMock.Setup(repo => repo.GetRecentInventoriesByUser(-1)).Returns(new List<MedicineInventory>());
 
             // Act
             var result = _service.GetRecentInventoryHistory(-1);

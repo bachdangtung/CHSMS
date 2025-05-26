@@ -14,69 +14,92 @@ namespace CHSMS.API.Test.MedicalSupplyTest
         {
             _mockRepository = new Mock<IMedicalSupplyRepository>();
             _service = new MedicalSupplyService(_mockRepository.Object);
-        }
 
-        [Fact]
-        public void ConsumptionHistory_ReturnsConsumptionList_WhenDataExists()
-        {
-            // Arrange
-            DateTime? from = DateTime.Now.AddDays(-30);
-            DateTime? to = DateTime.Now;
-            var consumptions = GetSampleConsumptions();
-            _mockRepository.Setup(repo => repo.ConsumptionHistory(from, to)).Returns(consumptions);
-
-            // Act
-            var result = _service.ConsumptionHistory(from, to);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-            Assert.Equal(10.0, result[0].Amount);
-            Assert.Equal("Consumed", result[0].Note);
-            _mockRepository.Verify(repo => repo.ConsumptionHistory(from, to), Times.Once());
-        }
-
-        [Fact]
-        public void ConsumptionHistory_ReturnsEmptyList_WhenNoDataExists()
-        {
-            // Arrange
-            DateTime? from = DateTime.Now.AddDays(-30);
-            DateTime? to = DateTime.Now;
-            var emptyList = new List<MedicalSupplyConsumption>();
-            _mockRepository.Setup(repo => repo.ConsumptionHistory(from, to)).Returns(emptyList);
-
-            // Act
-            var result = _service.ConsumptionHistory(from, to);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Empty(result);
-            _mockRepository.Verify(repo => repo.ConsumptionHistory(from, to), Times.Once());
-        }
-
-        private List<MedicalSupplyConsumption> GetSampleConsumptions()
-        {
-            return new List<MedicalSupplyConsumption>
+            // Setup precondition: MedicalSupplyConsumption with MsconsumptionId: 1, ConsumptionDate: 4/4/2025
+            var consumption = new MedicalSupplyConsumption
             {
-                new MedicalSupplyConsumption
-                {
-                    MsconsumptionId = 1,
-                    MedicalSupplyInventoryId = 1,
-                    Amount = 10.0,
-                    ConsumptionDate = DateTime.Now.AddDays(-10),
-                    Status = true,
-                    Note = "Consumed"
-                },
-                new MedicalSupplyConsumption
-                {
-                    MsconsumptionId = 2,
-                    MedicalSupplyInventoryId = 1,
-                    Amount = 20.0,
-                    ConsumptionDate = DateTime.Now.AddDays(-5),
-                    Status = true,
-                    Note = "Consumed"
-                }
+                MsconsumptionId = 1,
+                MedicalSupplyInventoryId = 1,
+                Amount = 10,
+                ConsumptionDate = new DateTime(2025, 4, 4),
+                Status = true,
+                Note = "Test consumption"
             };
+            _mockRepository.Setup(r => r.ConsumptionHistory(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+                .Returns((DateTime from, DateTime to) => new List<MedicalSupplyConsumption> { consumption }
+                    .FindAll(c => c.ConsumptionDate >= from && c.ConsumptionDate <= to && c.Status == true));
+        }
+
+        [Fact]
+        public void ConsumptionHistory_NullFromNullTo_ReturnsRecordsFromMinValueToNow()
+        {
+            // Arrange
+            DateTime? from = null;
+            DateTime? to = null;
+            var expectedFrom = DateTime.MinValue;
+            var expectedTo = DateTime.Now;
+
+            // Act
+            var result = _service.ConsumptionHistory(from, to);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.All(result, c => Assert.True(c.ConsumptionDate >= expectedFrom && c.ConsumptionDate <= expectedTo));
+            Assert.All(result, c => Assert.True(c.Status));
+            _mockRepository.Verify(r => r.ConsumptionHistory(expectedFrom, It.Is<DateTime>(t => t.Date == expectedTo.Date)), Times.Once());
+        }
+
+        [Fact]
+        public void ConsumptionHistory_NullFromValidTo_ReturnsRecordsFromMinValueToSpecifiedTo()
+        {
+            // Arrange
+            DateTime? from = null;
+            DateTime? to = new DateTime(2025, 5, 5);
+            var expectedFrom = DateTime.MinValue;
+
+            // Act
+            var result = _service.ConsumptionHistory(from, to);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.All(result, c => Assert.True(c.ConsumptionDate >= expectedFrom && c.ConsumptionDate <= to));
+            Assert.All(result, c => Assert.True(c.Status));
+            _mockRepository.Verify(r => r.ConsumptionHistory(expectedFrom, to.Value), Times.Once());
+        }
+
+        [Fact]
+        public void ConsumptionHistory_ValidFromNullTo_ReturnsRecordsFromSpecifiedFromToNow()
+        {
+            // Arrange
+            DateTime? from = new DateTime(2025, 3, 3);
+            DateTime? to = null;
+            var expectedTo = DateTime.Now;
+
+            // Act
+            var result = _service.ConsumptionHistory(from, to);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.All(result, c => Assert.True(c.ConsumptionDate >= from && c.ConsumptionDate <= expectedTo));
+            Assert.All(result, c => Assert.True(c.Status));
+            _mockRepository.Verify(r => r.ConsumptionHistory(from.Value, It.Is<DateTime>(t => t.Date == expectedTo.Date)), Times.Once());
+        }
+
+        [Fact]
+        public void ConsumptionHistory_ValidFromValidTo_ReturnsRecordsInDateRange()
+        {
+            // Arrange
+            DateTime? from = new DateTime(2025, 3, 3);
+            DateTime? to = new DateTime(2025, 5, 5);
+
+            // Act
+            var result = _service.ConsumptionHistory(from, to);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.All(result, c => Assert.True(c.ConsumptionDate >= from && c.ConsumptionDate <= to));
+            Assert.All(result, c => Assert.True(c.Status));
+            _mockRepository.Verify(r => r.ConsumptionHistory(from.Value, to.Value), Times.Once());
         }
     }
 }

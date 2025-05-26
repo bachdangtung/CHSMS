@@ -14,111 +14,163 @@ namespace CHSMS.API.Test.MedicalSupplyTest
         {
             _mockRepository = new Mock<IMedicalSupplyRepository>();
             _service = new MedicalSupplyService(_mockRepository.Object);
+
+            // Setup precondition: MedicalSupplyConsumption with MsconsumptionId: 1, ConsumptionDate: 5/5/2025
+            var medicalSupply = new MedicalSupply
+            {
+                MedicalSupplyId = 1,
+                MedicalSupplyName = "Test Supply",
+                SupplyType = "TypeA",
+                UnitOfMeasure = "Unit",
+                SupplierId = 1,
+                Status = true,
+                ImportPrice = 10.0,
+                SellingPrice = 15.0,
+                BidNumber = 123
+            };
+            var consumption = new MedicalSupplyConsumption
+            {
+                MsconsumptionId = 1,
+                MedicalSupplyInventoryId = 1,
+                Amount = 50.0,
+                ConsumptionDate = new DateTime(2025, 5, 5),
+                Status = true
+            };
+            var inventory = new MedicalSupplyInventory
+            {
+                SupplyInventoryId = 1,
+                MedicalSupplyId = 1,
+                Quantity = 100.0,
+                MedicalSupply = medicalSupply
+            };
+
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryById(1))
+                .Returns(inventory);
+            _mockRepository.Setup(r => r.GetAllMedicalSupplies())
+                .Returns(new List<MedicalSupply> { medicalSupply });
         }
 
         [Fact]
-        public void ConsumeReport_ReturnsDictionary_WhenReportDataExists()
-        {
-            // Arrange
-            DateTime? from = DateTime.Now.AddDays(-30);
-            DateTime? to = DateTime.Now;
-            var reportData = GetSampleConsumeReport();
-            _mockRepository.Setup(repo => repo.GetAllMedicalSupplyConsumeReport(from, to))
-                           .Returns(reportData);
-            _mockRepository.Setup(repo => repo.GetMSQantityByID(1)).Returns(50.0);
-            _mockRepository.Setup(repo => repo.GetMSQantityByID(2)).Returns(100.0);
-
-            // Act
-            var result = _service.ConsumeReport(from, to);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-            var firstEntry = result.First();
-            Assert.Equal("Supply1", firstEntry.Key.MedicalSupplyName);
-            Assert.Equal(50.0, firstEntry.Key.Quantity);
-            Assert.Equal(20.0, firstEntry.Value);
-            _mockRepository.Verify(repo => repo.GetAllMedicalSupplyConsumeReport(from, to), Times.Once());
-            _mockRepository.Verify(repo => repo.GetMSQantityByID(It.IsAny<int>()), Times.Exactly(2));
-        }
-
-        [Fact]
-        public void ConsumeReport_ReturnsEmptyDictionary_WhenReportDataIsEmpty()
-        {
-            // Arrange
-            DateTime? from = DateTime.Now.AddDays(-30);
-            DateTime? to = DateTime.Now;
-            var emptyReport = new Dictionary<MedicalSupply, double>();
-            _mockRepository.Setup(repo => repo.GetAllMedicalSupplyConsumeReport(from, to))
-                           .Returns(emptyReport);
-
-            // Act
-            var result = _service.ConsumeReport(from, to);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Empty(result);
-            _mockRepository.Verify(repo => repo.GetAllMedicalSupplyConsumeReport(from, to), Times.Once());
-            _mockRepository.Verify(repo => repo.GetMSQantityByID(It.IsAny<int>()), Times.Never());
-        }
-
-        [Fact]
-        public void ConsumeReport_HandlesNullDateRange()
+        public void ConsumeReport_NullFromNullTo_ReturnsConsumption()
         {
             // Arrange
             DateTime? from = null;
             DateTime? to = null;
-            var reportData = GetSampleConsumeReport();
-            _mockRepository.Setup(repo => repo.GetAllMedicalSupplyConsumeReport(from, to))
-                           .Returns(reportData);
-            _mockRepository.Setup(repo => repo.GetMSQantityByID(1)).Returns(50.0);
-            _mockRepository.Setup(repo => repo.GetMSQantityByID(2)).Returns(100.0);
+            var consumptionDict = new Dictionary<MedicalSupply, double>
+            {
+                { new MedicalSupply { MedicalSupplyId = 1 }, 50.0 }
+            };
+            _mockRepository.Setup(r => r.GetAllMedicalSupplyConsumeReport(null, null))
+                .Returns(consumptionDict);
+            _mockRepository.Setup(r => r.GetMSQantityByID(1))
+                .Returns(100.0);
 
             // Act
             var result = _service.ConsumeReport(from, to);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-            _mockRepository.Verify(repo => repo.GetAllMedicalSupplyConsumeReport(from, to), Times.Once());
-            _mockRepository.Verify(repo => repo.GetMSQantityByID(It.IsAny<int>()), Times.Exactly(2));
+            Assert.Single(result);
+            var entry = result.Keys.First();
+            Assert.Equal(1, entry.MedicalSupplyId);
+            Assert.Equal(100.0, entry.Quantity);
+            Assert.Equal(50.0, result[entry]);
         }
 
-        private Dictionary<MedicalSupply, double> GetSampleConsumeReport()
+        [Fact]
+        public void ConsumeReport_NullFromToDate_ReturnsConsumption()
         {
-            return new Dictionary<MedicalSupply, double>
+            // Arrange
+            DateTime? from = null;
+            DateTime to = new DateTime(2025, 5, 10);
+            var consumptionDict = new Dictionary<MedicalSupply, double>
             {
-                {
-                    new MedicalSupply
-                    {
-                        MedicalSupplyId = 1,
-                        MedicalSupplyName = "Supply1",
-                        SupplyType = "Type1",
-                        UnitOfMeasure = "Unit1",
-                        SupplierId = 101,
-                        Status = true,
-                        ImportPrice = 10.0,
-                        SellingPrice = 15.0,
-                        BidNumber = 1001
-                    },
-                    20.0
-                },
-                {
-                    new MedicalSupply
-                    {
-                        MedicalSupplyId = 2,
-                        MedicalSupplyName = "Supply2",
-                        SupplyType = "Type2",
-                        UnitOfMeasure = "Unit2",
-                        SupplierId = 102,
-                        Status = true,
-                        ImportPrice = 20.0,
-                        SellingPrice = 30.0,
-                        BidNumber = 1002
-                    },
-                    30.0
-                }
+                { new MedicalSupply { MedicalSupplyId = 1 }, 50.0 }
             };
+            _mockRepository.Setup(r => r.GetAllMedicalSupplyConsumeReport(null, to))
+                .Returns(consumptionDict);
+            _mockRepository.Setup(r => r.GetMSQantityByID(1))
+                .Returns(100.0);
+
+            // Act
+            var result = _service.ConsumeReport(from, to);
+
+            // Assert
+            Assert.Single(result);
+            var entry = result.Keys.First();
+            Assert.Equal(1, entry.MedicalSupplyId);
+            Assert.Equal(100.0, entry.Quantity);
+            Assert.Equal(50.0, result[entry]);
+        }
+
+        [Fact]
+        public void ConsumeReport_FromDateNullTo_ReturnsConsumption()
+        {
+            // Arrange
+            DateTime from = new DateTime(2025, 5, 5);
+            DateTime? to = null;
+            var consumptionDict = new Dictionary<MedicalSupply, double>
+            {
+                { new MedicalSupply { MedicalSupplyId = 1 }, 50.0 }
+            };
+            _mockRepository.Setup(r => r.GetAllMedicalSupplyConsumeReport(from, null))
+                .Returns(consumptionDict);
+            _mockRepository.Setup(r => r.GetMSQantityByID(1))
+                .Returns(100.0);
+
+            // Act
+            var result = _service.ConsumeReport(from, to);
+
+            // Assert
+            Assert.Single(result);
+            var entry = result.Keys.First();
+            Assert.Equal(1, entry.MedicalSupplyId);
+            Assert.Equal(100.0, entry.Quantity);
+            Assert.Equal(50.0, result[entry]);
+        }
+
+        [Fact]
+        public void ConsumeReport_FromDateToDate_ReturnsConsumption()
+        {
+            // Arrange
+            DateTime from = new DateTime(2025, 5, 5);
+            DateTime to = new DateTime(2025, 5, 10);
+            var consumptionDict = new Dictionary<MedicalSupply, double>
+            {
+                { new MedicalSupply { MedicalSupplyId = 1 }, 50.0 }
+            };
+            _mockRepository.Setup(r => r.GetAllMedicalSupplyConsumeReport(from, to))
+                .Returns(consumptionDict);
+            _mockRepository.Setup(r => r.GetMSQantityByID(1))
+                .Returns(100.0);
+
+            // Act
+            var result = _service.ConsumeReport(from, to);
+
+            // Assert
+            Assert.Single(result);
+            var entry = result.Keys.First();
+            Assert.Equal(1, entry.MedicalSupplyId);
+            Assert.Equal(100.0, entry.Quantity);
+            Assert.Equal(50.0, result[entry]);
+        }
+
+        [Fact]
+        public void ConsumeReport_FromAfterConsumptionDate_ReturnsEmpty()
+        {
+            // Arrange
+            DateTime from = new DateTime(2025, 5, 10);
+            DateTime to = new DateTime(2025, 5, 10);
+            var consumptionDict = new Dictionary<MedicalSupply, double>();
+            _mockRepository.Setup(r => r.GetAllMedicalSupplyConsumeReport(from, to))
+                .Returns(consumptionDict);
+            _mockRepository.Setup(r => r.GetMSQantityByID(1))
+                .Returns(100.0);
+
+            // Act
+            var result = _service.ConsumeReport(from, to);
+
+            // Assert
+            Assert.Empty(result);
         }
     }
 }

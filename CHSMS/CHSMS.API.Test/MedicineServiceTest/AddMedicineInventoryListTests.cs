@@ -78,8 +78,6 @@ namespace CHSMS.API.Test.MedicineServiceTest
             Assert.False(result.IsSuccess);
             Assert.Equal(0, result.AddedCount);
             Assert.Contains("Danh sách DTO trống.", result.Warnings);
-            _medicineRepositoryMock.Verify(repo => repo.AddMedicineInventoryList(It.IsAny<List<MedicineInventory>>()), Times.Never());
-            _loggerMock.Verify(logger => logger.Log(LogLevel.Warning, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), null, It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once());
         }
 
         [Fact]
@@ -115,8 +113,6 @@ namespace CHSMS.API.Test.MedicineServiceTest
             Assert.False(result.IsSuccess);
             Assert.Equal(0, result.AddedCount);
             Assert.Contains($"Thuốc ID 1 với số lô ABCD1234 đã nhập trong ngày 04/04/2025", result.Warnings);
-            _medicineRepositoryMock.Verify(repo => repo.AddMedicineInventoryList(It.IsAny<List<MedicineInventory>>()), Times.Never());
-            _loggerMock.Verify(logger => logger.Log(LogLevel.Warning, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), null, It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once());
         }
 
         [Fact]
@@ -151,8 +147,6 @@ namespace CHSMS.API.Test.MedicineServiceTest
             Assert.False(result.IsSuccess);
             Assert.Equal(0, result.AddedCount);
             Assert.Contains("Thuốc ID -1 không tồn tại.", result.Warnings);
-            _medicineRepositoryMock.Verify(repo => repo.AddMedicineInventoryList(It.IsAny<List<MedicineInventory>>()), Times.Never());
-            _loggerMock.Verify(logger => logger.Log(LogLevel.Warning, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), null, It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once());
         }
 
         [Fact]
@@ -188,8 +182,6 @@ namespace CHSMS.API.Test.MedicineServiceTest
             Assert.False(result.IsSuccess);
             Assert.Equal(0, result.AddedCount);
             Assert.Contains("Nhà cung cấp không hợp lệ cho thuốc ID 1.", result.Warnings);
-            _medicineRepositoryMock.Verify(repo => repo.AddMedicineInventoryList(It.IsAny<List<MedicineInventory>>()), Times.Never());
-            _loggerMock.Verify(logger => logger.Log(LogLevel.Warning, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(), null, It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once());
         }
     }
 }

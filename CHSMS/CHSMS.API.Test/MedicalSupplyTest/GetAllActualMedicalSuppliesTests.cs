@@ -14,99 +14,114 @@ namespace CHSMS.API.Test.MedicalSupplyTest
         {
             _mockRepository = new Mock<IMedicalSupplyRepository>();
             _service = new MedicalSupplyService(_mockRepository.Object);
-        }
 
-        [Fact]
-        public void GetAllActualMedicalSupplies_ReturnsDTOList_WhenDateIsProvided()
-        {
-            // Arrange
-            DateTime date = DateTime.Now;
-            var medicalSupplies = GetSampleMedicalSupplies();
-            _mockRepository.Setup(repo => repo.GetAllMedicalSupplies()).Returns(medicalSupplies);
-            _mockRepository.Setup(repo => repo.GetActualMSQuantity(1, date)).Returns(50.0);
-            _mockRepository.Setup(repo => repo.GetActualMSQuantity(2, date)).Returns(100.0);
-
-            // Act
-            var result = _service.GetAllActualMedicalSupplies(date);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-            Assert.Equal("Supply1", result[0].MedicalSupplyName);
-            Assert.Equal(50.0, result[0].Quantity);
-            Assert.Equal("Supply2", result[1].MedicalSupplyName);
-            Assert.Equal(100.0, result[1].Quantity);
-            _mockRepository.Verify(repo => repo.GetAllMedicalSupplies(), Times.Once());
-            _mockRepository.Verify(repo => repo.GetActualMSQuantity(It.IsAny<int>(), date), Times.Exactly(2));
-        }
-
-        [Fact]
-        public void GetAllActualMedicalSupplies_ReturnsAllSupplies_WhenDateIsNull()
-        {
-            // Arrange
-            DateTime? date = null;
-            var medicalSupplies = GetSampleMedicalSupplies();
-            _mockRepository.Setup(repo => repo.GetAllMedicalSupplies()).Returns(medicalSupplies);
-
-            // Act
-            var result = _service.GetAllActualMedicalSupplies(date);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-            Assert.Equal("Supply1", result[0].MedicalSupplyName);
-            Assert.Null(result[0].Quantity); // Quantity not set when date is null
-            _mockRepository.Verify(repo => repo.GetAllMedicalSupplies(), Times.Once());
-            _mockRepository.Verify(repo => repo.GetActualMSQuantity(It.IsAny<int>(), It.IsAny<DateTime>()), Times.Never());
-        }
-
-        [Fact]
-        public void GetAllActualMedicalSupplies_ReturnsEmptyList_WhenNoSuppliesExist()
-        {
-            // Arrange
-            DateTime date = DateTime.Now;
-            var emptyList = new List<MedicalSupply>();
-            _mockRepository.Setup(repo => repo.GetAllMedicalSupplies()).Returns(emptyList);
-
-            // Act
-            var result = _service.GetAllActualMedicalSupplies(date);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Empty(result);
-            _mockRepository.Verify(repo => repo.GetAllMedicalSupplies(), Times.Once());
-            _mockRepository.Verify(repo => repo.GetActualMSQuantity(It.IsAny<int>(), It.IsAny<DateTime>()), Times.Never());
-        }
-
-        private List<MedicalSupply> GetSampleMedicalSupplies()
-        {
-            return new List<MedicalSupply>
+            // Setup precondition: MedicalSupplyInventories and MedicalSupplyConsumption
+            var medicalSupplies = new List<MedicalSupply>
             {
-                new MedicalSupply
-                {
-                    MedicalSupplyId = 1,
-                    MedicalSupplyName = "Supply1",
-                    SupplyType = "Type1",
-                    UnitOfMeasure = "Unit1",
-                    SupplierId = 101,
-                    Status = true,
-                    ImportPrice = 10.0,
-                    SellingPrice = 15.0,
-                    BidNumber = 1001
-                },
-                new MedicalSupply
-                {
-                    MedicalSupplyId = 2,
-                    MedicalSupplyName = "Supply2",
-                    SupplyType = "Type2",
-                    UnitOfMeasure = "Unit2",
-                    SupplierId = 102,
-                    Status = true,
-                    ImportPrice = 20.0,
-                    SellingPrice = 30.0,
-                    BidNumber = 1002
-                }
+                new MedicalSupply { MedicalSupplyId = 1, MedicalSupplyName = "Supply1" },
+                new MedicalSupply { MedicalSupplyId = 2, MedicalSupplyName = "Supply2" }
             };
+
+            _mockRepository.Setup(r => r.GetAllMedicalSupplies())
+                .Returns(medicalSupplies);
+
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryByMSID(1))
+                .Returns(new List<MedicalSupplyInventory>
+                {
+                    new MedicalSupplyInventory { SupplyInventoryId = 1, MedicalSupplyId = 1, Quantity = 5 }
+                });
+
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryByMSID(2))
+                .Returns(new List<MedicalSupplyInventory>
+                {
+                    new MedicalSupplyInventory { SupplyInventoryId = 2, MedicalSupplyId = 2, Quantity = -5 }
+                });
+
+            _mockRepository.Setup(r => r.MSConsumptionDetail(1, It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
+                .Returns(new List<MedicalSupplyConsumption>
+                {
+                    new MedicalSupplyConsumption
+                    {
+                        MedicalSupplyInventoryId = 1,
+                        Amount = 5,
+                        ConsumptionDate = new DateTime(2025, 5, 5)
+                    }
+                });
+        }
+
+        [Fact]
+        public void GetAllActualMedicalSupplies_NullDate_ValidInventory_ReturnsCorrectQuantity()
+        {
+            // Arrange
+            _mockRepository.Setup(r => r.GetMSQantityByID(1)).Returns(5.0);
+            _mockRepository.Setup(r => r.GetMSQantityByID(2)).Returns(-5.0);
+
+            // Act
+            var result = _service.GetAllActualMedicalSupplies(null);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+            Assert.Equal(1, result[0].MedicalSupplyId);
+            Assert.Equal(5.0, result[0].Quantity);
+            Assert.Equal(2, result[1].MedicalSupplyId);
+            Assert.Equal(-5.0, result[1].Quantity);
+            _mockRepository.Verify(r => r.GetMSQantityByID(1), Times.Once());
+            _mockRepository.Verify(r => r.GetMSQantityByID(2), Times.Once());
+        }
+
+        [Fact]
+        public void GetAllActualMedicalSupplies_NullDate_NegativeQuantityInventory_ReturnsNegativeQuantity()
+        {
+            // Arrange
+            _mockRepository.Setup(r => r.GetMSQantityByID(2)).Returns(-5.0);
+
+            // Act
+            var result = _service.GetAllActualMedicalSupplies(null);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Contains(result, dto => dto.MedicalSupplyId == 2 && dto.Quantity == -5.0);
+            _mockRepository.Verify(r => r.GetMSQantityByID(2), Times.Once());
+        }
+
+        [Fact]
+        public void GetAllActualMedicalSupplies_NullDate_WithConsumption_ReturnsCorrectQuantity()
+        {
+            // Arrange
+            _mockRepository.Setup(r => r.GetMSQantityByID(1)).Returns(5.0);
+
+            // Act
+            var result = _service.GetAllActualMedicalSupplies(null);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Contains(result, dto => dto.MedicalSupplyId == 1 && dto.Quantity == 5.0);
+            _mockRepository.Verify(r => r.GetMSQantityByID(1), Times.Once());
+            _mockRepository.Verify(r => r.MSConsumptionDetail(It.IsAny<int>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()), Times.Never());
+        }
+
+        [Fact]
+        public void GetAllActualMedicalSupplies_DateProvided_CalculatesActualQuantity()
+        {
+            // Arrange
+            var inputDate = new DateTime(2025, 4, 4);
+            _mockRepository.Setup(r => r.GetActualMSQuantity(1, inputDate)).Returns(2.0);
+            _mockRepository.Setup(r => r.GetActualMSQuantity(2, inputDate)).Returns(-7.0);
+
+            // Act
+            var result = _service.GetAllActualMedicalSupplies(inputDate);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+            Assert.Equal(1, result[0].MedicalSupplyId);
+            Assert.Equal(2.0, result[0].Quantity);
+            Assert.Equal(2, result[1].MedicalSupplyId);
+            Assert.Equal(-7.0, result[1].Quantity);
+            _mockRepository.Verify(r => r.GetActualMSQuantity(1, inputDate), Times.Once());
+            _mockRepository.Verify(r => r.GetActualMSQuantity(2, inputDate), Times.Once());
+            _mockRepository.Verify(r => r.GetMSQantityByID(It.IsAny<int>()), Times.Never());
         }
     }
 }
