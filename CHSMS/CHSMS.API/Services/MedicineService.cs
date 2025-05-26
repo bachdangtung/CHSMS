@@ -579,12 +579,15 @@ namespace CHSMS.API.Services
             var adds = new List<MedicineInventoryStatistic>();
             foreach (var item in mIStatisticDTOs)
             {
-                var medicineInventoryStatistic = ConvertMedicineInventoryStatisticFromDTO(item);
-                if (item.MedicineInventoryId == null || item.Quantity == null || item.ActualQuantity == null || item.StatisticPerson == null || item.StatisticDate == null)
+                if (item.MedicineInventoryId == null || item.Quantity == null || item.ActualQuantity == null ||
+                            item.StatisticPerson == null || item.StatisticDate == null)
                 {
                     throw new Exception("Medical supply inventory statistic is not valid");
                 }
-                else if ((list.Count > 0) && (list.Any(x => x.MedicineInventoryId == medicineInventoryStatistic.MedicineInventoryId) == true))
+
+                var medicineInventoryStatistic = ConvertMedicineInventoryStatisticFromDTO(item);
+
+                if ((list.Count > 0) && (list.Any(x => x.MedicineInventoryId == medicineInventoryStatistic.MedicineInventoryId) == true))
                 {
                     throw new Exception("Vật tư này đã tồn tại trong danh sách kiểm kê");
                 }
@@ -644,12 +647,12 @@ namespace CHSMS.API.Services
             var obj = new MedicineInventoryStatistic
             {
                 MedicineInventoryStatisticsId = mIStatisticDTO.MedicineInventoryStatisticsId,
-                MedicineInventoryId = mIStatisticDTO.MedicineInventoryId,
-                Quantity = mIStatisticDTO.Quantity,
-                ActualQuantity = mIStatisticDTO.ActualQuantity,
-                StatisticPerson = mIStatisticDTO.StatisticPerson,
+                MedicineInventoryId = mIStatisticDTO.MedicineInventoryId.Value,
+                Quantity = mIStatisticDTO.Quantity.Value,
+                ActualQuantity = mIStatisticDTO.ActualQuantity.Value,
+                StatisticPerson = mIStatisticDTO.StatisticPerson.Value,
                 ConfirmPerson = mIStatisticDTO.ConfirmPerson,
-                StatisticDate = mIStatisticDTO.StatisticDate,
+                StatisticDate = mIStatisticDTO.StatisticDate.Value,
                 ConfirmDate = mIStatisticDTO.ConfirmDate,
                 IsUpdate = mIStatisticDTO.IsUpdate || false,
                 Note = mIStatisticDTO.Note,

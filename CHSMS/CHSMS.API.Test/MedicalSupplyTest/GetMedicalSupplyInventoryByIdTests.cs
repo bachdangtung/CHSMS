@@ -14,49 +14,68 @@ namespace CHSMS.API.Test.MedicalSupplyTest
         {
             _mockRepository = new Mock<IMedicalSupplyRepository>();
             _service = new MedicalSupplyService(_mockRepository.Object);
+
+            // Setup precondition: MedicalSupplyInventory with SupplyInventoryId: 1 exists
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryById(1))
+                .Returns(new MedicalSupplyInventory
+                {
+                    SupplyInventoryId = 1,
+                    MedicalSupplyId = 1,
+                    Quantity = 10,
+                    CertificateNumber = "CERT123",
+                    BatchNumber = "BATCH123",
+                    ManufactureDate = DateTime.Now.AddDays(-30),
+                    TransactionDate = DateTime.Now,
+                    ExpiryDate = DateTime.Now.AddDays(365),
+                    ReceiverId = 1,
+                    TransactionType = true,
+                    Note = "Test",
+                    ImportQuantity = 10
+                });
         }
 
         [Fact]
-        public void GetMedicalSupplyInventoryById_ReturnsInventory_WhenExists()
+        public void GetMedicalSupplyInventoryById_ValidId_ReturnsMedicalSupplyInventory()
         {
             // Arrange
-            int? id = 1;
-            var inventory = new MedicalSupplyInventory { SupplyInventoryId = 1, MedicalSupplyId = 1, Quantity = 50.0 };
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryById(1)).Returns(inventory);
+            int medicalSupplyInventoryId = 1;
 
             // Act
-            var result = _service.GetMedicalSupplyInventoryById(id);
+            var result = _service.GetMedicalSupplyInventoryById(medicalSupplyInventoryId);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(50.0, result.Quantity);
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyInventoryById(1), Times.Once());
+            Assert.Equal(medicalSupplyInventoryId, result.SupplyInventoryId);
+            Assert.Equal(1, result.MedicalSupplyId);
+            Assert.Equal(10, result.Quantity);
+            _mockRepository.Verify(r => r.GetMedicalSupplyInventoryById(medicalSupplyInventoryId), Times.Once());
         }
 
         [Fact]
-        public void GetMedicalSupplyInventoryById_ReturnsNull_WhenNotExists()
+        public void GetMedicalSupplyInventoryById_InvalidId_ReturnsNull()
         {
             // Arrange
-            int? id = 999;
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryById(999)).Returns((MedicalSupplyInventory)null);
+            int medicalSupplyInventoryId = -1;
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryById(medicalSupplyInventoryId))
+                .Returns((MedicalSupplyInventory)null);
 
             // Act
-            var result = _service.GetMedicalSupplyInventoryById(id);
+            var result = _service.GetMedicalSupplyInventoryById(medicalSupplyInventoryId);
 
             // Assert
             Assert.Null(result);
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyInventoryById(999), Times.Once());
+            _mockRepository.Verify(r => r.GetMedicalSupplyInventoryById(medicalSupplyInventoryId), Times.Once());
         }
 
         [Fact]
-        public void GetMedicalSupplyInventoryById_ThrowsException_WhenIdIsNull()
+        public void GetMedicalSupplyInventoryById_NullId_ThrowsArgumentNullException()
         {
             // Arrange
-            int? id = null;
+            int? medicalSupplyInventoryId = null;
 
             // Act & Assert
-            Assert.ThrowsAny<Exception>(() => _service.GetMedicalSupplyInventoryById(id));
-            _mockRepository.Verify(repo => repo.GetMedicalSupplyInventoryById(It.IsAny<int>()), Times.Never());
+            Assert.ThrowsAny<Exception>(() => _service.GetMedicalSupplyInventoryById(medicalSupplyInventoryId));
+            _mockRepository.Verify(r => r.GetMedicalSupplyInventoryById(It.IsAny<int>()), Times.Never());
         }
     }
 }

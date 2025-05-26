@@ -2,28 +2,25 @@
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Query;
 using Moq;
+using System.Linq.Expressions;
+using static CHSMS.API.Tests.Services.PrescriptionServiceTests;
 
 namespace CHSMS.API.Test.ExternalPrescriptionTest
 {
     public class GetExternalPrescriptionDetailAsyncTests : IDisposable
     {
         private readonly Mock<IExternalPrescriptionRepository> _repositoryMock;
-        private readonly SEP_TestContext _dbContext;
+        private readonly Mock<SEP_TestContext> _dbContextMock;
         private readonly ExternalPrescriptionService _service;
 
         public GetExternalPrescriptionDetailAsyncTests()
         {
             _repositoryMock = new Mock<IExternalPrescriptionRepository>();
+            _dbContextMock = new Mock<SEP_TestContext>(new DbContextOptions<SEP_TestContext>());
 
-            var options = new DbContextOptionsBuilder<SEP_TestContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-                .Options;
-
-            _dbContext = new SEP_TestContext(options);
-            _service = new ExternalPrescriptionService(_repositoryMock.Object, _dbContext);
+            _service = new ExternalPrescriptionService(_repositoryMock.Object, _dbContextMock.Object);
         }
 
         // Helper Methods
@@ -89,6 +86,88 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
             };
         }
 
+        private void SetupMedicinePrescriptionsDbSet(List<MedicinePrescription> medicinePrescriptions)
+        {
+            var queryable = medicinePrescriptions.AsQueryable();
+            var dbSetMock = new Mock<DbSet<MedicinePrescription>>();
+
+            // Setup IQueryable
+            dbSetMock.As<IQueryable<MedicinePrescription>>().Setup(m => m.Provider).Returns(new TestAsyncQueryProvider<MedicinePrescription>(queryable.Provider));
+            dbSetMock.As<IQueryable<MedicinePrescription>>().Setup(m => m.Expression).Returns(queryable.Expression);
+            dbSetMock.As<IQueryable<MedicinePrescription>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
+            dbSetMock.As<IQueryable<MedicinePrescription>>().Setup(m => m.GetEnumerator()).Returns(queryable.GetEnumerator());
+
+            // Setup IAsyncEnumerable
+            dbSetMock.As<IAsyncEnumerable<MedicinePrescription>>()
+                .Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>()))
+                .Returns(new TestAsyncEnumerator<MedicinePrescription>(queryable.GetEnumerator()));
+
+            _dbContextMock.Setup(db => db.MedicinePrescriptions).Returns(dbSetMock.Object);
+        }
+        // Helper class for async enumeration
+        private class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
+        {
+            private readonly IQueryProvider _inner;
+
+            internal TestAsyncQueryProvider(IQueryProvider inner)
+            {
+                _inner = inner;
+            }
+
+            public IQueryable CreateQuery(Expression expression)
+            {
+                return new TestAsyncEnumerable<TEntity>(expression);
+            }
+
+            public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+            {
+                return new TestAsyncEnumerable<TElement>(expression);
+            }
+
+            public object Execute(Expression expression)
+            {
+                return _inner.Execute(expression);
+            }
+
+            public TResult Execute<TResult>(Expression expression)
+            {
+                return _inner.Execute<TResult>(expression);
+            }
+
+            public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
+            {
+                var expectedResultType = typeof(TResult).GetGenericArguments()[0];
+                var executionResult = typeof(IQueryProvider)
+                    .GetMethod(
+                        name: nameof(IQueryProvider.Execute),
+                        genericParameterCount: 1,
+                        types: new[] { typeof(Expression) })
+                    .MakeGenericMethod(expectedResultType)
+                    .Invoke(this, new[] { expression });
+
+                return (TResult)typeof(Task).GetMethod(nameof(Task.FromResult))
+                    .MakeGenericMethod(expectedResultType)
+                    .Invoke(null, new[] { executionResult });
+            }
+        }
+
+        private class TestAsyncEnumerable<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>
+        {
+            public TestAsyncEnumerable(IEnumerable<T> enumerable)
+                : base(enumerable)
+            { }
+
+            public TestAsyncEnumerable(Expression expression)
+                : base(expression)
+            { }
+
+            public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+            {
+                return new TestAsyncEnumerator<T>(this.AsEnumerable().GetEnumerator());
+            }
+
+            IQueryProvider IQueryable.Provider => new TestAsyncQueryProvider<T>(this);
+        }
         [Fact]
         public async Task GetExternalPrescriptionDetailAsync_ValidId_ReturnsPrescriptionDetailDTO()
         {
@@ -99,13 +178,7 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
 
             _repositoryMock.Setup(r => r.GetExternalPrescriptionDetailAsync(externalPrescriptionId))
                 .ReturnsAsync(prescription);
-
-            // Add medicines to in-memory database
-            foreach (var mp in medicinePrescriptions)
-            {
-                _dbContext.MedicinePrescriptions.Add(mp);
-            }
-            await _dbContext.SaveChangesAsync();
+            SetupMedicinePrescriptionsDbSet(medicinePrescriptions);
 
             // Act
             var result = await _service.GetExternalPrescriptionDetailAsync(externalPrescriptionId);
@@ -143,6 +216,7 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
             Assert.True(secondMedicine.IsBhyt);
 
             _repositoryMock.Verify(r => r.GetExternalPrescriptionDetailAsync(externalPrescriptionId), Times.Once());
+            _dbContextMock.Verify(db => db.MedicinePrescriptions, Times.AtLeastOnce());
         }
 
         [Fact]
@@ -156,6 +230,7 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
                 _service.GetExternalPrescriptionDetailAsync(externalPrescriptionId));
             Assert.Equal("ExternalPrescriptionId không hợp lệ.", exception.Message);
             _repositoryMock.Verify(r => r.GetExternalPrescriptionDetailAsync(It.IsAny<int>()), Times.Never());
+            _dbContextMock.Verify(db => db.MedicinePrescriptions, Times.Never());
         }
 
         [Fact]
@@ -171,6 +246,7 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
                 _service.GetExternalPrescriptionDetailAsync(externalPrescriptionId));
             Assert.Equal("Không tìm thấy đơn thuốc ngoài", exception.Message);
             _repositoryMock.Verify(r => r.GetExternalPrescriptionDetailAsync(externalPrescriptionId), Times.Once());
+            _dbContextMock.Verify(db => db.MedicinePrescriptions, Times.Never());
         }
 
         [Fact]
@@ -179,11 +255,9 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
             // Arrange
             int externalPrescriptionId = 1;
             var prescription = CreateDefaultPrescription(externalPrescriptionId);
-
             _repositoryMock.Setup(r => r.GetExternalPrescriptionDetailAsync(externalPrescriptionId))
                 .ReturnsAsync(prescription);
-
-            // No medicines added to the database
+            SetupMedicinePrescriptionsDbSet(new List<MedicinePrescription>()); // Empty list
 
             // Act
             var result = await _service.GetExternalPrescriptionDetailAsync(externalPrescriptionId);
@@ -193,11 +267,11 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
             Assert.Equal(externalPrescriptionId, result.ExternalPrescriptionId);
             Assert.Empty(result.Medicines);
             _repositoryMock.Verify(r => r.GetExternalPrescriptionDetailAsync(externalPrescriptionId), Times.Once());
+            _dbContextMock.Verify(db => db.MedicinePrescriptions, Times.AtLeastOnce());
         }
 
         public void Dispose()
         {
-            _dbContext.Dispose();
         }
     }
 }

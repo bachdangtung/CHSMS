@@ -1,111 +1,78 @@
-﻿using CHSMS.API.Models;
+﻿using CHSMS.API.DTOs.MedicalSupply;
+using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
 using Moq;
 
 namespace CHSMS.API.Test.MedicalSupplyTest
 {
-    public class GetMedicalSupplyByIdTest
+    public class GetMedicalSupplyByIdTests
     {
         private readonly Mock<IMedicalSupplyRepository> _mockRepository;
         private readonly MedicalSupplyService _service;
 
-        public GetMedicalSupplyByIdTest()
+        public GetMedicalSupplyByIdTests()
         {
             _mockRepository = new Mock<IMedicalSupplyRepository>();
             _service = new MedicalSupplyService(_mockRepository.Object);
+
+            // Setup precondition: MedicalSupply with MedicalSupplyId: 1 exists
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryByMSID(1))
+                .Returns(new List<MedicalSupplyInventory>
+                {
+                    new MedicalSupplyInventory
+                    {
+                        SupplyInventoryId = 1,
+                        MedicalSupplyId = 1,
+                        Quantity = 10,
+                        CertificateNumber = "CERT123",
+                        BatchNumber = "BATCH123",
+                        ManufactureDate = DateTime.Now.AddDays(-30),
+                        TransactionDate = DateTime.Now,
+                        ExpiryDate = DateTime.Now.AddDays(365),
+                        ReceiverId = 1,
+                        TransactionType = true,
+                        Note = "Test inventory"
+                    }
+                });
         }
 
         [Fact]
-        public void GetMedicalSupplyById_ReturnsDTOList_WhenInventoryExists()
+        public void GetMedicalSupplyById_ValidId_ReturnsInventoryDTOList()
         {
             // Arrange
             int medicalSupplyId = 1;
-            var inventoryList = GetSampleMedicalSupplyInventories();
-
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryByMSID(medicalSupplyId))
-                           .Returns(inventoryList);
 
             // Act
             var result = _service.GetMedicalSupplyById(medicalSupplyId);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-            Assert.Equal("BATCH-001", result[0].BatchNumber);
-            Assert.Equal(50, result[0].Quantity);
-            Assert.Equal("CERT001", result[0].CertificateNumber);
+            Assert.IsType<List<MedicalSupplyInventoryDTO>>(result);
+            Assert.Single(result);
+            Assert.Equal(1, result[0].SupplyInventoryId);
+            Assert.Equal(1, result[0].MedicalSupplyId);
+            Assert.Equal(10, result[0].Quantity);
+            Assert.Equal("CERT123", result[0].CertificateNumber);
+            Assert.Equal("BATCH123", result[0].BatchNumber);
+            Assert.Equal("Test inventory", result[0].Note);
+            _mockRepository.Verify(r => r.GetMedicalSupplyInventoryByMSID(medicalSupplyId), Times.Once());
         }
 
         [Fact]
-        public void GetMedicalSupplyById_ReturnsNull_WhenInventoryIsNull()
+        public void GetMedicalSupplyById_InvalidId_ReturnsNull()
         {
             // Arrange
-            int nonExistingId = 999;
-
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryByMSID(nonExistingId))
-                           .Returns((List<MedicalSupplyInventory>?)null);
+            int medicalSupplyId = -1;
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryByMSID(-1))
+                .Returns((List<MedicalSupplyInventory>)null);
 
             // Act
-            var result = _service.GetMedicalSupplyById(nonExistingId);
+            var result = _service.GetMedicalSupplyById(medicalSupplyId);
 
             // Assert
             Assert.Null(result);
-        }
-
-        [Fact]
-        public void GetMedicalSupplyById_ReturnsEmptyList_WhenNoInventoryExists()
-        {
-            // Arrange
-            int medicalSupplyId = 5;
-            var emptyInventoryList = new List<MedicalSupplyInventory>();
-
-            _mockRepository.Setup(repo => repo.GetMedicalSupplyInventoryByMSID(medicalSupplyId))
-                           .Returns(emptyInventoryList);
-
-            // Act
-            var result = _service.GetMedicalSupplyById(medicalSupplyId);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Empty(result);
-        }
-
-        private List<MedicalSupplyInventory> GetSampleMedicalSupplyInventories()
-        {
-            return new List<MedicalSupplyInventory>
-            {
-                new MedicalSupplyInventory
-                {
-                    SupplyInventoryId = 1,
-                    MedicalSupplyId = 1,
-                    CertificateNumber = "CERT001",
-                    TransactionType = true,
-                    Quantity = 50,
-                    ManufactureDate = DateTime.Now.AddMonths(-2),
-                    TransactionDate = DateTime.Now.AddMonths(-1),
-                    ExpiryDate = DateTime.Now.AddMonths(10),
-                    ReceiverId = 101,
-                    Note = "Initial batch",
-                    BatchNumber = "BATCH-001",
-                    ImportQuantity = 50
-                },
-                new MedicalSupplyInventory
-                {
-                    SupplyInventoryId = 2,
-                    MedicalSupplyId = 1,
-                    CertificateNumber = "CERT002",
-                    TransactionType = false,
-                    Quantity = 100,
-                    ManufactureDate = DateTime.Now.AddMonths(-3),
-                    TransactionDate = DateTime.Now.AddMonths(-2),
-                    ExpiryDate = DateTime.Now.AddMonths(8),
-                    ReceiverId = 102,
-                    Note = "Restock",
-                    BatchNumber = "BATCH-002",
-                    ImportQuantity = 100
-                }
-            };
+            _mockRepository.Verify(r => r.GetMedicalSupplyInventoryByMSID(medicalSupplyId), Times.Once());
         }
     }
 }

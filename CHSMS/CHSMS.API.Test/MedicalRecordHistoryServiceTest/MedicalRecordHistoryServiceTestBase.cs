@@ -4,7 +4,7 @@ using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
 using Moq;
 
-namespace CHSMS.API.Tests.Services
+namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
 {
     public class MedicalRecordHistoryServiceTestBase
     {

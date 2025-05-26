@@ -1,4 +1,5 @@
 ﻿using CHSMS.API.DTOs.MedicalSupply;
+using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
 using Moq;
@@ -14,85 +15,116 @@ namespace CHSMS.API.Test.MedicalSupplyTest
         {
             _mockRepository = new Mock<IMedicalSupplyRepository>();
             _service = new MedicalSupplyService(_mockRepository.Object);
+
+            // Setup precondition: MedicalSupplyInventory with MedicalSupplyId: 1, ImportQuantity: 100 exists
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryById(1))
+                .Returns(new MedicalSupplyInventory
+                {
+                    SupplyInventoryId = 1,
+                    MedicalSupplyId = 1,
+                    ImportQuantity = 100,
+                    Quantity = 50,
+                    CertificateNumber = "CERT123",
+                    BatchNumber = "BATCH123",
+                    ManufactureDate = DateTime.Now.AddDays(-30),
+                    TransactionDate = DateTime.Now,
+                    ExpiryDate = DateTime.Now.AddDays(365),
+                    ReceiverId = 1,
+                    TransactionType = true,
+                    Note = "Test"
+                });
         }
 
-        /*        [Fact]
-                public void UpdateMedicalSupplyInventory_ReturnsTrue_WhenRepositoryUpdateSucceeds()
-                {
-                    // Arrange
-                    var dto = CreateMedicalSupplyInventoryDTO();
-                    _mockRepository.Setup(repo => repo.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()))
-                                   .Returns(true);
-
-                    // Act
-                    var result = _service.UpdateMedicalSupplyInventory(dto);
-
-                    // Assert
-                    Assert.True(result);
-                    _mockRepository.Verify(repo => repo.UpdateMedicalSupplyInventory(It.Is<List<MedicalSupplyInventory>>(list =>
-                        list.Count == 1 &&
-                        list[0].SupplyInventoryId == dto.SupplyInventoryId &&
-                        list[0].MedicalSupplyId == dto.MedicalSupplyId &&
-                        list[0].Quantity == dto.Quantity &&
-                        list[0].CertificateNumber == dto.CertificateNumber &&
-                        list[0].Note == dto.Note)), Times.Once());
-                }
-
-                [Fact]
-                public void UpdateMedicalSupplyInventory_ReturnsFalse_WhenRepositoryUpdateFails()
-                {
-                    // Arrange
-                    var dto = CreateMedicalSupplyInventoryDTO();
-                    _mockRepository.Setup(repo => repo.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()))
-                                   .Returns(false);
-
-                    // Act
-                    var result = _service.UpdateMedicalSupplyInventory(dto);
-
-                    // Assert
-                    Assert.False(result);
-                    _mockRepository.Verify(repo => repo.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Once());
-                }
-
-                [Fact]
-                public void UpdateMedicalSupplyInventory_ThrowsException_WhenMedicalSupplyIdIsNull()
-                {
-                    // Arrange
-                    var dto = CreateMedicalSupplyInventoryDTO();
-                    dto.MedicalSupplyId = null;
-
-                    // Act & Assert
-                    Assert.Throws<InvalidOperationException>(() => _service.UpdateMedicalSupplyInventory(dto));
-                    _mockRepository.Verify(repo => repo.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Never());
-                }
-
-                [Fact]
-                public void UpdateMedicalSupplyInventory_ThrowsException_WhenDTOIsNull()
-                {
-                    // Arrange
-                    MedicalSupplyInventoryDTO dto = null;
-
-                    // Act & Assert
-                    Assert.ThrowsAny<Exception>(() => _service.UpdateMedicalSupplyInventory(dto));
-                    _mockRepository.Verify(repo => repo.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Never());
-                }*/
-
-        private MedicalSupplyInventoryDTO CreateMedicalSupplyInventoryDTO()
+        [Fact]
+        public void UpdateMedicalSupplyInventory_ValidDTO_ReturnsTrue()
         {
-            return new MedicalSupplyInventoryDTO
+            // Arrange
+            var dto = new MedicalSupplyInventoryDTO
             {
                 SupplyInventoryId = 1,
                 MedicalSupplyId = 1,
-                CertificateNumber = "CERT001",
+                Quantity = 80,
+                CertificateNumber = "CERT123",
+                BatchNumber = "BATCH123",
+                ManufactureDate = DateTime.Now.AddDays(-30),
+                TransactionDate = DateTime.Now,
+                ExpiryDate = DateTime.Now.AddDays(365),
+                ReceiverId = 1,
                 TransactionType = true,
-                Quantity = 50,
-                ManufactureDate = DateTime.Now.AddMonths(-2),
-                TransactionDate = DateTime.Now.AddMonths(-1),
-                ExpiryDate = DateTime.Now.AddMonths(10),
-                ReceiverId = 101,
-                Note = "Updated batch",
-                BatchNumber = "BATCH-001"
+                Note = "Updated Test"
             };
+
+            _mockRepository.Setup(r => r.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()))
+                .Returns(true);
+
+            // Act
+            var result = _service.UpdateMedicalSupplyInventory(dto);
+
+            // Assert
+            Assert.True(result);
+            _mockRepository.Verify(r => r.UpdateMedicalSupplyInventory(It.IsAny<List<MedicalSupplyInventory>>()), Times.Once());
+        }
+
+        [Fact]
+        public void UpdateMedicalSupplyInventory_NullDTO_ThrowsException()
+        {
+            // Arrange
+            MedicalSupplyInventoryDTO dto = null;
+
+            // Act & Assert
+            var exception = Assert.Throws<Exception>(() => _service.UpdateMedicalSupplyInventory(dto));
+            Assert.Equal("Medical supply inventory is not valid", exception.Message);
+        }
+
+        [Fact]
+        public void UpdateMedicalSupplyInventory_InvalidSupplyInventoryId_ThrowsException()
+        {
+            // Arrange
+            var dto = new MedicalSupplyInventoryDTO
+            {
+                SupplyInventoryId = -1,
+                MedicalSupplyId = 1,
+                Quantity = 50,
+                CertificateNumber = "CERT123",
+                BatchNumber = "BATCH123",
+                ManufactureDate = DateTime.Now.AddDays(-30),
+                TransactionDate = DateTime.Now,
+                ExpiryDate = DateTime.Now.AddDays(365),
+                ReceiverId = 1,
+                TransactionType = true,
+                Note = "Test"
+            };
+
+            _mockRepository.Setup(r => r.GetMedicalSupplyInventoryById(-1))
+                .Returns((MedicalSupplyInventory)null);
+
+            // Act & Assert
+            var exception = Assert.Throws<Exception>(() => _service.UpdateMedicalSupplyInventory(dto));
+            Assert.Equal("Medical supply inventory is not exist", exception.Message);
+        }
+
+        [Fact]
+        public void UpdateMedicalSupplyInventory_QuantityExceedsImportQuantity_ThrowsException()
+        {
+            // Arrange
+            var dto = new MedicalSupplyInventoryDTO
+            {
+                SupplyInventoryId = 1,
+                MedicalSupplyId = 1,
+                Quantity = 200,
+                CertificateNumber = "CERT123",
+                BatchNumber = "BATCH123",
+                ManufactureDate = DateTime.Now.AddDays(-30),
+                TransactionDate = DateTime.Now,
+                ExpiryDate = DateTime.Now.AddDays(365),
+                ReceiverId = 1,
+                TransactionType = true,
+                Note = "Test"
+            };
+
+            // Act & Assert
+            var exception = Assert.Throws<Exception>(() => _service.UpdateMedicalSupplyInventory(dto));
+            Assert.Equal("Số lượng tồn không hợp lệ", exception.Message);
         }
     }
 }

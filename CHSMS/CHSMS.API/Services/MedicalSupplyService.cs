@@ -66,7 +66,8 @@ namespace CHSMS.API.Services
                 if (GetMedicalSupplyById(item.MedicalSupplyId.Value) == null)
                 {
                     throw new Exception("Vật tư với ID " + item.MedicalSupplyId.Value + " không tồn tại");
-                }else if (_medicalSupplyReposotory.isExistMedicalSupplyInventory(item.MedicalSupplyId.Value, item.BatchNumber, item.CertificateNumber))
+                }
+                else if (_medicalSupplyReposotory.isExistMedicalSupplyInventory(item.MedicalSupplyId.Value, item.BatchNumber, item.CertificateNumber))
                 {
                     throw new Exception("Vật tư đã tồn tại trong kho");
                 }

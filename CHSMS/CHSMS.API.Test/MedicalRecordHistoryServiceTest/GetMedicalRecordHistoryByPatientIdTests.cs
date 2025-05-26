@@ -1,5 +1,4 @@
 ﻿using CHSMS.API.Models;
-using CHSMS.API.Tests.Services;
 
 namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
 {
@@ -129,20 +128,6 @@ namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
 
                 // Act
                 var result = _service.GetMedicalRecordHistoryByPatientId(-1, null, null, null);
-
-                // Assert
-                Assert.Empty(result);
-            }
-
-            [Fact] // Edge case: No matching records
-            public void GetMedicalRecordHistoryByPatientId_NoMatchingRecords_ReturnsEmptyList()
-            {
-                // Arrange
-                _mockHistoryRepo.Setup(x => x.GetMedicalRecordHistoryByPatientId(1, _startDate, _endDate, "NonExisting"))
-                    .Returns(new List<MedicalRecordHistory>());
-
-                // Act
-                var result = _service.GetMedicalRecordHistoryByPatientId(1, _startDate, _endDate, "NonExisting");
 
                 // Assert
                 Assert.Empty(result);

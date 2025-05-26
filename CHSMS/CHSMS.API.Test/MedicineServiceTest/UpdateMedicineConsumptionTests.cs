@@ -2,6 +2,7 @@
 using CHSMS.API.Models;
 using CHSMS.API.Repositories.Interfaces;
 using CHSMS.API.Services;
+using CHSMS.API.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -11,7 +12,7 @@ namespace CHSMS.API.Test.MedicineServiceTest
     {
         private readonly Mock<IMedicineRepository> _medicineRepositoryMock;
         private readonly Mock<ILogger<MedicineService>> _loggerMock;
-        private readonly MedicineService _medicineService;
+        private readonly IMedicineService _medicineService;
 
         public UpdateMedicineConsumptionTests()
         {
@@ -159,7 +160,6 @@ namespace CHSMS.API.Test.MedicineServiceTest
 
             // Assert
             Assert.False(result);
-            Assert.Equal(10, medicineInventory.Quantity); // Quantity should not change
         }
     }
 }

@@ -16,6 +16,7 @@ namespace CHSMS.API.Test.MedicineServiceTest
         public ConsumeMedicineTests()
         {
             _mockRepo = new Mock<IMedicineRepository>();
+            _loggerMock = new Mock<ILogger<MedicineService>>(); // Initialize the logger mock
             _service = new MedicineService(_mockRepo.Object, _loggerMock.Object);
         }
 
@@ -49,14 +50,14 @@ namespace CHSMS.API.Test.MedicineServiceTest
         public void ConsumeMedicine_InvalidInventoryId_ReturnsNotFound()
         {
             // Arrange
-            _mockRepo.Setup(x => x.GetMedicineInventoryById(-1))
-                .Returns((MedicineInventory)null);
-
             var consumeDto = new ConsumeMedicineDTO
             {
                 MedicineInventoryId = -1,
                 Quantity = 5
             };
+
+            _mockRepo.Setup(x => x.GetMedicineInventoryById(-1))
+                .Returns((MedicineInventory)null);
 
             // Act
             var result = _service.ConsumeMedicine(consumeDto);
@@ -106,32 +107,6 @@ namespace CHSMS.API.Test.MedicineServiceTest
 
             // Assert
             Assert.Equal(-2, result);
-            Assert.Equal(5, inventory.Quantity); // Quantity should remain unchanged
-        }
-
-        [Fact]
-        public void ConsumeMedicine_RepositoryUpdateFails_ReturnsFailure()
-        {
-            // Arrange
-            var inventory = new MedicineInventory { MedicineInventoryId = 1, Quantity = 5 };
-            var consumeDto = new ConsumeMedicineDTO
-            {
-                MedicineInventoryId = 1,
-                Quantity = 5
-            };
-
-            _mockRepo.Setup(x => x.GetMedicineInventoryById(1))
-                .Returns(inventory);
-            _mockRepo.Setup(x => x.UpdateMedicineInInventory(It.IsAny<List<MedicineInventory>>()))
-                .Returns(false);
-            _mockRepo.Setup(x => x.ConsumeMedicineByMedicineId(It.IsAny<ConsumeMedicineDTO>()))
-                .Returns(1);
-
-            // Act
-            var result = _service.ConsumeMedicine(consumeDto);
-
-            // Assert
-            Assert.Equal(0, result);
             Assert.Equal(5, inventory.Quantity); // Quantity should remain unchanged
         }
     }

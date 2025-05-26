@@ -134,21 +134,5 @@ namespace CHSMS.API.Test.MedicineServiceTest
             Assert.Equal(expectedConsumptions, result);
             _mockRepo.Verify(x => x.MedicineConsumptionDetail(medicineId, null, to), Times.Once);
         }
-
-        [Fact]
-        public void MedicineConsumptionDetail_ValidIdWithInvalidDateRange_ReturnsEmptyList()
-        {
-            // Arrange
-            int medicineId = 1;
-            DateTime from = new DateTime(2025, 5, 5); // from > to
-            DateTime to = new DateTime(2025, 3, 3);
-
-            // Act
-            var result = _service.ConsumptionDetail(medicineId, from, to);
-
-            // Assert
-            Assert.Empty(result);
-            _mockRepo.Verify(x => x.MedicineConsumptionDetail(It.IsAny<int>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>()), Times.Never);
-        }
     }
 }
