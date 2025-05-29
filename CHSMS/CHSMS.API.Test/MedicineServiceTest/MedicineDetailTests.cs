@@ -18,7 +18,7 @@ namespace CHSMS.API.Test.MedicineServiceTest
             _medicineRepositoryMock = new Mock<IMedicineRepository>();
             _contextMock = new Mock<SEP_TestContext>();
             _loggerMock = new Mock<ILogger<MedicineService>>();
-            _service = new MedicineService(_medicineRepositoryMock.Object, _contextMock.Object, _loggerMock.Object);
+            _service = new MedicineService(_medicineRepositoryMock.Object, _loggerMock.Object);
         }
 
         [Fact]
