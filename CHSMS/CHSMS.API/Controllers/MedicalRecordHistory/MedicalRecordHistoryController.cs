@@ -37,8 +37,6 @@ namespace CHSMS.API.Controllers.MedicalRecord
         public IActionResult GetMedicalRecordHistoryByPatientId(int Pid, DateTime? startDate, DateTime? endDate, string? doctorName)
         {
             var record = _medicalRecordHistoryService.GetMedicalRecordHistoryByPatientId(Pid, startDate, endDate, doctorName);
-            if (record == null || !record.Any())
-                return NotFound();
             return Ok(record);
         }
 

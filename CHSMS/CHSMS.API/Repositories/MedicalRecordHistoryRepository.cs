@@ -68,7 +68,9 @@ namespace CHSMS.API.Repositories
 
             if (endDate.HasValue)
             {
-                query = query.Where(x => x.Date <= endDate);
+                // add 1 ngày vào endDate để lọc đúng ngày
+                var endDatePlusOne = endDate.Value.AddDays(1);
+                query = query.Where(x => x.Date < endDatePlusOne);
             }
 
             if (!string.IsNullOrEmpty(doctorName))
