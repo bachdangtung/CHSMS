@@ -400,7 +400,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<PrescriptionMedicineConsumption>(entity =>
             {
-                entity.HasKey(e => new { e.PrescriptionId, e.MedicineConsumtionId });
+                entity.HasKey(e => new { e.MedicineConsumtionId, e.PrescriptionId });
 
                 entity.ToTable("Prescription_MedicineConsumption");
 
@@ -445,7 +445,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<UseMedicalSuppliesMedicalSupplyConsumption>(entity =>
             {
-                entity.HasKey(e => new { e.UseMedicalSupplieId, e.MsconsumptionId });
+                entity.HasKey(e => new { e.MsconsumptionId, e.UseMedicalSupplieId });
 
                 entity.ToTable("UseMedicalSupplies_MedicalSupplyConsumption");
 
