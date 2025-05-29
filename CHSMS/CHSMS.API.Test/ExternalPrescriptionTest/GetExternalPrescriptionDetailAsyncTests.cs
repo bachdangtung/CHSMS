@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Moq;
 using System.Linq.Expressions;
-using static CHSMS.API.Tests.Services.PrescriptionServiceTests;
 
 namespace CHSMS.API.Test.ExternalPrescriptionTest
 {
@@ -270,6 +269,28 @@ namespace CHSMS.API.Test.ExternalPrescriptionTest
             _dbContextMock.Verify(db => db.MedicinePrescriptions, Times.AtLeastOnce());
         }
 
+        private class TestAsyncEnumerator<T> : IAsyncEnumerator<T>
+        {
+            private readonly IEnumerator<T> _inner;
+
+            public TestAsyncEnumerator(IEnumerator<T> inner)
+            {
+                _inner = inner;
+            }
+
+            public T Current => _inner.Current;
+
+            public ValueTask DisposeAsync()
+            {
+                _inner.Dispose();
+                return ValueTask.CompletedTask;
+            }
+
+            public ValueTask<bool> MoveNextAsync()
+            {
+                return ValueTask.FromResult(_inner.MoveNext());
+            }
+        }
         public void Dispose()
         {
         }

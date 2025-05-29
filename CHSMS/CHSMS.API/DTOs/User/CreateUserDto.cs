@@ -13,10 +13,12 @@ namespace CHSMS.API.DTOs.User
         [MinimumAge(18, ErrorMessage = "Người dùng phải trên 18")]
         public DateTime? Dob { get; set; }
         [Required(ErrorMessage = "Hãy nhập Email!")]
-        [EmailAddress]
+        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+    ErrorMessage = "Hãy nhập Email hợp lệ (ví dụ: user@example.com)")]
         public string? Email { get; set; }
         [Required(ErrorMessage = "Hãy nhập vai trò")]
         public int? RoleId { get; set; }
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
     }

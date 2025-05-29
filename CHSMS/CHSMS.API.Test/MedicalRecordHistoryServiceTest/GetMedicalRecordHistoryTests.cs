@@ -1,5 +1,4 @@
 ﻿using CHSMS.API.Models;
-using CHSMS.API.Tests.Services;
 
 namespace CHSMS.API.Test.MedicalRecordHistoryServiceTest
 {

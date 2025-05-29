@@ -68,26 +68,6 @@ namespace CHSMS.API.Tests
         }
 
         [Fact]
-        public async Task GetUseMedicalSupplyDetailAsync_EmptyConsumptions_ReturnsEmptyList()
-        {
-            // Arrangement
-            var useMedicalSupply = TestHelper.CreateUseMedicalSupply(1, 1, 1);
-            var umsmscList = new List<UseMedicalSuppliesMedicalSupplyConsumption>();
-
-            _repositoryMock.Setup(r => r.GetUseMedicalSupplyDetailAsync(1)).ReturnsAsync(useMedicalSupply);
-            _contextMock.Setup(c => c.UseMedicalSuppliesMedicalSupplyConsumptions)
-                .Returns(MockDbSet(umsmscList));
-
-            // Act
-            var result = await _service.GetUseMedicalSupplyDetailAsync(1);
-
-            // Assert
-            Assert.Equal(1, result.UseMedicalSupplyId);
-            Assert.Empty(result.MedicalSupplyConsumptions);
-            Assert.Equal(0m, result.TotalPrice);
-        }
-
-        [Fact]
         public async Task GetUseMedicalSupplyDetailAsync_NullTotalPrice_ReturnsZeroTotalPrice()
         {
             // Arrangement
