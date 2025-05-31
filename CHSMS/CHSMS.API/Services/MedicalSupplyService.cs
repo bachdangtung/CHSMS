@@ -100,11 +100,11 @@ namespace CHSMS.API.Services
 
             List<MedicalSupplyInventory> medicalSupplyInventories = new List<MedicalSupplyInventory>();
             if (medicalSupplyInventoryDTO == null)
-                throw new Exception("Medical supply inventory is not valid");
+                throw new Exception("Vật tư không hợp lệ");
             var medicalSupplyInventory = _medicalSupplyReposotory.GetMedicalSupplyInventoryById(medicalSupplyInventoryDTO.SupplyInventoryId);
             if (medicalSupplyInventory == null)
             {
-                throw new Exception("Medical supply inventory is not exist");
+                throw new Exception("Vật tư không tồn tại");
             }
             if (medicalSupplyInventoryDTO.Quantity > medicalSupplyInventory.ImportQuantity)
             {
@@ -349,7 +349,7 @@ namespace CHSMS.API.Services
                 var medicalSupplyInventoryStatistic = ConvertMedicalSupplyInventoryStatisticFromDTO(item);
                 if (item.MsinventoryId == null || item.Quantity == null || item.ActualQuantity == null || item.StatisticPerson == null || item.StatisticDate == null)
                 {
-                    throw new Exception("Medical supply inventory statistic is not valid");
+                    throw new Exception("Kiểm kê vật tư không hợp lệ");
                 }
                 else
                 if ((list.Count > 0) && (list.Any(x => x.MsinventoryId == medicalSupplyInventoryStatistic.MsinventoryId) == true))
