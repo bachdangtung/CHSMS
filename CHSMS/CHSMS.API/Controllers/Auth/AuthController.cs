@@ -112,7 +112,11 @@ namespace CHSMS.API.Controllers.Auth
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                var errorResponse = new Dictionary<string, string[]>
+        {
+            { "", new[] { ex.Message } }
+        };
+                return BadRequest(errorResponse);
             }
         }
 
@@ -175,14 +179,25 @@ namespace CHSMS.API.Controllers.Auth
             {
                 return BadRequest(ModelState);
             }
-            var userId = int.Parse(User.FindFirst("Id")?.Value);
-            var result = await _authService.EditUserProfileAsync(userId, editUserProfileDto);
-            if (!result)
+            try
             {
-                return BadRequest("Cập nhật hồ sơ thất bại.");
-            }
+                var userId = int.Parse(User.FindFirst("Id")?.Value);
+                var result = await _authService.EditUserProfileAsync(userId, editUserProfileDto);
+                if (!result)
+                {
+                    return BadRequest("Cập nhật hồ sơ thất bại.");
+                }
 
-            return Ok("Hồ sơ đã được cập nhật thành công.");
+                return Ok("Hồ sơ đã được cập nhật thành công.");
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new Dictionary<string, string[]>
+        {
+            { "", new[] { ex.Message } }
+        };
+                return BadRequest(errorResponse);
+            }
         }
 
         /*        [Authorize]
