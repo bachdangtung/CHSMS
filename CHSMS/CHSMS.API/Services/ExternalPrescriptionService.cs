@@ -116,52 +116,70 @@ namespace CHSMS.API.Services
             prescription.IsBhyt = false; // Đơn ngoài luôn không thuộc BHYT
             await _repository.UpdateExternalPrescriptionAsync(prescription);
 
-            // Xóa các Medicine_Prescription được chỉ định
-            foreach (var medicineId in dto.MedicinePrescriptionIdsToRemove)
-            {
-                await _repository.DeleteMedicinePrescriptionAsync(dto.ExternalPrescriptionId, medicineId);
-            }
-
-
-            
+            // Lấy danh sách MedicinePrescription hiện tại
             var existingMedicines = await _repository.GetMedicinePrescriptionsByPrescriptionIdAsync(dto.ExternalPrescriptionId);
 
-            // Kiểm tra xem sau khi xóa, đơn thuốc có còn thuốc nào không
+            // Xóa các MedicinePrescription được chỉ định
+            if (dto.MedicinePrescriptionIdsToRemove != null && dto.MedicinePrescriptionIdsToRemove.Any())
+            {
+                foreach (var medicineId in dto.MedicinePrescriptionIdsToRemove)
+                {
+                    try
+                    {
+                        await _repository.DeleteMedicinePrescriptionAsync(dto.ExternalPrescriptionId, medicineId);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Lỗi khi xóa MedicinePrescription với MedicineId: {medicineId}. Chi tiết: {ex.Message}");
+                    }
+                }
+            }
+
+            // Cập nhật lại danh sách sau khi xóa
+            existingMedicines = await _repository.GetMedicinePrescriptionsByPrescriptionIdAsync(dto.ExternalPrescriptionId);
+
+            // Kiểm tra số lượng thuốc trong đơn
+            var medicinesToAddCount = dto.MedicinesToAdd?.Count ?? 0;
+            if (existingMedicines.Count + medicinesToAddCount > 10)
+                throw new Exception("Một đơn thuốc không được chứa quá 10 loại thuốc!");
+
+            // Kiểm tra xem đơn thuốc có ít nhất một loại thuốc
             if (!existingMedicines.Any() && (dto.MedicinesToAdd == null || !dto.MedicinesToAdd.Any()))
                 throw new Exception("Đơn thuốc phải có ít nhất một loại thuốc!");
 
-            // Kiểm tra số lượng thuốc trong đơn
-            if (existingMedicines.Count + dto.MedicinesToAdd.Count > 10)
-                throw new Exception("Một đơn thuốc không được chứa quá 10 loại thuốc!");
-
             // Kiểm tra trùng MedicineId
-            var medicineIds = dto.MedicinesToAdd.Select(mc => mc.MedicineId).ToList();
-            if (medicineIds.Distinct().Count() != medicineIds.Count)
-                throw new Exception("Có thuốc bị trùng trong danh sách thêm mới. Vui lòng kiểm tra lại!");
-
-            // Kiểm tra thuốc hợp lệ và thêm mới
-            var validMedicines = await _repository.GetMedicinesForExternalPrescriptionAsync();
-            foreach (var medDto in dto.MedicinesToAdd)
+            if (dto.MedicinesToAdd != null && dto.MedicinesToAdd.Any())
             {
-                // Kiểm tra thuốc hợp lệ (Status = true, IsBHYT = false)
-                var medicine = validMedicines.FirstOrDefault(m => m.MedicineId == medDto.MedicineId);
-                if (medicine == null)
-                    throw new Exception($"Không tìm thấy thuốc với ID: {medDto.MedicineId} hoặc thuốc không hoạt động!");
+                var medicineIds = dto.MedicinesToAdd.Select(mc => mc.MedicineId).ToList();
+                if (medicineIds.Distinct().Count() != medicineIds.Count)
+                    throw new Exception("Có thuốc bị trùng trong danh sách thêm mới. Vui lòng kiểm tra lại!");
 
-                // Kiểm tra Amount hợp lệ
-                if (medDto.Amount <= 0)
-                    throw new Exception($"Số lượng thuốc ID: {medDto.MedicineId} phải lớn hơn 0!");
-
-                // Tạo Medicine_Prescription mới
-                var medicinePrescription = new MedicinePrescription
+                // Kiểm tra thuốc hợp lệ và thêm mới
+                var validMedicines = await _repository.GetMedicinesForExternalPrescriptionAsync();
+                foreach (var medDto in dto.MedicinesToAdd)
                 {
-                    ExternalPrescriptionId = dto.ExternalPrescriptionId,
-                    MedicineId = medDto.MedicineId,
-                    Amount = medDto.Amount,
-                    Note = medDto.Note
-                };
-                await _repository.CreateExternalMedicinePrescriptionAsync(medicinePrescription);
+                    var medicine = validMedicines.FirstOrDefault(m => m.MedicineId == medDto.MedicineId);
+                    if (medicine == null)
+                        throw new Exception($"Không tìm thấy thuốc với ID: {medDto.MedicineId} hoặc thuốc không hoạt động!");
+
+                    if (medDto.Amount <= 0)
+                        throw new Exception($"Số lượng thuốc ID: {medDto.MedicineId} phải lớn hơn 0!");
+
+                    var medicinePrescription = new MedicinePrescription
+                    {
+                        ExternalPrescriptionId = dto.ExternalPrescriptionId,
+                        MedicineId = medDto.MedicineId,
+                        Amount = medDto.Amount,
+                        Note = medDto.Note
+                    };
+                    await _repository.CreateExternalMedicinePrescriptionAsync(medicinePrescription);
+                }
             }
+
+            // Kiểm tra cuối cùng: đảm bảo đơn thuốc có ít nhất một MedicinePrescription
+            existingMedicines = await _repository.GetMedicinePrescriptionsByPrescriptionIdAsync(dto.ExternalPrescriptionId);
+            if (!existingMedicines.Any())
+                throw new Exception("Đơn thuốc phải có ít nhất một loại thuốc sau khi chỉnh sửa!");
         }
 
 
