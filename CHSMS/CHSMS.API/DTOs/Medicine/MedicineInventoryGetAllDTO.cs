@@ -12,6 +12,8 @@
         public double? Quantity { get; set; }
         public double? ImportPrice { get; set; }
         public double? SellingPrice { get; set; }
+        public DateTime? TransactionDate { get; set; }
+
         public DateTime? ManufacturingDate { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public int? ShelfLife { get; set; }

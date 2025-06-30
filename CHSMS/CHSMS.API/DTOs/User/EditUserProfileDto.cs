@@ -15,7 +15,7 @@ namespace CHSMS.API.DTOs.User
         [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
     ErrorMessage = "Hãy nhập Email hợp lệ (ví dụ: user@example.com)")]
         public string? Email { get; set; }
-        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+        [RegularExpression(@"^0\d{9}$", ErrorMessage = "Số điện thoại phải bắt đầu bằng 0 và có đúng 10 chữ số")]
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
     }

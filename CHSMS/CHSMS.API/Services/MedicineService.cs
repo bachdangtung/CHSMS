@@ -35,6 +35,7 @@ namespace CHSMS.API.Services
                 BidNumber = inventory.Medicine?.BidNumber ?? "Không rõ",
                 BatchNumber = inventory.BatchNumber,
                 Quantity = inventory.Quantity,
+                TransactionDate = inventory.TransactionDate,
                 ManufacturingDate = inventory.ManufacturingDate,
                 ExpiryDate = inventory.ExpiryDate,
                 IsBhyt = inventory.Medicine?.IsBhyt ?? false,

@@ -18,7 +18,8 @@ namespace CHSMS.API.DTOs.User
         public string? Email { get; set; }
         [Required(ErrorMessage = "Hãy nhập vai trò")]
         public int? RoleId { get; set; }
-        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
+
+        [RegularExpression(@"^0\d{9}$", ErrorMessage = "Số điện thoại phải bắt đầu bằng 0 và có đúng 10 chữ số")]
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
     }
