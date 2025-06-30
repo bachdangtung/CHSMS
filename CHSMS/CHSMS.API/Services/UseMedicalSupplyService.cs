@@ -207,7 +207,7 @@ public class UseMedicalSupplyService : IUseMedicalSupplyService
                 throw new Exception($"Không tìm thấy đơn vật tư với ID: {dto.UseMedicalSupplyId}");
 
             // Business Rule: Chỉ cho phép chỉnh sửa trong cùng ngày với IssueDate
-            if (!useMedicalSupply.IssueDate.HasValue || useMedicalSupply.IssueDate.Value.Date != DateTime.UtcNow.Date)
+            if (!useMedicalSupply.IssueDate.HasValue || useMedicalSupply.IssueDate.Value.Date != DateTime.Now)
                 throw new Exception("Chỉ được chỉnh sửa trạng thái đơn vật tư trong ngày phát hành đơn vật tư!");
 
             bool hasAnyConsumptionDispensed = false; // Biến để kiểm tra xem có MedicalSupplyConsumption nào được cấp phát không
