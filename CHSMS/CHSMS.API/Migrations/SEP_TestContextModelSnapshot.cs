@@ -535,9 +535,10 @@ namespace CHSMS.API.Migrations
 
             modelBuilder.Entity("CHSMS.API.Models.MedicineInventoryStatistic", b =>
                 {
-                    b.Property<int>("MedicineInventoryId")
+                    b.Property<int>("MedicineInventoryStatisticsId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasColumnName("MedicineInventoryID");
+                        .HasColumnName("MedicineInventoryStatisticsID");
 
                     b.Property<double>("ActualQuantity")
                         .HasColumnType("double");
@@ -551,10 +552,9 @@ namespace CHSMS.API.Migrations
                     b.Property<bool>("IsUpdate")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int>("MedicineInventoryStatisticsId")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("MedicineInventoryId")
                         .HasColumnType("int")
-                        .HasColumnName("MedicineInventoryStatisticsID");
+                        .HasColumnName("MedicineInventoryID");
 
                     b.Property<string>("Note")
                         .HasColumnType("longtext");
@@ -571,7 +571,9 @@ namespace CHSMS.API.Migrations
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime");
 
-                    b.HasKey("MedicineInventoryId");
+                    b.HasKey("MedicineInventoryStatisticsId");
+
+                    b.HasIndex("MedicineInventoryId");
 
                     b.ToTable("MedicineInventoryStatistics");
                 });

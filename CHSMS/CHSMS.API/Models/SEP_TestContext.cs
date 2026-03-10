@@ -38,15 +38,17 @@ namespace CHSMS.API.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var builder = new ConfigurationBuilder()
-                              .SetBasePath(Directory.GetCurrentDirectory())
-                              .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            if (!optionsBuilder.IsConfigured)
+            {
+                var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json");
 
-            IConfigurationRoot configuration = builder.Build();
+                var configuration = builder.Build();
+                var connectionString = configuration.GetConnectionString("SEP_DB");
 
-            var connectionString = configuration.GetConnectionString("SEP_DB");
-
-            optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -331,7 +333,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<MedicineInventoryStatistic>(entity =>
             {
-                entity.HasKey(x => x.MedicineInventoryId);
+                entity.HasKey(x => x.MedicineInventoryStatisticsId);
 
                 entity.Property(e => e.ConfirmDate).HasColumnType("datetime");
 

@@ -448,9 +448,9 @@ namespace CHSMS.API.Migrations
                 name: "MedicineInventoryStatistics",
                 columns: table => new
                 {
-                    MedicineInventoryID = table.Column<int>(type: "int", nullable: false),
                     MedicineInventoryStatisticsID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    MedicineInventoryID = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<double>(type: "double", nullable: false),
                     ActualQuantity = table.Column<double>(type: "double", nullable: false),
                     StatisticPerson = table.Column<int>(type: "int", nullable: false),
@@ -464,7 +464,7 @@ namespace CHSMS.API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MedicineInventoryStatistics", x => x.MedicineInventoryID);
+                    table.PrimaryKey("PK_MedicineInventoryStatistics", x => x.MedicineInventoryStatisticsID);
                     table.ForeignKey(
                         name: "FK_MedicineInventoryStatistics_MedicineInventory",
                         column: x => x.MedicineInventoryID,
@@ -669,6 +669,11 @@ namespace CHSMS.API.Migrations
                 name: "IX_MedicineInventory_SupplierID",
                 table: "MedicineInventory",
                 column: "SupplierID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MedicineInventoryStatistics_MedicineInventoryID",
+                table: "MedicineInventoryStatistics",
+                column: "MedicineInventoryID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Prescription_MedicineConsumption_PrescriptionID",
