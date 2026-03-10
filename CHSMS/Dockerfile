@@ -4,8 +4,8 @@ WORKDIR /src
 
 COPY . .
 
-RUN dotnet restore "CHSMS.API/CHSMS.API.csproj"
-RUN dotnet publish "CHSMS.API/CHSMS.API.csproj" -c Release -o /app/publish
+RUN dotnet restore
+RUN dotnet publish -c Release -o /app/publish
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
