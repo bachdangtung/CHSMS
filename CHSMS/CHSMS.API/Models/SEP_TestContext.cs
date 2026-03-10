@@ -41,8 +41,8 @@ namespace CHSMS.API.Models
             if (!optionsBuilder.IsConfigured)
             {
                 var builder = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json");
+                    .SetBasePath(AppContext.BaseDirectory)
+                    .AddJsonFile("appsettings.json", optional: false);
 
                 var configuration = builder.Build();
                 var connectionString = configuration.GetConnectionString("SEP_DB");
