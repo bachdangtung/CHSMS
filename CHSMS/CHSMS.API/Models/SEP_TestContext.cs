@@ -41,8 +41,12 @@ namespace CHSMS.API.Models
             var builder = new ConfigurationBuilder()
                               .SetBasePath(Directory.GetCurrentDirectory())
                               .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
             IConfigurationRoot configuration = builder.Build();
-            optionsBuilder.UseSqlServer(configuration.GetConnectionString("SEP_DB"));
+
+            var connectionString = configuration.GetConnectionString("SEP_DB");
+
+            optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -327,7 +331,7 @@ namespace CHSMS.API.Models
 
             modelBuilder.Entity<MedicineInventoryStatistic>(entity =>
             {
-                entity.HasNoKey();
+                entity.HasKey(x => x.MedicineInventoryId);
 
                 entity.Property(e => e.ConfirmDate).HasColumnType("datetime");
 

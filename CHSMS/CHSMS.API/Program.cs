@@ -18,7 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("SEP_DB");
 builder.Services.AddDbContext<SEP_TestContext>(options =>
 {
-    options.UseSqlServer(connectionString);
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 
 builder.Services.AddMailKit(config => config.UseMailKit(
